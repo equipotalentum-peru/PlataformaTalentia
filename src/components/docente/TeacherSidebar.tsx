@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function StudentSidebar() {
+export default function TeacherSidebar() {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -13,7 +13,7 @@ export default function StudentSidebar() {
   const menuItems = [
     {
       label: "Dashboard",
-      href: "/alumno/dashboard",
+      href: "/docente/dashboard",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ export default function StudentSidebar() {
     },
     {
       label: "Mis Cursos",
-      href: "/alumno/cursos",
+      href: "/docente/cursos",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +51,7 @@ export default function StudentSidebar() {
     },
     {
       label: "Calificaciones",
-      href: "/alumno/calificaciones",
+      href: "/docente/calificaciones",
       icon: (
         <svg
           className="h-8 w-8"
@@ -70,30 +70,8 @@ export default function StudentSidebar() {
       ),
     },
     {
-      label: "Certificados",
-      href: "/alumno/certificados",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 48 48"
-        >
-          <path d="M0 0h48v48H0z" fill="none" />
-          <g fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M10 7v30a3 3 0 0 0 3 3h13v-3.535a4 4 0 1 1 4 0V40h5a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H13a3 3 0 0 0-3 3m18 28a2 2 0 1 0 0-4a2 2 0 0 0 0 4M18 11a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1H19a1 1 0 0 1-1-1m-3 5a1 1 0 1 0 0 2h18a1 1 0 1 0 0-2zm-1 5a1 1 0 0 1 1-1h18a1 1 0 0 1 0 2H15a1 1 0 0 1-1-1m1 3a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2z"
-              clipRule="evenodd"
-            />
-            <path d="M26 44v-4h4v4l-2-1.5z" />
-          </g>
-        </svg>
-      ),
-    },
-    {
       label: "Chat",
-      href: "/alumno/chat",
+      href: "/docente/chat",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -111,6 +89,7 @@ export default function StudentSidebar() {
     },
   ];
 
+  const profileActive = isActive("/docente/perfil");
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-[247px] flex-col border-r border-white/60 bg-[#d8e0ee]">
       {/* LOGO */}
@@ -147,24 +126,27 @@ export default function StudentSidebar() {
       {/* PERFIL */}
       <div>
         <Link
-          href="/alumno/perfil"
-          className="group flex h-[52px] w-full items-center gap-3 border-t border-white/70 px-5 text-left transition duration-200 hover:bg-white/30"
+          href="/docente/perfil"
+          className={`group flex h-[62px] w-full items-center gap-3 border-t border-white/70 px-5 text-left transition ${
+            profileActive ? "bg-white/40" : "hover:bg-white/30"
+          }`}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e8f1ff] transition group-hover:bg-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eadcff] transition group-hover:bg-white">
             <svg
-              className="h-6 w-6 text-[#516987] transition group-hover:text-[#0b315f]"
+              className="h-6 w-6 text-[#6f42a5]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
+              aria-hidden="true"
             >
               <circle cx="12" cy="8" r="3.5" />
               <path d="M5 20c.8-3.4 3.2-5.3 7-5.3s6.2 1.9 7 5.3" />
             </svg>
           </div>
 
-          <span className="text-[17px] font-medium transition group-hover:text-[#0b315f]">
-            GRAY PADILLA
+          <span className="text-[17px] font-medium text-gray-900">
+            GLORIA ROCHA
           </span>
         </Link>
 

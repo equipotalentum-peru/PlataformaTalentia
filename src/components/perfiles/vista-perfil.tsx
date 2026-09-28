@@ -1,0 +1,233 @@
+import type { ReactNode } from "react";
+
+type CampoPerfil = {
+  etiqueta: string;
+  valor: string;
+};
+
+type VistaPerfilProps = {
+  iniciales: string;
+  nombreCompleto: string;
+  usuario: string;
+  rol: "Estudiante" | "Docente";
+  correo: string;
+  etiquetaId: string;
+  numeroId: string;
+  fechaNacimiento: string;
+  genero: string;
+  nacionalidad: string;
+  direccion: string;
+  telefono: string;
+  idioma: string;
+  zonaHoraria: string;
+  tema: string;
+};
+
+function BotonEditar() {
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 rounded-md border border-[#2782df] px-3 py-1 text-sm text-[#2782df] transition hover:bg-[#e8f3ff]"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        className="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34a.995.995 0 0 0-1.41 0l-1.84 1.83l3.75 3.75l1.84-1.83M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z" />
+      </svg>
+      <span>Editar</span>
+    </button>
+  );
+}
+
+function TarjetaInformacion({
+  titulo,
+  icono,
+  campos,
+  editable = true,
+  className = "",
+}: {
+  titulo: string;
+  icono: ReactNode;
+  campos: CampoPerfil[];
+  editable?: boolean;
+  className?: string;
+}) {
+  return (
+    <section className={`rounded-lg bg-white p-3 ${className}`}>
+      <div className="mb-2 flex min-h-8 items-center justify-between">
+        <div className="flex items-center gap-2 text-[#2782df]">
+          {icono}
+          <h2 className="font-semibold">{titulo}</h2>
+        </div>
+
+        {editable && <BotonEditar />}
+      </div>
+
+      <dl className="border border-gray-300">
+        {campos.map((campo) => (
+          <div
+            key={campo.etiqueta}
+            className="grid gap-1 border-b border-gray-300 px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(150px,0.9fr)_minmax(0,1.4fr)]"
+          >
+            <dt className="font-semibold text-gray-900">
+              {campo.etiqueta}
+            </dt>
+
+            <dd className="break-words text-gray-700">
+              {campo.valor}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+export default function VistaPerfil({
+  iniciales,
+  nombreCompleto,
+  usuario,
+  rol,
+  correo,
+  etiquetaId,
+  numeroId,
+  fechaNacimiento,
+  genero,
+  nacionalidad,
+  direccion,
+  telefono,
+  idioma,
+  zonaHoraria,
+  tema,
+}: VistaPerfilProps) {
+  return (
+    <div className="min-h-screen px-6 py-8 lg:px-10">
+      <div className="mx-auto max-w-[1050px]">
+        <h1 className="mb-4 text-3xl font-semibold text-[#2782df]">
+          Mi perfil
+        </h1>
+
+        <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="relative h-28 w-28 shrink-0">
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-[#2495e9] text-3xl font-semibold text-white">
+              {iniciales}
+            </div>
+
+            <button
+              type="button"
+              aria-label="Cambiar foto de perfil"
+              className="absolute bottom-0 right-0 flex h-10 w-10 items-center justify-center rounded-full border border-[#1679ca] bg-[#2495e9] text-black"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-7 w-7"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M20 4h-3.17L15 2H9L7.17 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H4V6h4.05l1.83-2h4.24l1.83 2H20v12m-8-11a5 5 0 1 0 0 10a5 5 0 0 0 0-10m0 8a3 3 0 1 1 0-6a3 3 0 0 1 0 6" />
+              </svg>
+            </button>
+          </div>
+
+          <div>
+            <p className="text-lg font-semibold text-black">
+              {nombreCompleto}
+            </p>
+            <p className="text-base text-gray-800">{usuario}</p>
+            <span className="mt-1 inline-flex rounded-md bg-[#2495e9] px-4 py-1 text-sm text-white">
+              {rol}
+            </span>
+          </div>
+        </header>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TarjetaInformacion
+            titulo="Información básica"
+            icono={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 4a4 4 0 1 1 0 8a4 4 0 0 1 0-8m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4" />
+              </svg>
+            }
+            editable={false}
+            className="lg:col-span-2"
+            campos={[
+              { etiqueta: "Nombre completo", valor: nombreCompleto },
+              { etiqueta: "Dirección de correo electrónico", valor: correo },
+              { etiqueta: etiquetaId, valor: numeroId },
+            ]}
+          />
+
+          <TarjetaInformacion
+            titulo="Información adicional"
+            icono={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M6 2a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6m7 1.5L18.5 9H13V3.5M6 4h5v7h7v9H6V4m2 10v2h8v-2H8m0 4v2h5v-2H8" />
+              </svg>
+            }
+            campos={[
+              { etiqueta: "Fecha de nacimiento", valor: fechaNacimiento },
+              { etiqueta: "Género", valor: genero },
+              { etiqueta: "Nacionalidad", valor: nacionalidad },
+            ]}
+          />
+
+          <TarjetaInformacion
+            titulo="Configuración del sistema"
+            icono={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.37-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7" />
+              </svg>
+            }
+            campos={[
+              { etiqueta: "Idioma", valor: idioma },
+              { etiqueta: "Zona horaria", valor: zonaHoraria },
+              { etiqueta: "Tema", valor: tema },
+            ]}
+          />
+
+          <TarjetaInformacion
+            titulo="Información de contacto"
+            icono={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M6.62 10.79a15.46 15.46 0 0 0 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25c1.12.37 2.32.57 3.57.57c.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1c0 1.25.2 2.45.57 3.57c.11.35.03.74-.25 1.02l-2.2 2.2Z" />
+              </svg>
+            }
+            campos={[
+              { etiqueta: "Dirección", valor: direccion },
+              { etiqueta: "Número de teléfono", valor: telefono },
+            ]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
