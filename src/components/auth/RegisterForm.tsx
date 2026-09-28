@@ -1,0 +1,201 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function RegisterForm() {
+  const router = useRouter();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    nombres: "",
+    apellidos: "",
+    usuario: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Simulación de registro exitoso -> Redirigir al Login
+    window.setTimeout(() => {
+      setIsLoading(false);
+      router.push("/"); // <-- Redirige a la página principal de Login
+    }, 400);
+  };
+
+  return (
+    <div className="w-full">
+      <h1 className="text-[28px] font-bold tracking-[-0.5px] text-black text-center mb-6">
+        REGISTRO
+      </h1>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Nombres */}
+        <div>
+          <label className="mb-1 block text-[12px] font-medium text-[#2f73c9]">
+            Nombres
+          </label>
+          <input
+            type="text"
+            name="nombres"
+            value={formData.nombres}
+            onChange={handleChange}
+            required
+            className="h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-3 text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        {/* Apellidos */}
+        <div>
+          <label className="mb-1 block text-[12px] font-medium text-[#2f73c9]">
+            Apellidos
+          </label>
+          <input
+            type="text"
+            name="apellidos"
+            value={formData.apellidos}
+            onChange={handleChange}
+            required
+            className="h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-3 text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        {/* Usuario */}
+        <div>
+          <label className="mb-1 block text-[12px] font-medium text-[#2f73c9]">
+            Usuario
+          </label>
+          <input
+            type="text"
+            name="usuario"
+            value={formData.usuario}
+            onChange={handleChange}
+            required
+            className="h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-3 text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        {/* Contraseña */}
+        <div>
+          <label className="mb-1 block text-[12px] font-medium text-[#2f73c9]">
+            Contraseña
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-3 pr-11 text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2f73c9] transition hover:text-[#1554a0]"
+            >
+              {showPassword ? (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.5 10.5a2.1 2.1 0 0 0 3 3" />
+                  <path d="M9.9 5.2A10 10 0 0 1 12 5c5 0 8.5 4 9.5 7a12 12 0 0 1-2.2 3.8" />
+                  <path d="M6.3 6.3A11.2 11.2 0 0 0 2.5 12c1 3 4.5 7 9.5 7 1.2 0 2.3-.2 3.3-.6" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Confirmar Contraseña */}
+        <div>
+          <label className="mb-1 block text-[12px] font-medium text-[#2f73c9]">
+            Confirmar Contraseña
+          </label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              className="h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-3 pr-11 text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2f73c9] transition hover:text-[#1554a0]"
+            >
+              {showConfirmPassword ? (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.5 10.5a2.1 2.1 0 0 0 3 3" />
+                  <path d="M9.9 5.2A10 10 0 0 1 12 5c5 0 8.5 4 9.5 7a12 12 0 0 1-2.2 3.8" />
+                  <path d="M6.3 6.3A11.2 11.2 0 0 0 2.5 12c1 3 4.5 7 9.5 7 1.2 0 2.3-.2 3.3-.6" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-600">
+            {error}
+          </div>
+        )}
+
+        {/* Botón Registrarse */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="mt-4 h-[45px] w-full rounded-[8px] bg-[#1554ad] text-[13px] font-bold text-white shadow-sm transition hover:bg-[#0d4697] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isLoading ? "REGISTRANDO..." : "REGISTRARSE"}
+        </button>
+
+        {/* Ó */}
+        <div className="relative py-0.5 text-center">
+          <span className="bg-white px-3 text-[12px] font-semibold text-gray-500">
+            Ó
+          </span>
+        </div>
+
+        {/* Botón Iniciar Sesión */}
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="h-[45px] w-full rounded-[8px] bg-[#2d97e8] text-[13px] font-bold text-white shadow-sm transition hover:bg-[#2088d8]"
+        >
+          INICIAR SESIÓN
+        </button>
+      </form>
+    </div>
+  );
+}

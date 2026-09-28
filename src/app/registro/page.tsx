@@ -1,7 +1,7 @@
 import Image from "next/image";
-import LoginForm from "@/components/auth/LoginForm";
+import RegisterForm from "@/components/auth/RegisterForm";
 
-export default function Home() {
+export default function RegisterPage() {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white">
       {/* Columna Izquierda - Logo Talentia */}
@@ -17,10 +17,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Columna Derecha - Formulario de Login */}
+      {/* Columna Derecha - Formulario de Registro */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#EEF2F8]">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 md:p-10 shadow-sm">
-          <LoginForm />
+          <RegisterForm />
         </div>
       </div>
     </div>

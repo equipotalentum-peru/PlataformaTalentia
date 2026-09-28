@@ -356,6 +356,7 @@ export default function LoginForm() {
 
         <button
           type="button"
+          onClick={() => router.push("/registro")}
           className="
             h-[45px]
             w-full
