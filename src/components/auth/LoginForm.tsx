@@ -276,17 +276,18 @@ export default function LoginForm() {
 
           <div className="mt-2 text-right">
 
-            <button
-              type="button"
-              className="
-                text-[11px]
-                font-medium
-                text-[#2867bd]
-                hover:underline
-              "
-            >
-              Restablecer contraseña
-            </button>
+           <button 
+  type="button"
+  onClick={() => router.push("/restablecer-contrasena")}
+  className=" 
+    text-[11px] 
+    font-medium 
+    text-[#2867bd] 
+    hover:underline 
+  " 
+> 
+  Restablecer contraseña 
+</button>
 
           </div>
 
