@@ -9,9 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@web-ppt/core": "^0.4.5",
+    "@web-ppt/viewer-core": "^0.4.5",
+    "docx-preview": "^0.4.1",
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-pdf": "^11.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
