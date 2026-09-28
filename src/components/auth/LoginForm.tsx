@@ -72,10 +72,6 @@ export default function LoginForm() {
 
       <div className="mb-8 text-center">
 
-        <h1 className="text-[28px] font-bold tracking-[-0.5px] text-black">
-          Talentia
-        </h1>
-
         <p className="mt-5 text-[16px] font-semibold leading-5 text-gray-900">
           ¡Bienvenido a nuestra nueva experiencia de
           <br />
