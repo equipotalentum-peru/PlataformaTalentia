@@ -21,10 +21,11 @@ export async function register(
       nombres,
       apellidos,
       usuario,
+      correo,
       password,
     } = req.body;
 
-    if (!nombres || !apellidos || !usuario || !password) {
+    if (!nombres || !apellidos || !usuario || !correo || !password) {
       return res.status(400).json({
         message: "Completa todos los campos.",
       });
@@ -39,14 +40,18 @@ export async function register(
 
     const existingUser = await pool.query(
       `SELECT id
-       FROM users
-       WHERE LOWER(usuario) = LOWER($1)`,
-      [usuario.trim()]
+      FROM users
+      WHERE LOWER(usuario) = LOWER($1)
+          OR LOWER(correo) = LOWER($2)`,
+      [
+        usuario.trim(),
+        correo.trim().toLowerCase(),
+      ]
     );
 
     if (existingUser.rowCount) {
       return res.status(409).json({
-        message: "El usuario ya está registrado.",
+        message: "El usuario o correo electrónico ya está registrado.",
       });
     }
 
@@ -57,10 +62,10 @@ export async function register(
 
     const result = await pool.query(
       `INSERT INTO users
-        (nombres, apellidos, usuario, password_hash, rol)
-       VALUES
-        ($1, $2, $3, $4, 'Estudiante')
-       RETURNING
+        (nombres, apellidos, usuario, correo, password_hash, rol)
+      VALUES
+        ($1, $2, $3, $4, $5, 'Estudiante')
+      RETURNING
         id,
         nombres,
         apellidos,
@@ -72,6 +77,7 @@ export async function register(
         nombres.trim(),
         apellidos.trim(),
         usuario.trim(),
+        correo.trim().toLowerCase(),
         passwordHash,
       ]
     );

@@ -16,6 +16,7 @@ export default function RegisterForm() {
     nombres: "",
     apellidos: "",
     usuario: "",
+    correo: "",
     password: "",
     confirmPassword: "",
   });
@@ -34,6 +35,7 @@ export default function RegisterForm() {
       !formData.nombres.trim() ||
       !formData.apellidos.trim() ||
       !formData.usuario.trim() ||
+      !formData.correo.trim() ||
       !formData.password
     ) {
       setError("Completa todos los campos.");
@@ -71,6 +73,7 @@ export default function RegisterForm() {
             nombres: formData.nombres,
             apellidos: formData.apellidos,
             usuario: formData.usuario,
+            correo: formData.correo.trim().toLowerCase(),
             password: formData.password,
           }),
         }
@@ -146,6 +149,24 @@ export default function RegisterForm() {
             value={formData.usuario}
             onChange={handleChange}
             required
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        {/* Correo electrónico */}
+        <div>
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Correo electrónico
+          </label>
+          <input
+            type="email"
+            name="correo"
+            value={formData.correo}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+            inputMode="email"
+            placeholder="ejemplo@correo.com"
             className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
           />
         </div>

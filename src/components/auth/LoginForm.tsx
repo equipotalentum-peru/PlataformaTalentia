@@ -67,12 +67,24 @@ export default function LoginForm() {
         );
       }
 
-      if (data.user.rol === "Administrador") {
-        router.push("/administrador/dashboard");
-      } else if (data.user.rol === "Docente") {
-        router.push("/docente");
-      } else {
-        router.push("/alumno/cursos");
+      const role = data.user?.rol;
+
+      switch (role) {
+        case "Estudiante":
+          router.push("/alumno/perfil");
+          break;
+
+        case "Docente":
+          router.push("/docente/perfil");
+          break;
+
+        case "Administrador":
+          router.push("/administrador/dashboard");
+          break;
+
+        default:
+          setError("Rol de usuario no reconocido.");
+          break;
       }
     } catch (error) {
       setError(
