@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] =
     useState(false);
 
-  const handleSubmit = (
+  const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
@@ -39,28 +40,43 @@ export default function LoginForm() {
       return;
     }
 
-    /*
-     * SIMULACIÓN TEMPORAL
-     *
-     * Todavía no tenemos Node.js + base de datos.
-     * Por ahora cualquier usuario con campos completos
-     * puede acceder.
-     */
     setIsLoading(true);
 
-    sessionStorage.setItem(
-      "talentia-authenticated",
-      "true"
-    );
+    try {
+      const response = await fetch(
+        `${API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            usuario: username,
+            password,
+          }),
+        }
+      );
 
-    /*
-     * Simulamos una pequeña carga
-     * para que el botón no cambie
-     * instantáneamente.
-     */
-    window.setTimeout(() => {
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            "No se pudo iniciar sesión."
+        );
+      }
+
       router.push("/alumno/cursos");
-    }, 300);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al iniciar sesión."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

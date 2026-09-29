@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -23,22 +24,77 @@ export default function RegisterForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+    if (
+      !formData.nombres.trim() ||
+      !formData.apellidos.trim() ||
+      !formData.usuario.trim() ||
+      !formData.password
+    ) {
+      setError("Completa todos los campos.");
+      return;
+    }
+
+    if (
+      formData.password !==
+      formData.confirmPassword
+    ) {
+      setError(
+        "Las contraseñas no coinciden."
+      );
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError(
+        "La contraseña debe tener mínimo 8 caracteres."
+      );
       return;
     }
 
     setIsLoading(true);
 
-    // Redirección al Login tras registrarse
-    window.setTimeout(() => {
+    try {
+      const response = await fetch(
+        `${API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombres: formData.nombres,
+            apellidos: formData.apellidos,
+            usuario: formData.usuario,
+            password: formData.password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            "No se pudo registrar el usuario."
+        );
+      }
+
+      router.push("/login");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al registrar el usuario."
+      );
+    } finally {
       setIsLoading(false);
-      router.push("/");
-    }, 400);
+    }
   };
 
   return (

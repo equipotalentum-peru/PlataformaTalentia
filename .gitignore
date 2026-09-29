@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+bankend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
