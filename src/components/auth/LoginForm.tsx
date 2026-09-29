@@ -67,7 +67,13 @@ export default function LoginForm() {
         );
       }
 
-      router.push("/alumno/cursos");
+      if (data.user.rol === "Administrador") {
+        router.push("/administrador/dashboard");
+      } else if (data.user.rol === "Docente") {
+        router.push("/docente");
+      } else {
+        router.push("/alumno/cursos");
+      }
     } catch (error) {
       setError(
         error instanceof Error
