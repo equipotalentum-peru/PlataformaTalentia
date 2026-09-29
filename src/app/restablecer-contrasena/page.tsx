@@ -8,8 +8,11 @@ export default function RestablecerContrasenaPage() {
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
     setError("");
@@ -19,15 +22,53 @@ export default function RestablecerContrasenaPage() {
       return;
     }
 
- sessionStorage.setItem(
-  "correo-recuperacion",
-  email
-);
+    try {
+      setIsLoading(true);
 
-router.push(
-  "/restablecer-contrasena/verificar-codigo"
-);
+      const response = await fetch(
+        "http://localhost:4000/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            correo: email.trim(),
+          }),
+        }
+      );
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "No se pudo enviar el código."
+        );
+
+        return;
+      }
+
+      sessionStorage.setItem(
+        "correo-recuperacion",
+        email.trim()
+      );
+
+      router.push(
+        "/restablecer-contrasena/verificar-codigo"
+      );
+    } catch (error) {
+      console.error(
+        "Error enviando código:",
+        error
+      );
+
+      setError(
+        "No se pudo conectar con el servidor."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -58,13 +99,14 @@ router.push(
           <div className="w-full max-w-[520px] rounded-[28px] bg-white px-10 py-12 shadow-sm md:px-14">
 
             {/* LOGO SOLO EN MÓVIL */}
-<div className="mb-8 flex justify-center lg:hidden">
-  <img
-    src="/images/Talentia_grande_sin_fondo.png"
-    alt="Talentia"
-    className="w-full max-w-[260px] object-contain"
-  />
-</div>
+
+            <div className="mb-8 flex justify-center lg:hidden">
+              <img
+                src="/images/Talentia_grande_sin_fondo.png"
+                alt="Talentia"
+                className="w-full max-w-[260px] object-contain"
+              />
+            </div>
 
             <button
               type="button"
@@ -101,9 +143,12 @@ router.push(
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    setEmail(event.target.value)
+                  }
                   placeholder="tu.correo@ejemplo.com"
                   autoComplete="email"
+                  disabled={isLoading}
                   className="
                     h-[56px]
                     w-full
@@ -121,6 +166,8 @@ router.push(
                     focus:border-[#2d97e8]
                     focus:ring-2
                     focus:ring-[#2d97e8]/15
+                    disabled:cursor-not-allowed
+                    disabled:bg-gray-100
                   "
                 />
 
@@ -175,6 +222,7 @@ router.push(
 
               <button
                 type="submit"
+                disabled={isLoading}
                 className="
                   mt-7
                   h-[56px]
@@ -187,9 +235,13 @@ router.push(
                   shadow-sm
                   transition
                   hover:bg-[#2088d8]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-70
                 "
               >
-                ENVIAR CÓDIGO
+                {isLoading
+                  ? "ENVIANDO..."
+                  : "ENVIAR CÓDIGO"}
               </button>
 
             </form>

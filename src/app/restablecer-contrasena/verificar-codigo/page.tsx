@@ -23,8 +23,10 @@ export default function VerificarCodigoPage() {
   ]);
 
   const [error, setError] = useState("");
-
+  const [mensaje, setMensaje] = useState("");
   const [correo, setCorreo] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const inputsRef = useRef<
     Array<HTMLInputElement | null>
@@ -77,10 +79,13 @@ export default function VerificarCodigoPage() {
     }
   };
 
-  const handleSubmit = (
+  const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+
+    setError("");
+    setMensaje("");
 
     const codigoCompleto =
       codigo.join("");
@@ -89,15 +94,136 @@ export default function VerificarCodigoPage() {
       setError(
         "Ingresa el código de 6 dígitos."
       );
-
       return;
     }
 
-    setError("");
+    if (!correo) {
+      setError(
+        "No se encontró el correo de recuperación."
+      );
+      return;
+    }
 
-    router.push(
-      "/restablecer-contrasena/nueva-contrasena"
-    );
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(
+        "http://localhost:4000/api/auth/verify-reset-code",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            correo,
+            codigo: codigoCompleto,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "Código inválido o expirado."
+        );
+        return;
+      }
+
+      sessionStorage.setItem(
+        "codigo-recuperacion",
+        codigoCompleto
+      );
+
+      router.push(
+        "/restablecer-contrasena/nueva-contrasena"
+      );
+    } catch (error) {
+      console.error(
+        "Error verificando código:",
+        error
+      );
+
+      setError(
+        "No se pudo conectar con el servidor."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReenviarCodigo = async () => {
+    setError("");
+    setMensaje("");
+
+    if (!correo) {
+      setError(
+        "No se encontró el correo de recuperación."
+      );
+      return;
+    }
+
+    try {
+      setIsResending(true);
+
+      const response = await fetch(
+        "http://localhost:4000/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            correo,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "No se pudo reenviar el código."
+        );
+        return;
+      }
+
+      setCodigo([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+      ]);
+
+      sessionStorage.removeItem(
+        "codigo-recuperacion"
+      );
+
+      setMensaje(
+        "Se envió un nuevo código a tu correo."
+      );
+
+      setTimeout(() => {
+        inputsRef.current[0]?.focus();
+      }, 100);
+    } catch (error) {
+      console.error(
+        "Error reenviando código:",
+        error
+      );
+
+      setError(
+        "No se pudo conectar con el servidor."
+      );
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -125,9 +251,7 @@ export default function VerificarCodigoPage() {
           lg:grid-cols-2
         "
       >
-        {/* =========================
-            LADO IZQUIERDO
-           ========================= */}
+        {/* LADO IZQUIERDO */}
 
         <div
           className="
@@ -148,9 +272,7 @@ export default function VerificarCodigoPage() {
           />
         </div>
 
-        {/* =========================
-            TARJETA
-           ========================= */}
+        {/* TARJETA */}
 
         <div className="flex justify-center">
           <div
@@ -322,6 +444,10 @@ export default function VerificarCodigoPage() {
                       inputMode="numeric"
                       maxLength={1}
                       value={valor}
+                      disabled={
+                        isLoading ||
+                        isResending
+                      }
                       onChange={(event) =>
                         handleChange(
                           index,
@@ -351,6 +477,8 @@ export default function VerificarCodigoPage() {
                         focus:border-[#2d97e8]
                         focus:ring-2
                         focus:ring-[#2d97e8]/15
+                        disabled:cursor-not-allowed
+                        disabled:bg-gray-100
                         sm:h-[60px]
                       "
                     />
@@ -378,6 +506,26 @@ export default function VerificarCodigoPage() {
                 </div>
               )}
 
+              {/* MENSAJE OK */}
+
+              {mensaje && (
+                <div
+                  className="
+                    mt-4
+                    rounded-md
+                    border
+                    border-green-200
+                    bg-green-50
+                    px-3
+                    py-2
+                    text-[12px]
+                    text-green-700
+                  "
+                >
+                  {mensaje}
+                </div>
+              )}
+
               {/* REENVIAR */}
 
               <div
@@ -392,13 +540,24 @@ export default function VerificarCodigoPage() {
 
                 <button
                   type="button"
+                  onClick={
+                    handleReenviarCodigo
+                  }
+                  disabled={
+                    isLoading ||
+                    isResending
+                  }
                   className="
                     font-medium
                     text-[#2d97e8]
                     hover:underline
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
                   "
                 >
-                  Reenviar código
+                  {isResending
+                    ? "Reenviando..."
+                    : "Reenviar código"}
                 </button>
               </div>
 
@@ -406,6 +565,10 @@ export default function VerificarCodigoPage() {
 
               <button
                 type="submit"
+                disabled={
+                  isLoading ||
+                  isResending
+                }
                 className="
                   mt-8
                   h-[56px]
@@ -418,9 +581,13 @@ export default function VerificarCodigoPage() {
                   shadow-sm
                   transition
                   hover:bg-[#2088d8]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-70
                 "
               >
-                VERIFICAR CÓDIGO
+                {isLoading
+                  ? "VERIFICANDO..."
+                  : "VERIFICAR CÓDIGO"}
               </button>
             </form>
           </div>
