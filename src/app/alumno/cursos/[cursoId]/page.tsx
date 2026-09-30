@@ -61,26 +61,26 @@ export default async function CourseDetailPage({
             Contenido de curso
           </Link>
 
-          <a
-            href="#"
+          <Link
+            href={`/alumno/cursos/${courseId}/clases`}
             className="px-3 py-2 text-[12px] text-gray-700 hover:text-black"
           >
             Clases
-          </a>
+          </Link>
 
-          <a
-            href="#"
+          <Link
+            href={`/alumno/cursos/${courseId}/foro`}
             className="px-3 py-2 text-[12px] text-gray-700 hover:text-black"
           >
             Foro
-          </a>
+          </Link>
 
-          <a
-            href="#"
+          <Link
+            href={`/alumno/cursos/${courseId}/anuncios`}
             className="px-3 py-2 text-[12px] text-gray-700 hover:text-black"
           >
             Anuncios
-          </a>
+          </Link>
         </div>
 
         {/* CONTENIDO */}
