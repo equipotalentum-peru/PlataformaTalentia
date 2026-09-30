@@ -17,7 +17,6 @@ export default function PerfilDocentePage() {
       telefono="987654321"
       idioma="Español, Perú"
       zonaHoraria="(UTC-5) Lima"
-      tema="Clara"
     />
   );
 }

@@ -1,10 +1,64 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 export default function StudentSidebar() {
   const pathname = usePathname();
+  const [nombre, setNombre] = useState("Mi perfil");
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
+  const [errorSalida, setErrorSalida] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarNombre() {
+      try {
+        const response = await fetch(`${API_URL}/profile`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) return;
+
+        const { profile } = await response.json();
+        const nombreCompleto = [profile.nombres, profile.apellidos]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        if (nombreCompleto && !controller.signal.aborted) {
+          setNombre(nombreCompleto);
+        }
+      } catch {
+        if (!controller.signal.aborted) setNombre("Mi perfil");
+      }
+    }
+
+    cargarNombre();
+    return () => controller.abort();
+  }, []);
+
+  async function cerrarSesion() {
+    setCerrandoSesion(true);
+    setErrorSalida(false);
+
+    try {
+      const response = await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("No se pudo cerrar sesión.");
+
+      window.location.replace("/login");
+    } catch {
+      setErrorSalida(true);
+      setCerrandoSesion(false);
+    }
+  }
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`);
@@ -163,16 +217,20 @@ export default function StudentSidebar() {
             </svg>
           </div>
 
-          <span className="text-[17px] font-medium transition group-hover:text-[#0b315f]">
-            GRAY PADILLA
+          <span
+            className="min-w-0 truncate text-[17px] font-medium uppercase transition group-hover:text-[#0b315f]"
+            title={nombre}
+          >
+            {nombre}
           </span>
         </Link>
 
         {/* CERRAR SESIÓN */}
-        <a
-          href="#"
-          onClick={(e) => e.preventDefault()}
-          className="flex h-[57px] items-center gap-4 border-t border-white/70 px-7 text-[17px] font-medium text-gray-800 transition hover:bg-white/30"
+        <button
+          type="button"
+          onClick={cerrarSesion}
+          disabled={cerrandoSesion}
+          className="flex h-[57px] w-full items-center gap-4 border-t border-white/70 px-7 text-left text-[17px] font-medium text-gray-800 transition hover:bg-white/30 disabled:cursor-wait disabled:opacity-60"
         >
           <svg
             className="h-7 w-7"
@@ -187,7 +245,12 @@ export default function StudentSidebar() {
           </svg>
 
           <span>Cerrar sesión</span>
-        </a>
+        </button>
+        {errorSalida && (
+          <p role="alert" className="px-5 pb-2 text-sm text-red-700">
+            No se pudo cerrar sesión. Inténtalo de nuevo.
+          </p>
+        )}
       </div>
     </aside>
   );

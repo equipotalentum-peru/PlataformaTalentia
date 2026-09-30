@@ -20,13 +20,16 @@ type VistaPerfilProps = {
   telefono: string;
   idioma: string;
   zonaHoraria: string;
-  tema: string;
+  onEditarAdicional?: () => void;
+  onEditarSistema?: () => void;
+  onEditarContacto?: () => void;
 };
 
-function BotonEditar() {
+function BotonEditar({ onClick }: { onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="inline-flex items-center gap-1 rounded-md border border-[#2782df] px-3 py-1 text-sm text-[#2782df] transition hover:bg-[#e8f3ff]"
     >
       <svg
@@ -48,12 +51,14 @@ function TarjetaInformacion({
   icono,
   campos,
   editable = true,
+  onEditar,
   className = "",
 }: {
   titulo: string;
   icono: ReactNode;
   campos: CampoPerfil[];
   editable?: boolean;
+  onEditar?: () => void;
   className?: string;
 }) {
   return (
@@ -64,7 +69,7 @@ function TarjetaInformacion({
           <h2 className="font-semibold">{titulo}</h2>
         </div>
 
-        {editable && <BotonEditar />}
+        {editable && <BotonEditar onClick={onEditar} />}
       </div>
 
       <dl className="border border-gray-300">
@@ -102,7 +107,9 @@ export default function VistaPerfil({
   telefono,
   idioma,
   zonaHoraria,
-  tema,
+  onEditarAdicional,
+  onEditarSistema,
+  onEditarContacto,
 }: VistaPerfilProps) {
   return (
     <div className="min-h-screen px-6 py-8 lg:px-10">
@@ -170,6 +177,7 @@ export default function VistaPerfil({
 
           <TarjetaInformacion
             titulo="Información adicional"
+            onEditar={onEditarAdicional}
             icono={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -190,6 +198,7 @@ export default function VistaPerfil({
 
           <TarjetaInformacion
             titulo="Configuración del sistema"
+            onEditar={onEditarSistema}
             icono={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -204,12 +213,12 @@ export default function VistaPerfil({
             campos={[
               { etiqueta: "Idioma", valor: idioma },
               { etiqueta: "Zona horaria", valor: zonaHoraria },
-              { etiqueta: "Tema", valor: tema },
             ]}
           />
 
           <TarjetaInformacion
             titulo="Información de contacto"
+            onEditar={onEditarContacto}
             icono={
               <svg
                 xmlns="http://www.w3.org/2000/svg"

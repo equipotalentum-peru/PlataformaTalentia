@@ -1,0 +1,5 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS idioma VARCHAR(50)
+        NOT NULL DEFAULT 'Español, Perú',
+    ADD COLUMN IF NOT EXISTS zona_horaria VARCHAR(50)
+        NOT NULL DEFAULT '(UTC-5) Lima';
