@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebarAccount } from "@/components/perfiles/useSidebarAccount";
 
 export default function SidebarAdmin() {
   const pathname = usePathname();
+  const { nombre, iniciales, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
 
   const navItems = [
     { name: "Dashboard", href: "/administrador/dashboard", letter: "D" },
@@ -62,29 +64,36 @@ export default function SidebarAdmin() {
 
       {/* Perfil Inferior y Cerrar Sesión */}
       <div className="space-y-4 pt-6 border-t border-[#C0D2EC]">
-        <div className="flex items-center gap-3 cursor-pointer">
+        <Link
+          href="/administrador/perfil"
+          aria-current={pathname === "/administrador/perfil" ? "page" : undefined}
+          className="flex items-center gap-3 rounded-md transition hover:bg-white/40"
+        >
           <div className="w-10 h-10 rounded-full bg-[#C2DAF8] border border-white flex items-center justify-center text-sm font-bold text-[#183665]">
-            AT
+            {iniciales || "?"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-[#0F2851] truncate">
-              Admin Talentum
+              {nombre}
             </p>
             <p className="text-xs text-[#6F83A5] truncate">Administrador</p>
           </div>
           <span className="text-[#6F83A5] text-xs">❯</span>
-        </div>
+        </Link>
 
         <button
           type="button"
-          onClick={() => {
-            localStorage.clear();
-            window.location.href = "/login";
-          }}
-          className="flex items-center gap-2 text-sm text-[#4A607A] hover:text-[#0F2851] transition font-medium w-full pt-2"
+          onClick={cerrarSesion}
+          disabled={cerrandoSesion}
+          className="flex items-center gap-2 text-sm text-[#4A607A] hover:text-[#0F2851] transition font-medium w-full pt-2 disabled:cursor-wait disabled:opacity-60"
         >
           <span>⇆</span> Cerrar sesión
         </button>
+        {errorSalida && (
+          <p role="alert" className="text-sm text-red-700">
+            No se pudo cerrar sesión. Inténtalo de nuevo.
+          </p>
+        )}
       </div>
     </aside>
   );

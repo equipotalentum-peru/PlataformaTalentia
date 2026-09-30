@@ -1,5 +1,5 @@
-import StudentProfile from "@/components/alumno/StudentProfile";
+import PerfilEditable from "@/components/perfiles/PerfilEditable";
 
 export default function StudentProfilePage() {
-  return <StudentProfile />;
+  return <PerfilEditable rolEsperado="Estudiante" />;
 }

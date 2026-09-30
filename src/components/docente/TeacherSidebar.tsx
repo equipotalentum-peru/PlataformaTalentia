@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebarAccount } from "@/components/perfiles/useSidebarAccount";
 
 export default function TeacherSidebar() {
   const pathname = usePathname();
+  const { nombre, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`);
@@ -145,16 +147,17 @@ export default function TeacherSidebar() {
             </svg>
           </div>
 
-          <span className="text-[17px] font-medium text-gray-900">
-            GLORIA ROCHA
+          <span className="min-w-0 truncate text-[17px] font-medium uppercase text-gray-900" title={nombre}>
+            {nombre}
           </span>
         </Link>
 
         {/* CERRAR SESIÓN */}
-        <a
-          href="#"
-          onClick={(e) => e.preventDefault()}
-          className="flex h-[57px] items-center gap-4 border-t border-white/70 px-7 text-[17px] font-medium text-gray-800 transition hover:bg-white/30"
+        <button
+          type="button"
+          onClick={cerrarSesion}
+          disabled={cerrandoSesion}
+          className="flex h-[57px] w-full items-center gap-4 border-t border-white/70 px-7 text-left text-[17px] font-medium text-gray-800 transition hover:bg-white/30 disabled:cursor-wait disabled:opacity-60"
         >
           <svg
             className="h-7 w-7"
@@ -169,7 +172,12 @@ export default function TeacherSidebar() {
           </svg>
 
           <span>Cerrar sesión</span>
-        </a>
+        </button>
+        {errorSalida && (
+          <p role="alert" className="px-5 pb-2 text-sm text-red-700">
+            No se pudo cerrar sesión. Inténtalo de nuevo.
+          </p>
+        )}
       </div>
     </aside>
   );

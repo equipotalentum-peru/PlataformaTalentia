@@ -1,64 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { API_URL } from "@/lib/api";
+import { useSidebarAccount } from "@/components/perfiles/useSidebarAccount";
 
 export default function StudentSidebar() {
   const pathname = usePathname();
-  const [nombre, setNombre] = useState("Mi perfil");
-  const [cerrandoSesion, setCerrandoSesion] = useState(false);
-  const [errorSalida, setErrorSalida] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function cargarNombre() {
-      try {
-        const response = await fetch(`${API_URL}/profile`, {
-          credentials: "include",
-          signal: controller.signal,
-        });
-
-        if (!response.ok) return;
-
-        const { profile } = await response.json();
-        const nombreCompleto = [profile.nombres, profile.apellidos]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-
-        if (nombreCompleto && !controller.signal.aborted) {
-          setNombre(nombreCompleto);
-        }
-      } catch {
-        if (!controller.signal.aborted) setNombre("Mi perfil");
-      }
-    }
-
-    cargarNombre();
-    return () => controller.abort();
-  }, []);
-
-  async function cerrarSesion() {
-    setCerrandoSesion(true);
-    setErrorSalida(false);
-
-    try {
-      const response = await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error("No se pudo cerrar sesión.");
-
-      window.location.replace("/login");
-    } catch {
-      setErrorSalida(true);
-      setCerrandoSesion(false);
-    }
-  }
+  const { nombre, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`);

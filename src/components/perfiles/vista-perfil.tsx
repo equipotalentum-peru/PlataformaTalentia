@@ -9,7 +9,7 @@ type VistaPerfilProps = {
   iniciales: string;
   nombreCompleto: string;
   usuario: string;
-  rol: "Estudiante" | "Docente";
+  rol: "Estudiante" | "Docente" | "Administrador";
   correo: string;
   etiquetaId: string;
   numeroId: string;

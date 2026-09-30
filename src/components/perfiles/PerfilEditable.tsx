@@ -25,6 +25,16 @@ type PerfilEstudiante = {
   zonaHoraria: string;
 };
 
+type Props = {
+  rolEsperado: PerfilEstudiante["rol"];
+};
+
+const rutasPorRol: Record<PerfilEstudiante["rol"], string> = {
+  Estudiante: "/alumno/perfil",
+  Docente: "/docente/perfil",
+  Administrador: "/administrador/dashboard",
+};
+
 type DatosEdicion = {
   fechaNacimiento: string;
   genero: string;
@@ -101,7 +111,7 @@ function mostrarFecha(fecha: string | null) {
   }).format(new Date(`${fecha}T00:00:00Z`));
 }
 
-export default function StudentProfile() {
+export default function PerfilEditable({ rolEsperado }: Props) {
   const router = useRouter();
   const [perfil, setPerfil] = useState<PerfilEstudiante | null>(null);
   const [error, setError] = useState("");
@@ -132,15 +142,10 @@ export default function StudentProfile() {
 
         const profile = data.profile as PerfilEstudiante;
 
-        if (profile.rol !== "Estudiante") {
-          router.replace(
-            profile.rol === "Administrador"
-              ? "/administrador/dashboard"
-              : "/docente/perfil"
-          );
+        if (profile.rol !== rolEsperado) {
+          router.replace(rutasPorRol[profile.rol]);
           return;
         }
-
         setPerfil(profile);
       } catch (requestError) {
         if (controller.signal.aborted) return;
@@ -154,7 +159,7 @@ export default function StudentProfile() {
 
     cargarPerfil();
     return () => controller.abort();
-  }, [router]);
+  }, [router, rolEsperado]);
 
   function abrirEdicion(nuevaSeccion: SeccionEdicion) {
     if (!perfil) return;
@@ -227,9 +232,15 @@ export default function StudentProfile() {
         iniciales={iniciales}
         nombreCompleto={nombreCompleto}
         usuario={perfil.usuario}
-        rol="Estudiante"
+        rol={rolEsperado}
+        etiquetaId={
+          rolEsperado === "Estudiante"
+          ? "ID de estudiante"
+          : rolEsperado === "Docente"
+          ? "ID de docente"
+          : "ID de administrador"
+        }
         correo={mostrarDato(perfil.correo)}
-        etiquetaId="ID de estudiante"
         numeroId={mostrarDato(perfil.idPersona)}
         fechaNacimiento={mostrarFecha(perfil.fechaNacimiento)}
         genero={mostrarGenero(perfil.genero)}
