@@ -7,6 +7,7 @@ export type QuizQuestion = {
   id: number;
   text: string;
   options: QuizOption[];
+  correctOptionId: QuizOption["id"];
 };
 
 export type QuizDefinition = {
@@ -19,6 +20,7 @@ export type QuizDefinition = {
 const questionExample: QuizQuestion = {
   id: 1,
   text: "¿Qué son las TIC?",
+  correctOptionId: "B",
   options: [
     {
       id: "A",

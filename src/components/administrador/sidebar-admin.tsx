@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSidebarAccount } from "@/components/perfiles/useSidebarAccount";
+import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount";
 
 export default function SidebarAdmin() {
   const pathname = usePathname();
