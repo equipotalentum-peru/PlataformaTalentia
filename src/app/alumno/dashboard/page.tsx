@@ -182,17 +182,9 @@ export default function DashboardPage() {
 
       {/* ENCABEZADO */}
       <header className="mb-7">
-        <p className="text-[11px] font-medium uppercase tracking-[0.7px] text-gray-500">
-          Jueves, 4 de septiembre, 2026
-        </p>
-
-        <h1 className="mt-2 text-[34px] font-semibold tracking-[-0.8px] text-gray-950">
-          Bienvenido Gray
+        <h1 className="text-[34px] font-semibold tracking-[-0.8px] text-gray-950">
+          Dashboard del estudiante
         </h1>
-
-        <p className="mt-1 text-[13px] text-gray-600">
-          Tienes 3 actividades que vencen esta semana
-        </p>
       </header>
 
       {/* TARJETAS RESUMEN */}

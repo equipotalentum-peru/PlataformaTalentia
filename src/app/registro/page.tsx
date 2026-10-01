@@ -5,7 +5,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#EEF2F8]">
       {/* Columna Izquierda - Logo Talentia (VISIBLE SOLO EN PANTALLAS GRANDES >= 1024px/lg) */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 lg:p-12 bg-[#EEF2F8]">
+      <div className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-1/2 lg:self-start items-center justify-center p-8 lg:p-12 bg-[#EEF2F8]">
         <div className="relative w-full max-w-[480px] h-64">
           <Image
             src="/images/Talentia_grande_sin_fondo.png"

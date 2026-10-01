@@ -71,11 +71,11 @@ export default function LoginForm() {
 
       switch (role) {
         case "Estudiante":
-          router.push("/alumno/perfil");
+          router.push("/alumno/dashboard");
           break;
 
         case "Docente":
-          router.push("/docente/perfil");
+          router.push("/docente/dashboard");
           break;
 
         case "Administrador":

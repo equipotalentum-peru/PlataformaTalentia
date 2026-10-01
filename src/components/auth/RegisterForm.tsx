@@ -12,18 +12,26 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    nombres: "",
-    apellidos: "",
-    usuario: "",
-    correo: "",
-    password: "",
-    confirmPassword: "",
-  });
+const [formData, setFormData] = useState({
+  nombres: "",
+  apellidos: "",
+  dni: "",
+  empresaAliada: "",
+  usuario: "",
+  genero: "",
+  telefono: "",
+  fechaNacimiento: "",
+  direccion: "",
+  correo: "",
+  password: "",
+  confirmPassword: "",
+});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  setFormData({ ...formData, [e.target.name]: e.target.value });
+};
 
   const handleSubmit = async (
     e: React.FormEvent
@@ -72,7 +80,13 @@ export default function RegisterForm() {
           body: JSON.stringify({
             nombres: formData.nombres,
             apellidos: formData.apellidos,
+            dni: formData.dni.trim(),
+            empresaAliada: formData.empresaAliada.trim() || null,
             usuario: formData.usuario,
+            genero: formData.genero,
+            telefono: formData.telefono.trim(),
+            fechaNacimiento: formData.fechaNacimiento,
+            direccion: formData.direccion.trim(),
             correo: formData.correo.trim().toLowerCase(),
             password: formData.password,
           }),
@@ -138,6 +152,36 @@ export default function RegisterForm() {
           />
         </div>
 
+        <div>
+          <label htmlFor="registro-dni" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            DNI
+          </label>
+          <input
+            id="registro-dni"
+            name="dni"
+            value={formData.dni}
+            onChange={handleChange}
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="registro-empresa" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Empresa aliada
+          </label>
+          <input
+            id="registro-empresa"
+            name="empresaAliada"
+            value={formData.empresaAliada}
+            onChange={handleChange}
+            type="text"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
         {/* Usuario */}
         <div>
           <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
@@ -149,6 +193,68 @@ export default function RegisterForm() {
             value={formData.usuario}
             onChange={handleChange}
             required
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="registro-genero" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Género
+          </label>
+          <select
+            id="registro-genero"
+            name="genero"
+            value={formData.genero}
+            onChange={handleChange}
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          >
+            <option value="" disabled>Seleccionar</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="registro-telefono" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Teléfono
+          </label>
+          <input
+            id="registro-telefono"
+            name="telefono"
+            value={formData.telefono}
+            onChange={handleChange}
+            type="tel"
+            autoComplete="tel"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="registro-fecha-nacimiento" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Fecha de nacimiento
+          </label>
+          <input
+            id="registro-fecha-nacimiento"
+            name="fechaNacimiento"
+            value={formData.fechaNacimiento}
+            onChange={handleChange}
+            type="date"
+            autoComplete="bday"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="registro-direccion" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+            Dirección
+          </label>
+          <input
+            id="registro-direccion"
+            name="direccion"
+            value={formData.direccion}
+            onChange={handleChange}
+            type="text"
+            autoComplete="street-address"
             className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
           />
         </div>
@@ -166,7 +272,6 @@ export default function RegisterForm() {
             required
             autoComplete="email"
             inputMode="email"
-            placeholder="ejemplo@correo.com"
             className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
           />
         </div>

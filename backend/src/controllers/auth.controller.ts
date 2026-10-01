@@ -46,7 +46,13 @@ export async function register(
     const {
       nombres,
       apellidos,
+      dni,
+      empresaAliada,
       usuario,
+      genero,
+      telefono,
+      fechaNacimiento,
+      direccion,
       correo,
       password,
     } = req.body;
@@ -70,21 +76,62 @@ export async function register(
       });
     }
 
+    if (typeof dni !== "string" || !/^\d{8}$/.test(dni.trim())) {
+      return res.status(400).json({ message: "El DNI debe tener 8 dígitos." });
+    }
+
+    if (
+      empresaAliada != null &&
+      (typeof empresaAliada !== "string" || empresaAliada.trim().length > 150)
+    ) {
+      return res.status(400).json({ message: "La empresa aliada no es válida." });
+    }
+
+    if (genero !== "M" && genero !== "F") {
+      return res.status(400).json({ message: "Selecciona un género válido." });
+    }
+
+    if (
+      typeof telefono !== "string" ||
+      !telefono.trim() ||
+      telefono.trim().length > 20
+    ) {
+      return res.status(400).json({ message: "El teléfono no es válido." });
+    }
+
+    if (typeof direccion !== "string" || !direccion.trim()) {
+      return res.status(400).json({ message: "Ingresa una dirección." });
+    }
+
+    const fecha = typeof fechaNacimiento === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(fechaNacimiento)
+        ? new Date(`${fechaNacimiento}T00:00:00.000Z`)
+        : new Date(NaN);
+
+    if (
+      Number.isNaN(fecha.getTime()) ||
+      fecha.toISOString().slice(0, 10) !== fechaNacimiento
+    ) {
+      return res.status(400).json({ message: "La fecha de nacimiento no es válida." });
+    }
+
     const existingUser = await pool.query(
       `SELECT id
        FROM users
        WHERE LOWER(usuario) = LOWER($1)
-          OR LOWER(correo) = LOWER($2)`,
+          OR LOWER(correo) = LOWER($2)
+          OR dni = $3`,
       [
         usuario.trim(),
         correo.trim().toLowerCase(),
+        dni.trim(),
       ]
     );
 
     if (existingUser.rowCount) {
       return res.status(409).json({
         message:
-          "El usuario o correo electrónico ya está registrado.",
+          "El usuario, correo o DNI ya está registrado.",
       });
     }
 
@@ -94,36 +141,27 @@ export async function register(
     );
 
     const result = await pool.query(
-      `INSERT INTO users
-        (
-          nombres,
-          apellidos,
-          usuario,
-          correo,
-          password_hash,
-          rol
-        )
-       VALUES
-        (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5,
-          'Estudiante'
-        )
-       RETURNING
-        id,
-        nombres,
-        apellidos,
-        usuario,
-        correo,
-        rol,
-        id_persona`,
+      `INSERT INTO users (
+         nombres, apellidos, dni, empresa_aliada, usuario,
+         genero, telefono, fecha_nacimiento, direccion,
+         correo, password_hash, rol
+       )
+       VALUES (
+         $1, $2, $3, $4, $5,
+         $6, $7, $8, $9,
+         $10, $11, 'Estudiante'
+       )
+       RETURNING id, nombres, apellidos, usuario, correo, rol, id_persona`,
       [
         nombres.trim(),
         apellidos.trim(),
+        dni.trim(),
+        empresaAliada?.trim() || null,
         usuario.trim(),
+        genero,
+        telefono.trim(),
+        fechaNacimiento,
+        direccion.trim(),
         correo.trim().toLowerCase(),
         passwordHash,
       ]
