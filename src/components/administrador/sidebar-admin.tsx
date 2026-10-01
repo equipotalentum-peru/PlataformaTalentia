@@ -15,6 +15,8 @@ export default function SidebarAdmin() {
     { name: "Cursos", href: "/administrador/cursos", letter: "C" },
     { name: "Matrículas", href: "/administrador/matriculas", letter: "M" },
     { name: "Reportes", href: "/administrador/reportes", letter: "R" },
+    { name: "Solicitudes Personas", href: "/administrador/solicitudes-personas", letter: "P" },
+    { name: "Solicitudes Empresas", href: "/administrador/solicitudes-empresas", letter: "E" },
   ];
 
   return (
