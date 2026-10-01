@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import VistaPerfil from "@/components/perfiles/vista-perfil";
+import VistaPerfil from "@/components/common/perfil/vista-perfil";
 import { API_URL } from "@/lib/api";
 
 type PerfilEstudiante = {

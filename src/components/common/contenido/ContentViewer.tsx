@@ -2,9 +2,8 @@
 
 import dynamic from "next/dynamic";
 import type { ContentType } from "@/data/courseContents";
+
 import ContentTypeIcon from "./ContentTypeIcon";
-import QuizViewer from "./QuizViewer";
-import ActivityViewer from "./ActivityViewer";
 
 const PdfViewer = dynamic(
   () => import("./PdfViewer"),
@@ -46,57 +45,13 @@ type ContentViewerProps = {
   title: string;
   type: ContentType;
   file?: string;
-  contentId?: number;
-  courseId?: number;
-  previousHref?: string;
-  nextHref?: string;
-  exitHref?: string;
 };
 
 export default function ContentViewer({
   title,
   type,
   file,
-  contentId,
-  courseId,
-  previousHref,
-  nextHref,
-  exitHref,
 }: ContentViewerProps) {
-
-  /*
-  * QUIZ
-  */
-  if (type === "quiz" && contentId && exitHref && courseId) {
-    return (
-      <QuizViewer
-        quizId={contentId}
-        courseId={courseId}
-        previousHref={previousHref}
-        nextHref={nextHref}
-        exitHref={exitHref}
-      />
-    );
-  }
-
-  /*
-  * ACTIVIDAD
-  */
-  if (type === "activity" && contentId && courseId && exitHref) {
-    return (
-      <ActivityViewer
-        activityId={contentId}
-        courseId={courseId}
-        previousHref={previousHref}
-        nextHref={nextHref}
-        exitHref={exitHref}
-      />
-    );
-  }
-
-  /*
-  * Archivos
-  */
   if (!file) {
     return (
       <div className="flex min-h-[500px] items-center justify-center bg-[#666666] text-white">
@@ -104,12 +59,6 @@ export default function ContentViewer({
       </div>
     );
   }
-
-  /*
-   * ======================================================
-   * PDF
-   * ======================================================
-   */
 
   if (type === "pdf") {
     return (
@@ -120,12 +69,6 @@ export default function ContentViewer({
     );
   }
 
-  /*
-   * ======================================================
-   * POWERPOINT
-   * ======================================================
-   */
-
   if (type === "ppt") {
     return (
       <PptViewer
@@ -134,12 +77,6 @@ export default function ContentViewer({
       />
     );
   }
-
-  /*
-   * ======================================================
-   * WORD
-   * ======================================================
-   */
 
   if (type === "word") {
     return (
@@ -150,12 +87,6 @@ export default function ContentViewer({
     );
   }
 
-  /*
-   * ======================================================
-   * VIDEO
-   * ======================================================
-   */
-
   if (type === "video") {
     return (
       <div className="w-full">
@@ -163,7 +94,6 @@ export default function ContentViewer({
         <div className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 bg-black px-4 text-white">
 
           <div className="flex min-w-0 items-center gap-3">
-
             <ContentTypeIcon
               type="video"
               className="h-9 w-9 shrink-0 text-white"
@@ -172,7 +102,6 @@ export default function ContentViewer({
             <span className="truncate text-sm font-semibold">
               {title}
             </span>
-
           </div>
 
           <div />
@@ -180,17 +109,7 @@ export default function ContentViewer({
           <a
             href={file}
             download
-            className="
-              flex h-10 w-10
-              items-center justify-center
-              justify-self-end
-              rounded-full
-              bg-white
-              text-black
-              shadow-md
-              transition
-              hover:scale-105
-            "
+            className="flex h-10 w-10 items-center justify-center justify-self-end rounded-full bg-white text-black shadow-md transition hover:scale-105"
             title="Descargar video"
           >
             ↓
@@ -199,7 +118,6 @@ export default function ContentViewer({
         </div>
 
         <div className="bg-[#666666] p-7">
-
           <video
             controls
             className="mx-auto max-h-[560px] w-full max-w-[900px] bg-black"
@@ -207,18 +125,11 @@ export default function ContentViewer({
             <source src={file} />
             Tu navegador no soporta la reproducción de video.
           </video>
-
         </div>
 
       </div>
     );
   }
-
-  /*
-   * ======================================================
-   * CUESTIONARIO / TIPOS NO DISPONIBLES
-   * ======================================================
-   */
 
   return (
     <div className="flex min-h-[500px] items-center justify-center bg-[#666666] text-white">

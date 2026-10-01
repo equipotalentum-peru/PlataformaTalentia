@@ -11,6 +11,7 @@ type QuizViewerProps = {
   previousHref?: string;
   nextHref?: string;
   exitHref: string;
+  preview?: boolean;
 };
 
 type QuizPhase =
@@ -24,6 +25,7 @@ export default function QuizViewer({
   previousHref,
   nextHref,
   exitHref,
+  preview = false,
 }: QuizViewerProps) {
   const quiz = useMemo(
     () =>
@@ -144,10 +146,9 @@ export default function QuizViewer({
       quiz.durationMinutes * 60
     );
 
-    markQuizStarted(
-      courseId,
-      quizId
-    );
+    if (!preview) {
+      markQuizStarted(courseId, quizId);
+    }
 
     setPhase("question");
   };
@@ -162,15 +163,10 @@ export default function QuizViewer({
   };
 
   const finishQuiz = () => {
-    markContentViewed(
-      courseId,
-      quizId
-    );
-
-    clearQuizStarted(
-      courseId,
-      quizId
-    );
+    if (!preview) {
+      markContentViewed(courseId, quizId);
+      clearQuizStarted(courseId, quizId);
+    }
 
     setPhase("finished");
   };

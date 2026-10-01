@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { forums } from "@/data/forums";
-import ForumDetail from "@/components/forum/ForumDetail";
+import ForumDetail from "@/components/common/forum/ForumDetail";
 
 type ForumDetailPageProps = {
   params: Promise<{

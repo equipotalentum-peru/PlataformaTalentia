@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ContentViewer from "@/components/alumno/ContentViewer";
+import ContentViewer from "@/components/alumno/contenido/ContentViewer";
 import { courseContents, courseModules } from "@/data/courseContents";
 import ContentBackButton from "@/components/alumno/ContentBackButton";
 import SectionNavigation from "@/components/alumno/SectionNavigation";

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { courseContents, courseModules, } from "@/data/courseContents";
 import { getViewedContentIds, markContentViewed, } from "@/lib/progress";
-import CourseContentIcon from "./CourseContentIcon";
+import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
+
+const MODULE_COLOR = "#70A9DC";
 
 type CourseModulesProps = {
   courseId: number;
@@ -163,65 +165,41 @@ export default function CourseModules({
                 className="
                   flex w-full
                   items-center gap-3
-                  bg-[#eeeeee]
                   px-3 py-2.5
                   text-left
                   transition
-                  hover:bg-[#e5e5e5]
+                  hover:brightness-95
                 "
+                style={{
+                  backgroundColor: MODULE_COLOR,
+                }}
               >
 
                 {/* PROGRESO DEL MÓDULO */}
 
                 <div
                   className="
-                    relative
                     flex h-[19px] w-[19px]
                     shrink-0
                     items-center
                     justify-center
                     rounded-full
+                    bg-white
                   "
-                  style={{
-                    background:
-                      `conic-gradient(
-                        #3c8edc ${module.progress}%,
-                        #ffffff ${module.progress}% 100%
-                      )`,
-                  }}
                 >
-
-                  {/* BORDE */}
-
-                  <div
-                    className="
-                      absolute
-                      inset-0
-                      rounded-full
-                      border-2
-                      border-[#3c8edc]
-                    "
-                  />
-
-                  {/* CENTRO */}
-
                   {fullyCompleted && (
                     <svg
                       className="
-                        relative
-                        z-10
-                        h-3 w-3
-                        text-white
+                        h-[11px] w-[11px]
                       "
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="currentColor"
+                      stroke={MODULE_COLOR}
                       strokeWidth="4"
                     >
                       <path d="M5 12l4 4L19 6" />
                     </svg>
                   )}
-
                 </div>
 
                 {/* TÍTULO */}
@@ -231,7 +209,7 @@ export default function CourseModules({
                     flex-1
                     text-[14px]
                     font-semibold
-                    text-[#2f84d5]
+                    text-[#12395B]
                   "
                 >
                   Módulo {module.id}:{" "}
@@ -343,19 +321,21 @@ export default function CourseModules({
                           {/* ESTADO DEL CONTENIDO */}
 
                           <span
-                            className={`
+                            className="
                               flex h-4 w-4
                               shrink-0
                               items-center
                               justify-center
                               rounded-full
                               border-2
-                              ${
-                                isViewed
-                                  ? "border-[#3c8edc] bg-[#3c8edc]"
-                                  : "border-[#3c8edc] bg-white"
-                              }
-                            `}
+                              bg-white
+                            "
+                            style={{
+                              borderColor: MODULE_COLOR,
+                              backgroundColor: isViewed
+                                ? MODULE_COLOR
+                                : "#ffffff",
+                            }}
                           >
 
                             {isViewed && (
