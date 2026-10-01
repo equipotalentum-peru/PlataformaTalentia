@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import ConfigurarCurso from "./configurar-curso";
 import AsignarDocente from "./asignar-docente";
+import VistaPublicarCurso from "@/components/administrador/vista-publicar-curso";
 
 export default function CrearCurso() {
   const [step, setStep] = useState<number>(1);
@@ -198,6 +199,13 @@ export default function CrearCurso() {
       {step === 3 && (
         <div className="mb-8">
           <AsignarDocente esPasoWizard={true} />
+        </div>
+      )}
+
+      {/* PASO 4: Publicar Curso */}
+      {step === 4 && (
+        <div className="mb-8">
+          <VistaPublicarCurso />
         </div>
       )}
 

@@ -4,11 +4,12 @@ import { useState } from "react";
 
 export interface AsignarDocenteProps {
   esPasoWizard?: boolean;
-  onGuardar?: () => void;
 }
 
-export default function AsignarDocente({ esPasoWizard = false }: AsignarDocenteProps) {
-  const [docenteSeleccionado, setDocenteSeleccionado] = useState<string | null>(null);
+export default function AsignarDocente({
+  esPasoWizard = false,
+}: AsignarDocenteProps) {
+  const [docenteSeleccionado, setDocenteSeleccionado] = useState<string | null>("1");
 
   const docentes = [
     { id: "1", nombre: "Gloria Rocha", especialidad: "Diseño y TIC", carga: "3 cursos", disponibilidad: "Lun-Mié" },
