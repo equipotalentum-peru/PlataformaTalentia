@@ -1,137 +1,146 @@
-"use client";
-
-import { use, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { courseContents } from "@/data/courseContents";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import ContentViewer from "@/components/alumno/contenido/ContentViewer";
+import { courseContents, courseModules } from "@/data/courseContents";
+import ContentBackButton from "@/components/alumno/ContentBackButton";
 import SectionNavigation from "@/components/alumno/SectionNavigation";
 
-type PageProps = {
+type ContentPageProps = {
   params: Promise<{
     cursoId: string;
     contenidoId: string;
-  }> | {
-    cursoId: string;
-    contenidoId: string;
-  };
+  }>;
 };
 
-export default function ContenidoPage({ params }: PageProps) {
-  const router = useRouter();
+// Función auxiliar para detectar si un ítem es un enlace externo
+function checkIsExternalLink(content: Record<string, unknown>): boolean {
+  const contentType = String(content.type || "").toLowerCase();
+  const externalUrl = (content.url || content.link || content.fileUrl || content.src) as string | undefined;
 
-  // Desempaquetar params (soporta Next.js 13, 14 y 15)
-  const resolvedParams = params instanceof Promise ? use(params) : params;
-  const cursoId = Number(resolvedParams.cursoId);
-  const contenidoId = Number(resolvedParams.contenidoId);
+  return (
+    contentType === "link" ||
+    contentType === "url" ||
+    contentType === "enlace" ||
+    Boolean(
+      externalUrl &&
+      (externalUrl.startsWith("http://") || externalUrl.startsWith("https://"))
+    )
+  );
+}
 
-  // 1. Obtener el contenido actual
-  const currentContent = courseContents.find((c) => c.id === contenidoId);
+export default async function ContentPage({ params }: ContentPageProps) {
+  const { cursoId, contenidoId } = await params;
 
-  // Función auxiliar para saber si es un enlace
-  const isLinkContent = (content?: typeof courseContents[0]) => {
-    if (!content) return false;
-    const type = (content.type as string)?.toLowerCase();
-    const file = content.file || "";
+  const courseId = Number(cursoId);
+  const contentId = Number(contenidoId);
+
+  const content = courseContents.find(
+    (item) => item.courseId === courseId && item.id === contentId
+  );
+
+  if (!content) {
     return (
-      type === "link" ||
-      type === "url" ||
-      type === "enlace" ||
-      file.startsWith("http://") ||
-      file.startsWith("https://")
-    );
-  };
-
-  // 2. Si el alumno ingresa directamente a un contenido tipo enlace, abrirlo y omitirlo
-  useEffect(() => {
-    if (currentContent && isLinkContent(currentContent)) {
-      if (currentContent.file) {
-        window.open(currentContent.file, "_blank", "noopener,noreferrer");
-      }
-
-      // Buscar el siguiente contenido que NO sea enlace para redirigir
-      const courseItems = courseContents
-        .filter((c) => c.courseId === cursoId)
-        .sort((a, b) => a.moduleId - b.moduleId || a.order - b.order);
-
-      const nextValid = courseItems.find(
-        (c) => c.id > contenidoId && !isLinkContent(c)
-      );
-
-      if (nextValid) {
-        router.replace(`/alumno/cursos/${cursoId}/contenido/${nextValid.id}`);
-      } else {
-        router.replace(`/alumno/cursos/${cursoId}`);
-      }
-    }
-  }, [currentContent, cursoId, contenidoId, router]);
-
-  if (!currentContent) {
-    return (
-      <div className="p-8 text-center text-gray-500">
-        Contenido no encontrado.
+      <div className="min-h-screen p-8">
+        <h1 className="text-2xl font-semibold">
+          Contenido no encontrado
+        </h1>
       </div>
     );
   }
 
-  // 3. Obtener contenidos del curso ordenados
-  const currentCourseContents = courseContents
-    .filter((c) => c.courseId === cursoId)
-    .sort((a, b) => a.moduleId - b.moduleId || a.order - b.order);
+  // 1. SI EL CONTENIDO SOLICITADO ES UN ENLACE, LO REDIRIGIMOS DE VUELTA AL CURSO
+  if (checkIsExternalLink(content as Record<string, unknown>)) {
+    redirect(`/alumno/cursos/${courseId}`);
+  }
 
-  const currentIndex = currentCourseContents.findIndex(
-    (c) => c.id === contenidoId
+  const module = courseModules.find(
+    (item) => item.id === content.moduleId
   );
 
-  // 4. Buscar SIGUIENTE contenido (omitiendo enlaces)
-  let nextContent = null;
-  if (currentIndex !== -1) {
-    for (let i = currentIndex + 1; i < currentCourseContents.length; i++) {
-      if (!isLinkContent(currentCourseContents[i])) {
-        nextContent = currentCourseContents[i];
-        break;
-      }
-    }
-  }
+  // 2. FILTRAR LA LISTA PARA EXCLUIR TODOS LOS ENLACES EXTERNOS
+  const courseContentsList = courseContents.filter(
+    (item) =>
+      item.courseId === courseId &&
+      !checkIsExternalLink(item as Record<string, unknown>)
+  );
 
-  // 5. Buscar ANTERIOR contenido (omitiendo enlaces)
-  let previousContent = null;
-  if (currentIndex !== -1) {
-    for (let i = currentIndex - 1; i >= 0; i--) {
-      if (!isLinkContent(currentCourseContents[i])) {
-        previousContent = currentCourseContents[i];
-        break;
-      }
-    }
-  }
+  const currentIndex = courseContentsList.findIndex(
+    (item) => item.id === content.id
+  );
 
-  const previousHref = previousContent
-    ? `/alumno/cursos/${cursoId}/contenido/${previousContent.id}`
-    : undefined;
+  const previousContent =
+    currentIndex > 0
+      ? courseContentsList[currentIndex - 1]
+      : null;
 
-  const nextHref = nextContent
-    ? `/alumno/cursos/${cursoId}/contenido/${nextContent.id}`
-    : undefined;
+  const nextContent =
+    currentIndex < courseContentsList.length - 1
+      ? courseContentsList[currentIndex + 1]
+      : null;
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <ContentViewer
-        title={currentContent.title}
-        type={currentContent.type}
-        file={currentContent.file}
-        contentId={currentContent.id}
-        courseId={cursoId}
-        previousHref={previousHref}
-        nextHref={nextHref}
-        exitHref={`/alumno/cursos/${cursoId}`}
-      />
+    <div className="min-h-screen px-4 py-4 lg:px-5">
 
-      <SectionNavigation
-        courseId={cursoId}
-        currentContentId={contenidoId}
-        currentContentType={currentContent.type}
-        previousHref={previousHref}
-        nextHref={nextHref}
-      />
+      {/* CABECERA */}
+      <div className="mx-auto max-w-[1000px]">
+
+        <div className="mb-3 flex items-center gap-4">
+
+          <ContentBackButton
+            href={`/alumno/cursos/${courseId}`}
+            courseId={courseId}
+            contentId={content.id}
+            contentType={content.type}
+          />
+
+          <span className="truncate text-[13px] text-gray-700">
+            Módulo {content.moduleId}: {module?.title}
+            {" > "}
+            {content.moduleId}.{content.order} {content.title}
+          </span>
+
+        </div>
+
+        {/* VISOR */}
+        <ContentViewer
+          title={content.title}
+          type={content.type}
+          file={content.file}
+          contentId={content.id}
+          courseId={courseId}
+          previousHref={
+            previousContent
+              ? `/alumno/cursos/${courseId}/contenido/${previousContent.id}`
+              : undefined
+          }
+          nextHref={
+            nextContent
+              ? `/alumno/cursos/${courseId}/contenido/${nextContent.id}`
+              : undefined
+          }
+          exitHref={`/alumno/cursos/${courseId}`}
+        />
+
+        {/* NAVEGACIÓN DE CONTENIDO */}
+        {content.type !== "quiz" && (
+          <SectionNavigation
+            courseId={courseId}
+            currentContentId={content.id}
+            currentContentType={content.type}
+            previousHref={
+              previousContent
+                ? `/alumno/cursos/${courseId}/contenido/${previousContent.id}`
+                : undefined
+            }
+            nextHref={
+              nextContent
+                ? `/alumno/cursos/${courseId}/contenido/${nextContent.id}`
+                : undefined
+            }
+          />
+        )}
+
+      </div>
     </div>
   );
 }

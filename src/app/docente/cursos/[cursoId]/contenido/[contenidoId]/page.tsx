@@ -9,14 +9,49 @@ import {
   courseModules,
 } from "@/data/courseContents";
 
-import { getTeacherContentHref } from "@/lib/teacher-content-navigation";
-
 type TeacherContentPageProps = {
   params: Promise<{
     cursoId: string;
     contenidoId: string;
   }>;
 };
+
+// Función para verificar si un ítem es un enlace externo
+function checkIsExternalLink(content: Record<string, unknown>): boolean {
+  if (!content) return false;
+  
+  const contentType = String(content.type || "").toLowerCase();
+  const externalUrl = (content.url || content.link || content.fileUrl || content.src) as string | undefined;
+
+  return (
+    contentType === "link" ||
+    contentType === "url" ||
+    contentType === "enlace" ||
+    Boolean(
+      externalUrl &&
+      (externalUrl.startsWith("http://") || externalUrl.startsWith("https://"))
+    )
+  );
+}
+
+// Función para obtener la URL exacta según el tipo de contenido
+function getContentHref(courseId: number, item: Record<string, unknown>): string | undefined {
+  if (!item || item.id === undefined || item.id === null) {
+    return undefined;
+  }
+
+  const itemType = String(item.type || "").toLowerCase();
+
+  if (itemType === "activity") {
+    return `/docente/cursos/${courseId}/actividades/${item.id}`;
+  }
+
+  if (itemType === "quiz") {
+    return `/docente/cursos/${courseId}/evaluaciones/${item.id}`;
+  }
+
+  return `/docente/cursos/${courseId}/contenido/${item.id}`;
+}
 
 export default async function TeacherContentPage({
   params,
@@ -45,12 +80,7 @@ export default async function TeacherContentPage({
   }
 
   /*
-   * ACTIVIDAD Y EVALUACIÓN NO DEBEN PASAR
-   * POR ESTE VISOR.
-   *
-   * Si alguien llega a /contenido/6 o /contenido/7,
-   * lo enviamos automáticamente a la interfaz
-   * correspondiente del docente.
+   * REDIRECCIONES DIRECTAS
    */
   if (content.type === "activity") {
     redirect(
@@ -64,45 +94,51 @@ export default async function TeacherContentPage({
     );
   }
 
+  // Si se entra directamente a la URL de un enlace, redirigir al curso
+  if (checkIsExternalLink(content as Record<string, unknown>)) {
+    redirect(`/docente/cursos/${courseId}`);
+  }
+
   const module = courseModules.find(
     (item) => item.id === content.moduleId
   );
 
-  const contents = courseContents.filter(
-    (item) => item.courseId === courseId
+  /*
+   * LISTA NAVEGABLE FILTRADA:
+   * Solo incluye elementos del curso con ID válido y que NO sean enlaces.
+   */
+  const validContents = courseContents.filter(
+    (item) =>
+      item.courseId === courseId &&
+      item.id !== undefined &&
+      !checkIsExternalLink(item as Record<string, unknown>)
   );
 
-  const currentIndex = contents.findIndex(
+  const currentIndex = validContents.findIndex(
     (item) => item.id === content.id
   );
 
   const previousContent =
     currentIndex > 0
-      ? contents[currentIndex - 1]
+      ? validContents[currentIndex - 1]
       : null;
 
   const nextContent =
     currentIndex >= 0 &&
-    currentIndex < contents.length - 1
-      ? contents[currentIndex + 1]
+    currentIndex < validContents.length - 1
+      ? validContents[currentIndex + 1]
       : null;
 
+  // Obtener URLs explícitas para la navegación
   const previousHref = previousContent
-    ? getTeacherContentHref(
-        courseId,
-        previousContent
-      )
+    ? getContentHref(courseId, previousContent as Record<string, unknown>)
     : undefined;
 
   const nextHref = nextContent
-    ? getTeacherContentHref(
-        courseId,
-        nextContent
-      )
+    ? getContentHref(courseId, nextContent as Record<string, unknown>)
     : undefined;
 
-  const backHref =
-    `/docente/cursos/${courseId}`;
+  const backHref = `/docente/cursos/${courseId}`;
 
   return (
     <div className="min-h-screen px-4 py-4 lg:px-5">
