@@ -113,6 +113,7 @@ export const courseContents: CourseContent[] = [
     order: 5,
     title: "Aplicaciones de las TIC",
     type: "link",
+    file: "https://www.youtube.com",
   },
 
   {

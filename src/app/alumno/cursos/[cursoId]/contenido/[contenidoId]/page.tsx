@@ -1,125 +1,137 @@
-import Link from "next/link";
+"use client";
+
+import { use, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { courseContents } from "@/data/courseContents";
 import ContentViewer from "@/components/alumno/contenido/ContentViewer";
-import { courseContents, courseModules } from "@/data/courseContents";
-import ContentBackButton from "@/components/alumno/ContentBackButton";
 import SectionNavigation from "@/components/alumno/SectionNavigation";
 
-type ContentPageProps = {
+type PageProps = {
   params: Promise<{
     cursoId: string;
     contenidoId: string;
-  }>;
+  }> | {
+    cursoId: string;
+    contenidoId: string;
+  };
 };
 
-export default async function ContentPage({
-  params,
-}: ContentPageProps) {
-  const { cursoId, contenidoId } = await params;
+export default function ContenidoPage({ params }: PageProps) {
+  const router = useRouter();
 
-  const courseId = Number(cursoId);
-  const contentId = Number(contenidoId);
+  // Desempaquetar params (soporta Next.js 13, 14 y 15)
+  const resolvedParams = params instanceof Promise ? use(params) : params;
+  const cursoId = Number(resolvedParams.cursoId);
+  const contenidoId = Number(resolvedParams.contenidoId);
 
-  const content = courseContents.find(
-    (item) =>
-      item.courseId === courseId &&
-      item.id === contentId
-  );
+  // 1. Obtener el contenido actual
+  const currentContent = courseContents.find((c) => c.id === contenidoId);
 
-  if (!content) {
+  // Función auxiliar para saber si es un enlace
+  const isLinkContent = (content?: typeof courseContents[0]) => {
+    if (!content) return false;
+    const type = (content.type as string)?.toLowerCase();
+    const file = content.file || "";
     return (
-      <div className="min-h-screen p-8">
-        <h1 className="text-2xl font-semibold">
-          Contenido no encontrado
-        </h1>
+      type === "link" ||
+      type === "url" ||
+      type === "enlace" ||
+      file.startsWith("http://") ||
+      file.startsWith("https://")
+    );
+  };
+
+  // 2. Si el alumno ingresa directamente a un contenido tipo enlace, abrirlo y omitirlo
+  useEffect(() => {
+    if (currentContent && isLinkContent(currentContent)) {
+      if (currentContent.file) {
+        window.open(currentContent.file, "_blank", "noopener,noreferrer");
+      }
+
+      // Buscar el siguiente contenido que NO sea enlace para redirigir
+      const courseItems = courseContents
+        .filter((c) => c.courseId === cursoId)
+        .sort((a, b) => a.moduleId - b.moduleId || a.order - b.order);
+
+      const nextValid = courseItems.find(
+        (c) => c.id > contenidoId && !isLinkContent(c)
+      );
+
+      if (nextValid) {
+        router.replace(`/alumno/cursos/${cursoId}/contenido/${nextValid.id}`);
+      } else {
+        router.replace(`/alumno/cursos/${cursoId}`);
+      }
+    }
+  }, [currentContent, cursoId, contenidoId, router]);
+
+  if (!currentContent) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Contenido no encontrado.
       </div>
     );
   }
 
-  const module = courseModules.find(
-    (item) => item.id === content.moduleId
+  // 3. Obtener contenidos del curso ordenados
+  const currentCourseContents = courseContents
+    .filter((c) => c.courseId === cursoId)
+    .sort((a, b) => a.moduleId - b.moduleId || a.order - b.order);
+
+  const currentIndex = currentCourseContents.findIndex(
+    (c) => c.id === contenidoId
   );
 
-  const courseContentsList = courseContents.filter(
-    (item) => item.courseId === courseId
-  );
+  // 4. Buscar SIGUIENTE contenido (omitiendo enlaces)
+  let nextContent = null;
+  if (currentIndex !== -1) {
+    for (let i = currentIndex + 1; i < currentCourseContents.length; i++) {
+      if (!isLinkContent(currentCourseContents[i])) {
+        nextContent = currentCourseContents[i];
+        break;
+      }
+    }
+  }
 
-  const currentIndex = courseContentsList.findIndex(
-    (item) => item.id === content.id
-  );
+  // 5. Buscar ANTERIOR contenido (omitiendo enlaces)
+  let previousContent = null;
+  if (currentIndex !== -1) {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (!isLinkContent(currentCourseContents[i])) {
+        previousContent = currentCourseContents[i];
+        break;
+      }
+    }
+  }
 
-  const previousContent =
-    currentIndex > 0
-      ? courseContentsList[currentIndex - 1]
-      : null;
+  const previousHref = previousContent
+    ? `/alumno/cursos/${cursoId}/contenido/${previousContent.id}`
+    : undefined;
 
-  const nextContent =
-    currentIndex < courseContentsList.length - 1
-      ? courseContentsList[currentIndex + 1]
-      : null;
+  const nextHref = nextContent
+    ? `/alumno/cursos/${cursoId}/contenido/${nextContent.id}`
+    : undefined;
 
   return (
-    <div className="min-h-screen px-4 py-4 lg:px-5">
+    <div className="mx-auto max-w-5xl p-6">
+      <ContentViewer
+        title={currentContent.title}
+        type={currentContent.type}
+        file={currentContent.file}
+        contentId={currentContent.id}
+        courseId={cursoId}
+        previousHref={previousHref}
+        nextHref={nextHref}
+        exitHref={`/alumno/cursos/${cursoId}`}
+      />
 
-      {/* CABECERA */}
-      <div className="mx-auto max-w-[1000px]">
-
-        <div className="mb-3 flex items-center gap-4">
-
-          <ContentBackButton
-            href={`/alumno/cursos/${courseId}`}
-            courseId={courseId}
-            contentId={content.id}
-            contentType={content.type}
-          />
-
-          <span className="truncate text-[13px] text-gray-700">
-            Módulo {content.moduleId}: {module?.title}
-            {" > "}
-            {content.moduleId}.{content.order} {content.title}
-          </span>
-
-        </div>
-
-        {/* VISOR */}
-        <ContentViewer
-          title={content.title}
-          type={content.type}
-          file={content.file}
-          contentId={content.id}
-          courseId={courseId}
-          previousHref={
-            previousContent
-              ? `/alumno/cursos/${courseId}/contenido/${previousContent.id}`
-              : undefined
-          }
-          nextHref={
-            nextContent
-              ? `/alumno/cursos/${courseId}/contenido/${nextContent.id}`
-              : undefined
-          }
-          exitHref={`/alumno/cursos/${courseId}`}
-        />
-
-        {/* NAVEGACIÓN DE CONTENIDO */}
-        {content.type !== "quiz" && (
-          <SectionNavigation
-            courseId={courseId}
-            currentContentId={content.id}
-            currentContentType={content.type}
-            previousHref={
-              previousContent
-                ? `/alumno/cursos/${courseId}/contenido/${previousContent.id}`
-                : undefined
-            }
-            nextHref={
-              nextContent
-                ? `/alumno/cursos/${courseId}/contenido/${nextContent.id}`
-                : undefined
-            }
-          />
-        )}
-
-      </div>
+      <SectionNavigation
+        courseId={cursoId}
+        currentContentId={contenidoId}
+        currentContentType={currentContent.type}
+        previousHref={previousHref}
+        nextHref={nextHref}
+      />
     </div>
   );
 }

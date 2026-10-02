@@ -33,7 +33,6 @@ type LocalContent = {
 
 const moduleColors = ["#70a9dc", "#70a9dc", "#70a9dc"];
 
-
 function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4">
@@ -207,14 +206,6 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
     showNotice("Contenido eliminado.");
   };
 
-  const tabs = [
-    { label: "Contenido de curso", active: true },
-    { label: "Clases", active: false },
-    { label: "Foro", active: false },
-    { label: "Anuncios", active: false },
-    { label: "Asistencia", active: false },
-  ];
-
   return (
     <div className="min-h-screen px-3 py-4 lg:px-5">
       <div className="mx-auto max-w-[1000px]">
@@ -230,45 +221,41 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
         </div>
 
         <div className="flex flex-wrap border-b border-[#9ca3ad] bg-[#eef2f8]">
-          <div className="flex flex-wrap border-b border-[#9ca3ad] bg-[#eef2f8]">
+          <button
+            type="button"
+            onClick={() => {}}
+            className="border-b-[3px] border-black px-3 py-2 text-[10px] font-medium text-gray-900"
+          >
+            Contenido de curso
+          </button>
 
-            <button
-              type="button"
-              onClick={() => {}}
-              className="border-b-[3px] border-black px-3 py-2 text-[10px] font-medium text-gray-900"
-            >
-              Contenido de curso
-            </button>
+          <Link
+            href={`/docente/cursos/${course.id}/clases`}
+            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
+          >
+            Clases
+          </Link>
 
-            <Link
-              href={`/docente/cursos/${course.id}/clases`}
-              className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-            >
-              Clases
-            </Link>
+          <Link
+            href={`/docente/cursos/${course.id}/foro`}
+            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
+          >
+            Foro
+          </Link>
 
-            <Link
-              href={`/docente/cursos/${course.id}/foro`}
-              className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-            >
-              Foro
-            </Link>
+          <Link
+            href={`/docente/cursos/${course.id}/anuncios`}
+            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
+          >
+            Anuncios
+          </Link>
 
-            <Link
-              href={`/docente/cursos/${course.id}/anuncios`}
-              className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-            >
-              Anuncios
-            </Link>
-
-            <Link
-              href={`/docente/cursos/${course.id}/asistencia`}
-              className="border-b-[3px] border-black px-3 py-2 text-[10px] font-medium"
-            >
-              Asistencia
-            </Link>
-
-          </div>
+          <Link
+            href={`/docente/cursos/${course.id}/asistencia`}
+            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
+          >
+            Asistencia
+          </Link>
         </div>
 
         <div className="flex flex-col gap-5 py-4 lg:flex-row">
@@ -296,6 +283,15 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
                       {open && (
                         <div className="bg-white">
                           {module.contents.map((content) => {
+                            const contentType = (content.type as string)?.toLowerCase();
+                            const externalUrl = content.file;
+
+                            // Comprobar si el ítem debe abrirse como enlace externo
+                            const isExternalLink =
+                              contentType === "link" ||
+                              contentType === "url" ||
+                              Boolean(externalUrl && (externalUrl.startsWith("http://") || externalUrl.startsWith("https://")));
+
                             const contentHref =
                               content.type === "activity"
                                 ? `/docente/cursos/${course.id}/actividades/${content.id}`
@@ -303,25 +299,42 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
                                   ? `/docente/cursos/${course.id}/evaluaciones/${content.id}`
                                   : `/docente/cursos/${course.id}/contenido/${content.id}`;
 
+                            const linkContent = (
+                              <>
+                                <CourseContentIcon
+                                  type={content.type}
+                                  className="h-4 w-4 shrink-0 text-[#667482]"
+                                />
+                                <span className="min-w-0 flex-1 truncate text-[10px] text-gray-800">
+                                  {module.id}.{content.order} {content.title}
+                                </span>
+                              </>
+                            );
+
                             return (
                               <div
                                 key={content.id}
                                 className="group flex min-h-[31px] items-center gap-2 border-b border-[#eff2f5] px-3"
                               >
-                                <Link
-                                  href={contentHref}
-                                  className="flex min-w-0 flex-1 items-center gap-2 rounded-sm py-1 text-left hover:bg-[#f6faff]"
-                                  title={`Abrir ${content.title}`}
-                                >
-                                  <CourseContentIcon
-                                    type={content.type}
-                                    className="h-4 w-4 shrink-0 text-[#667482]"
-                                  />
-
-                                  <span className="min-w-0 flex-1 truncate text-[10px] text-gray-800">
-                                    {module.id}.{content.order} {content.title}
-                                  </span>
-                                </Link>
+                                {isExternalLink && externalUrl ? (
+                                  <a
+                                    href={externalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex min-w-0 flex-1 items-center gap-2 rounded-sm py-1 text-left hover:bg-[#f6faff]"
+                                    title={`Abrir ${content.title} en nueva pestaña`}
+                                  >
+                                    {linkContent}
+                                  </a>
+                                ) : (
+                                  <Link
+                                    href={contentHref}
+                                    className="flex min-w-0 flex-1 items-center gap-2 rounded-sm py-1 text-left hover:bg-[#f6faff]"
+                                    title={`Abrir ${content.title}`}
+                                  >
+                                    {linkContent}
+                                  </Link>
+                                )}
 
                                 <span
                                   className={`flex h-4 min-w-[53px] shrink-0 items-center justify-center rounded-[4px] px-1 text-[7px] font-medium ${

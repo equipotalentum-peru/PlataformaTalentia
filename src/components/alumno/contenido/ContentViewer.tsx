@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { ContentType } from "@/data/courseContents";
 
 import CommonContentViewer from "@/components/common/contenido/ContentViewer";
@@ -27,6 +29,31 @@ export default function ContentViewer({
   nextHref,
   exitHref,
 }: ContentViewerProps) {
+  const router = useRouter();
+
+  /* ======================================================
+   * REDIRECCIÓN AUTOMÁTICA DE ENLACES EXTERNOS
+   * ====================================================== */
+  useEffect(() => {
+    const rawType = (type as string)?.toLowerCase();
+    const isLinkType =
+      rawType === "link" || rawType === "url" || rawType === "enlace";
+    const isExternalUrl =
+      file && (file.startsWith("http://") || file.startsWith("https://"));
+
+    if (isLinkType || isExternalUrl) {
+      if (file) {
+        window.open(file, "_blank", "noopener,noreferrer");
+      }
+      // Regresa al listado del curso o a la ruta de salida
+      if (exitHref) {
+        router.push(exitHref);
+      } else {
+        router.back();
+      }
+    }
+  }, [type, file, exitHref, router]);
+
   if (
     type === "quiz" &&
     contentId &&
