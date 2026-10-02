@@ -7,7 +7,6 @@ import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 type ProfileRow = QueryResultRow & {
   id: string;
   nombres: string;
-  apellidos: string;
   usuario: string;
   correo: string | null;
   rol: "Estudiante" | "Docente" | "Administrador";
@@ -21,7 +20,7 @@ type ProfileRow = QueryResultRow & {
 };
 
 const profileColumns = `
-  id, nombres, apellidos, usuario, correo, rol, id_persona,
+  id, nombres, usuario, correo, rol, id_persona,
   TO_CHAR(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
   genero, nacionalidad, direccion, telefono,
   CASE WHEN foto_perfil IS NOT NULL
@@ -49,7 +48,6 @@ function formatProfile(row: ProfileRow) {
   return {
     id: row.id,
     nombres: row.nombres,
-    apellidos: row.apellidos,
     usuario: row.usuario,
     correo: row.correo,
     rol: row.rol,

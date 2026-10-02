@@ -367,43 +367,9 @@ export default function LoginForm() {
             : "INICIAR SESIÓN"}
         </button>
 
-        {/* O */}
+        
 
-        <div className="relative py-0.5">
-
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-transparent" />
-          </div>
-
-          <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-[12px] font-semibold text-gray-500">
-              Ó
-            </span>
-          </div>
-
-        </div>
-
-        {/* REGISTRARSE */}
-
-        <button
-          type="button"
-          onClick={() => router.push("/registro")}
-          className="
-            h-[45px]
-            w-full
-            rounded-[8px]
-            bg-[#1554ad]
-            text-[13px]
-            font-bold
-            text-white
-            shadow-sm
-            transition
-            hover:bg-[#0d4697]
-          "
-        >
-          REGISTRARSE
-        </button>
-
+  
       </form>
 
     </div>

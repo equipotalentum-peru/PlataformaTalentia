@@ -17,6 +17,7 @@
     "@web-ppt/core": "^0.4.5",
     "@web-ppt/viewer-core": "^0.4.5",
     "docx-preview": "^0.4.1",
+    "firebase": "^12.19.0",
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",

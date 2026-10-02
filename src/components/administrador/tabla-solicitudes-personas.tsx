@@ -1,8 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
 
-type EstadoSolicitud = "Pendiente" | "En Proceso" | "Contactado" | "Desestimado";
+import { db } from "../../lib/firebase";
+
+
+type EstadoSolicitud = "Pendiente" | "Contactado" | "Matriculado" | "Cancelado";
 
 interface DatosEmpresa {
   ruc: string;
@@ -27,74 +36,85 @@ interface SolicitudPersona {
   estado: EstadoSolicitud;
 }
 
-const INITIAL_DATA: SolicitudPersona[] = [
-  {
-    id: "1",
-    fecha: "28 Feb 2026",
-    nombre: "Carlos Eduardo Mendoza",
-    dni: "74839201",
-    email: "carlos.mendoza@email.com",
-    telefono: "+51 987 654 321",
-    tipoAlumno: "Convenio",
-    empresa: "Banco de Crédito del Perú (BCP)",
-    datosEmpresa: {
-      ruc: "20100047218",
-      nombreEmpresa: "Banco de Crédito del Perú (BCP)",
-      nombreContacto: "Luciana Gómez (RRHH)",
-      correoCorporativo: "lgomez@bcp.com.pe",
-      telefono: "+51 1 313 2000",
-      interes: "Diseño UX/UI",
-    },
-    interes: "Diseño UX/UI",
-    estado: "Pendiente",
-  },
-  {
-    id: "2",
-    fecha: "27 Feb 2026",
-    nombre: "María Fernanda Torres",
-    dni: "45920183",
-    email: "m.torres@gmail.com",
-    telefono: "+51 912 345 678",
-    tipoAlumno: "Externo",
-    interes: "Data Analytics",
-    estado: "Contactado",
-  },
-  {
-    id: "3",
-    fecha: "26 Feb 2026",
-    nombre: "Juan Pablo Quispe",
-    dni: "71029384",
-    email: "juan.pablo@hotmail.com",
-    telefono: "+51 955 443 322",
-    tipoAlumno: "Externo",
-    interes: "Desarrollo Web",
-    estado: "En Proceso",
-  },
-  {
-    id: "4",
-    fecha: "25 Feb 2026",
-    nombre: "Lucía Sofía Ramírez",
-    dni: "76543210",
-    email: "lucia.ramirez@alicorp.com",
-    telefono: "+51 933 221 100",
-    tipoAlumno: "Convenio",
-    empresa: "Alicorp S.A.A.",
-    datosEmpresa: {
-      ruc: "20100055237",
-      nombreEmpresa: "Alicorp S.A.A.",
-      nombreContacto: "Roberto Benavides",
-      correoCorporativo: "rbenavides@alicorp.com.pe",
-      telefono: "+51 1 315 0800",
-      interes: "Gestión de Proyectos",
-    },
-    interes: "Gestión de Proyectos",
-    estado: "Pendiente",
-  },
-];
-
 export default function TablaSolicitudesPersonas() {
-  const [solicitudes, setSolicitudes] = useState<SolicitudPersona[]>(INITIAL_DATA);
-  const [busqueda, setBusqueda] = useState("");
+ const [solicitudes, setSolicitudes] = useState<SolicitudPersona[]>([]);
+ const [cargando, setCargando] = useState(true);
+ const [busqueda, setBusqueda] = useState("");
+
+ useEffect(() => {
+  async function cargarSolicitudes() {
+    try {
+      setCargando(true);
+
+      const consulta = query(
+        collection(db, "FormularioAlumno"),
+        orderBy("fecha_registro", "desc")
+      );
+
+      const snapshot = await getDocs(consulta);
+
+      const responseEstados = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/auth/registration-statuses`
+);
+
+const dataEstados = await responseEstados.json();
+
+const estadosPorCorreo = new Map<string, EstadoSolicitud>(
+  (dataEstados.statuses || []).map(
+    (registro: { email: string; estado: EstadoSolicitud }) => [
+      registro.email.toLowerCase(),
+      registro.estado,
+    ]
+  )
+);
+
+      const datos: SolicitudPersona[] = snapshot.docs.map((documento) => {
+        const data = documento.data();
+
+        let fecha = "Sin fecha";
+
+        if (data.fecha_registro?.toDate) {
+          fecha = data.fecha_registro
+            .toDate()
+            .toLocaleDateString("es-PE", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            });
+        }
+
+        return {
+          id: documento.id,
+          fecha,
+          nombre: data.nombre || "",
+          dni: data.dni || "",
+          email: data.email || "",
+          telefono: data.telefono || "",
+          tipoAlumno:
+            data.tipo_alumno === "Alumno convenio"
+              ? "Convenio"
+              : "Externo",
+          interes: data.interes || "",
+          estado:
+  estadosPorCorreo.get(
+    String(data.email || "").toLowerCase()
+  ) || "Pendiente",
+        };
+      });
+
+      setSolicitudes(datos);
+    } catch (error) {
+      console.error(
+        "Error al cargar solicitudes de personas:",
+        error
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  cargarSolicitudes();
+}, []);
 
   // Estado menú desplegable acciones
   const [menuAbiertoId, setMenuAbiertoId] = useState<string | null>(null);
@@ -114,6 +134,66 @@ export default function TablaSolicitudesPersonas() {
     interes: "",
   });
 
+  useEffect(() => {
+  async function cargarSolicitudes() {
+    try {
+      setCargando(true);
+
+      const consulta = query(
+        collection(db, "FormularioAlumno"),
+        orderBy("fecha_registro", "desc")
+      );
+
+      const snapshot = await getDocs(consulta);
+
+      const datos: SolicitudPersona[] = snapshot.docs.map((documento) => {
+        const data = documento.data();
+
+        let fecha = "Sin fecha";
+
+        if (data.fecha_registro?.toDate) {
+          fecha = data.fecha_registro
+            .toDate()
+            .toLocaleDateString("es-PE", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            });
+        }
+
+        return {
+          id: documento.id,
+          fecha,
+          nombre: data.nombre || "",
+          dni: data.dni || "",
+          email: data.email || "",
+          telefono: data.telefono || "",
+
+          tipoAlumno:
+            data.tipo_alumno === "Alumno convenio"
+              ? "Convenio"
+              : "Externo",
+
+          interes: data.interes || "",
+
+          estado: "Pendiente",
+        };
+      });
+
+      setSolicitudes(datos);
+    } catch (error) {
+      console.error(
+        "Error al cargar solicitudes de personas:",
+        error
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  cargarSolicitudes();
+}, []);
+
   // Cerrar menú desplegable al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -128,6 +208,48 @@ export default function TablaSolicitudesPersonas() {
   const toggleMenu = (id: string) => {
     setMenuAbiertoId(menuAbiertoId === id ? null : id);
   };
+
+  const enviarInvitacion = async (solicitud: SolicitudPersona) => {
+  try {
+    setMenuAbiertoId(null);
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/send-registration-invitation`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          correo: solicitud.email,
+         nombre: solicitud.nombre,
+         dni: solicitud.dni,
+         telefono: solicitud.telefono,
+         tipoAlumno: solicitud.tipoAlumno,
+         empresaAliada: solicitud.empresa || null,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "No se pudo enviar la invitación."
+      );
+    }
+
+    alert("Invitación enviada correctamente.");
+  } catch (error) {
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Error al enviar la invitación."
+    );
+  }
+};
+
+
 
   const handleEliminar = (id: string) => {
     setMenuAbiertoId(null);
@@ -202,25 +324,25 @@ export default function TablaSolicitudesPersonas() {
             Pendiente
           </span>
         );
-      case "En Proceso":
+      case "Contactado":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 text-sky-700 border border-sky-200/80 text-xs font-semibold rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-            En Proceso
-          </span>
-        );
-      case "Contactado":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-semibold rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Contactado
           </span>
         );
-      case "Desestimado":
+      case "Matriculado":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-semibold rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Matriculado
+          </span>
+        );
+      case "Cancelado":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 text-xs font-medium rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-            Desestimado
+            Cancelado
           </span>
         );
     }
@@ -272,7 +394,16 @@ export default function TablaSolicitudesPersonas() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50 text-sm">
-            {solicitudesFiltradas.length > 0 ? (
+            {cargando ? (
+  <tr>
+    <td
+      colSpan={7}
+      className="text-center py-8 text-[#6F83A5]"
+    >
+      Cargando solicitudes...
+    </td>
+  </tr>
+) : solicitudesFiltradas.length > 0 ? (
               solicitudesFiltradas.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/60 transition">
                   <td className="py-4 px-4 text-[#6F83A5] whitespace-nowrap">
@@ -341,6 +472,28 @@ export default function TablaSolicitudesPersonas() {
                             </svg>
                             <span>Ver Detalles</span>
                           </button>
+
+                          <button
+  type="button"
+  onClick={() => enviarInvitacion(item)}
+  className="w-full text-left px-4 py-2 text-xs font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
+>
+  <svg
+    className="w-4 h-4 text-[#2D97E8]"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18V6H3v10z"
+    />
+  </svg>
+
+  <span>Enviar correo de registro</span>
+</button>
 
                           {item.tipoAlumno === "Convenio" && (
                             <button
@@ -447,9 +600,9 @@ export default function TablaSolicitudesPersonas() {
                   className="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-[#0F2851] outline-none focus:border-[#2D97E8] cursor-pointer"
                 >
                   <option value="Pendiente">Pendiente</option>
-                  <option value="En Proceso">En Proceso</option>
                   <option value="Contactado">Contactado</option>
-                  <option value="Desestimado">Desestimado</option>
+                  <option value="Matriculado">Matriculado</option>
+                  <option value="Cancelado">Cancelado</option>
                 </select>
               </div>
             </div>

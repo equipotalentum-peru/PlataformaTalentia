@@ -43,13 +43,12 @@ export function useSidebarAccount() {
         if (
           !profile ||
           typeof profile.nombres !== "string" ||
-          typeof profile.apellidos !== "string" ||
           controller.signal.aborted
         ) {
           return;
         }
 
-        const nombre = `${profile.nombres} ${profile.apellidos}`.trim();
+        const nombre = profile.nombres.trim()
         if (!nombre) return;
 
         const fotoUrl = typeof profile.fotoPerfil === "string" && profile.fotoPerfil
@@ -58,7 +57,13 @@ export function useSidebarAccount() {
 
         setCuenta((actual) => ({
           nombre,
-          iniciales: `${profile.nombres.charAt(0)}${profile.apellidos.charAt(0)}`.toUpperCase(),
+          iniciales: profile.nombres
+  .split(" ")
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((parte: string) => parte.charAt(0))
+  .join("")
+  .toUpperCase(),
           fotoPerfil: fotoActualizada ? actual.fotoPerfil : fotoUrl,
         }));
       } catch {

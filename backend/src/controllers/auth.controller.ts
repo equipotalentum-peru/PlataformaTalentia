@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 import pool from "../config/database";
 
@@ -34,6 +35,269 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+
+
+
+/* ==========================================
+   ENVIAR INVITACIÓN DE REGISTRO
+========================================== */
+
+export async function sendRegistrationInvitation(
+  req: Request,
+  res: Response
+) {
+  try {
+    const {
+     correo,
+     nombre,
+     dni,
+     telefono,
+     tipoAlumno,
+     empresaAliada,
+   } = req.body;
+
+    if (!correo?.trim()) {
+      return res.status(400).json({
+        message: "El correo es obligatorio.",
+      });
+    }
+
+    const email = correo.trim().toLowerCase();
+
+    // Si ya existe como usuario, no enviamos otra invitación
+    const existingUser = await pool.query(
+      `
+      SELECT id
+      FROM users
+      WHERE LOWER(correo) = LOWER($1)
+      `,
+      [email]
+    );
+
+    if (existingUser.rowCount) {
+      return res.status(409).json({
+        message: "Este correo ya pertenece a un usuario registrado.",
+      });
+    }
+
+    // Invalidar invitaciones anteriores del mismo correo
+    await pool.query(
+      `
+      UPDATE registration_invitations
+      SET used = TRUE
+      WHERE LOWER(email) = LOWER($1)
+        AND used = FALSE
+      `,
+      [email]
+    );
+
+    // Token seguro
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Guardamos solo el hash, nunca el token real
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    await pool.query(
+  `
+  INSERT INTO registration_invitations (
+    email,
+    token_hash,
+    expires_at,
+    nombre,
+    dni,
+    telefono,
+    tipo_alumno,
+    empresa_aliada
+  )
+  VALUES (
+    $1,
+    $2,
+    NOW() + INTERVAL '24 hours',
+    $3,
+    $4,
+    $5,
+    $6,
+    $7
+  )
+  `,
+  [
+    email,
+    tokenHash,
+    nombre || null,
+    dni || null,
+    telefono || null,
+    tipoAlumno || null,
+    empresaAliada || null,
+  ]
+);
+
+    const frontendUrl =
+      process.env.FRONTEND_URL ?? "http://localhost:3000";
+
+    const registrationUrl =
+      `${frontendUrl}/registro?token=${encodeURIComponent(token)}`;
+
+    await transporter.sendMail({
+      from: `"Talentia" <${MAIL_USER}>`,
+      to: email,
+      subject: "Invitación para registrarte en Talentia",
+
+      text:
+        `Hola ${nombre || "postulante"}. ` +
+        `Has sido invitado a completar tu registro en Talentia. ` +
+        `Ingresa al siguiente enlace: ${registrationUrl}. ` +
+        `El enlace vence en 24 horas.`,
+
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px;">
+          <h2 style="color: #0F2851;">
+            Completa tu registro en Talentia
+          </h2>
+
+          <p>
+            Hola ${nombre || "postulante"},
+          </p>
+
+          <p>
+            Has sido invitado a completar tu registro
+            en la plataforma educativa Talentia.
+          </p>
+
+          <p>
+            Este enlace está asociado únicamente al correo:
+          </p>
+
+          <p>
+            <strong>${email}</strong>
+          </p>
+
+          <a
+            href="${registrationUrl}"
+            style="
+              display: inline-block;
+              padding: 12px 22px;
+              background: #2D97E8;
+              color: white;
+              text-decoration: none;
+              border-radius: 8px;
+              font-weight: bold;
+            "
+          >
+            Completar registro
+          </a>
+
+          <p style="margin-top: 20px;">
+            Este enlace vence en 24 horas y solo puede
+            utilizarse una vez.
+          </p>
+
+          <p>
+            Si no solicitaste este acceso, puedes ignorar
+            este mensaje.
+          </p>
+        </div>
+      `,
+    });
+
+    return res.status(200).json({
+      message: "Invitación enviada correctamente.",
+    });
+  } catch (error) {
+    console.error(
+      "Error enviando invitación de registro:",
+      error
+    );
+
+    return res.status(500).json({
+      message: "No se pudo enviar la invitación.",
+    });
+  }
+}
+
+/* ==========================================
+   VALIDAR INVITACIÓN DE REGISTRO
+========================================== */
+
+export async function verifyRegistrationInvitation(
+  req: Request,
+  res: Response
+) {
+  try {
+    const token =
+      typeof req.query.token === "string"
+        ? req.query.token
+        : "";
+
+    if (!token) {
+      return res.status(400).json({
+        valid: false,
+        message: "Token de invitación requerido.",
+      });
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const result = await pool.query(
+  `
+  SELECT
+    id,
+    email,
+    nombre,
+    dni,
+    telefono,
+    tipo_alumno,
+    empresa_aliada,
+    expires_at,
+    used
+  FROM registration_invitations
+  WHERE token_hash = $1
+    AND used = FALSE
+    AND expires_at > NOW()
+  ORDER BY created_at DESC
+  LIMIT 1
+  `,
+  [tokenHash]
+);
+
+    if (!result.rowCount) {
+      return res.status(400).json({
+        valid: false,
+        message:
+          "La invitación es inválida, expiró o ya fue utilizada.",
+      });
+    }
+
+    const invitation = result.rows[0];
+
+   return res.status(200).json({
+  valid: true,
+  correo: invitation.email,
+  nombre: invitation.nombre,
+  dni: invitation.dni,
+  telefono: invitation.telefono,
+  tipoAlumno: invitation.tipo_alumno,
+  empresaAliada: invitation.empresa_aliada,
+});
+  } catch (error) {
+    console.error(
+      "Error verificando invitación:",
+      error
+    );
+
+    return res.status(500).json({
+      valid: false,
+      message: "Error interno del servidor.",
+    });
+  }
+}
+
 /* ==========================================
    REGISTRO
 ========================================== */
@@ -45,7 +309,6 @@ export async function register(
   try {
     const {
       nombres,
-      apellidos,
       dni,
       empresaAliada,
       usuario,
@@ -55,11 +318,11 @@ export async function register(
       direccion,
       correo,
       password,
+      token,
     } = req.body;
 
     if (
       !nombres ||
-      !apellidos ||
       !usuario ||
       !correo ||
       !password
@@ -115,6 +378,52 @@ export async function register(
       return res.status(400).json({ message: "La fecha de nacimiento no es válida." });
     }
 
+    if (!token) {
+  return res.status(403).json({
+    message:
+      "Necesitas una invitación válida para registrarte.",
+  });
+}
+
+const tokenHash = crypto
+  .createHash("sha256")
+  .update(token)
+  .digest("hex");
+
+const invitationResult = await pool.query(
+  `
+  SELECT
+    id,
+    email
+  FROM registration_invitations
+  WHERE token_hash = $1
+    AND used = FALSE
+    AND expires_at > NOW()
+  ORDER BY created_at DESC
+  LIMIT 1
+  `,
+  [tokenHash]
+);
+
+if (!invitationResult.rowCount) {
+  return res.status(403).json({
+    message:
+      "La invitación es inválida, expiró o ya fue utilizada.",
+  });
+}
+
+const invitation = invitationResult.rows[0];
+
+if (
+  invitation.email.toLowerCase() !==
+  correo.trim().toLowerCase()
+) {
+  return res.status(403).json({
+    message:
+      "El correo no corresponde a la invitación recibida.",
+  });
+}
+
     const existingUser = await pool.query(
       `SELECT id
        FROM users
@@ -141,31 +450,68 @@ export async function register(
     );
 
     const result = await pool.query(
-      `INSERT INTO users (
-         nombres, apellidos, dni, empresa_aliada, usuario,
-         genero, telefono, fecha_nacimiento, direccion,
-         correo, password_hash, rol
-       )
-       VALUES (
-         $1, $2, $3, $4, $5,
-         $6, $7, $8, $9,
-         $10, $11, 'Estudiante'
-       )
-       RETURNING id, nombres, apellidos, usuario, correo, rol, id_persona`,
-      [
-        nombres.trim(),
-        apellidos.trim(),
-        dni.trim(),
-        empresaAliada?.trim() || null,
-        usuario.trim(),
-        genero,
-        telefono.trim(),
-        fechaNacimiento,
-        direccion.trim(),
-        correo.trim().toLowerCase(),
-        passwordHash,
-      ]
-    );
+  `
+  INSERT INTO users (
+    nombres,
+    dni,
+    empresa_aliada,
+    usuario,
+    genero,
+    telefono,
+    fecha_nacimiento,
+    direccion,
+    correo,
+    password_hash,
+    rol
+  )
+  VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10,
+    'Estudiante'
+  )
+  RETURNING
+    id,
+    nombres,
+    dni,
+    usuario,
+    correo,
+    rol,
+    id_persona
+  `,
+  [
+    nombres.trim(),
+    dni.trim(),
+    empresaAliada?.trim() || null,
+    usuario.trim(),
+    genero,
+    telefono.trim(),
+    fechaNacimiento,
+    direccion.trim(),
+    correo.trim().toLowerCase(),
+    passwordHash,
+  ]
+);
+
+await pool.query(
+  `
+  UPDATE registration_invitations
+  SET
+    used = TRUE,
+    estado = 'Matriculado'
+  WHERE id = $1
+  `,
+  [invitation.id]
+);
+
+
 
     return res.status(201).json({
       message:
@@ -210,7 +556,6 @@ export async function login(
       `SELECT
         id,
         nombres,
-        apellidos,
         usuario,
         correo,
         password_hash,
@@ -274,7 +619,6 @@ export async function login(
       user: {
         id: user.id,
         nombres: user.nombres,
-        apellidos: user.apellidos,
         usuario: user.usuario,
         correo: user.correo,
         rol: user.rol,
@@ -693,6 +1037,36 @@ export async function resetPassword(
     return res.status(500).json({
       message:
         "Error interno del servidor.",
+    });
+  }
+}
+
+export async function getRegistrationStatuses(
+  req: Request,
+  res: Response
+) {
+  try {
+    const result = await pool.query(
+      `
+      SELECT DISTINCT ON (LOWER(email))
+        email,
+        estado
+      FROM registration_invitations
+      ORDER BY LOWER(email), created_at DESC
+      `
+    );
+
+    return res.status(200).json({
+      statuses: result.rows,
+    });
+  } catch (error) {
+    console.error(
+      "Error obteniendo estados de registro:",
+      error
+    );
+
+    return res.status(500).json({
+      message: "No se pudieron obtener los estados.",
     });
   }
 }

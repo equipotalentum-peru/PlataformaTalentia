@@ -11,7 +11,6 @@ import { notificarFotoPerfil } from "@/lib/profile-events";
 type PerfilEstudiante = {
   id: string;
   nombres: string;
-  apellidos: string;
   usuario: string;
   correo: string | null;
   rol: "Estudiante" | "Docente" | "Administrador";
@@ -312,8 +311,14 @@ export default function PerfilEditable({ rolEsperado }: Props) {
   if (error) return <div className="p-8 text-red-600">{error}</div>;
   if (!perfil) return <div className="p-8 text-gray-600">Cargando perfil...</div>;
 
-  const nombreCompleto = `${perfil.nombres} ${perfil.apellidos}`.toUpperCase();
-  const iniciales = `${perfil.nombres.charAt(0)}${perfil.apellidos.charAt(0)}`.toUpperCase();
+  const nombreCompleto = perfil.nombres.toUpperCase()
+  const iniciales = perfil.nombres
+  .split(" ")
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((parte) => parte.charAt(0))
+  .join("")
+  .toUpperCase()
 
   return (
     <>

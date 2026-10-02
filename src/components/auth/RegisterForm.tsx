@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 
@@ -11,10 +11,13 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [tokenInvitacion, setTokenInvitacion] = useState("");
+  const [validandoInvitacion, setValidandoInvitacion] = useState(true);
+  const [invitacionValida, setInvitacionValida] = useState(false);
+  const [tipoAlumnoInvitado, setTipoAlumnoInvitado] = useState("");
 
 const [formData, setFormData] = useState({
   nombres: "",
-  apellidos: "",
   dni: "",
   empresaAliada: "",
   usuario: "",
@@ -26,6 +29,71 @@ const [formData, setFormData] = useState({
   password: "",
   confirmPassword: "",
 });
+
+useEffect(() => {
+  async function validarInvitacion() {
+    try {
+      setValidandoInvitacion(true);
+      setError("");
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+
+      if (!token) {
+        setInvitacionValida(false);
+        setError(
+          "Necesitas un enlace de invitación válido para registrarte."
+        );
+        return;
+      }
+
+      setTokenInvitacion(token);
+
+      const response = await fetch(
+        `${API_URL}/auth/registration-invitation?token=${encodeURIComponent(
+          token
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.valid) {
+        throw new Error(
+          data.message ??
+            "La invitación es inválida o ha expirado."
+        );
+      }
+
+      setFormData((actual) => ({
+  ...actual,
+  nombres: data.nombre || "",
+  dni: data.dni || "",
+  telefono: data.telefono || "",
+  correo: data.correo || "",
+  empresaAliada:
+    data.tipoAlumno === "Convenio"
+      ? data.empresaAliada || ""
+      : "",
+}));
+
+setTipoAlumnoInvitado(data.tipoAlumno || "");
+
+      setInvitacionValida(true);
+    } catch (error) {
+      setInvitacionValida(false);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo validar la invitación."
+      );
+    } finally {
+      setValidandoInvitacion(false);
+    }
+  }
+
+  validarInvitacion();
+}, []);
 
 const handleChange = (
   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -41,7 +109,6 @@ const handleChange = (
 
     if (
       !formData.nombres.trim() ||
-      !formData.apellidos.trim() ||
       !formData.usuario.trim() ||
       !formData.correo.trim() ||
       !formData.password
@@ -79,7 +146,6 @@ const handleChange = (
           },
           body: JSON.stringify({
             nombres: formData.nombres,
-            apellidos: formData.apellidos,
             dni: formData.dni.trim(),
             empresaAliada: formData.empresaAliada.trim() || null,
             usuario: formData.usuario,
@@ -87,8 +153,9 @@ const handleChange = (
             telefono: formData.telefono.trim(),
             fechaNacimiento: formData.fechaNacimiento,
             direccion: formData.direccion.trim(),
-            correo: formData.correo.trim().toLowerCase(),
-            password: formData.password,
+           correo: formData.correo.trim().toLowerCase(),
+           password: formData.password,
+           token: tokenInvitacion,
           }),
         }
       );
@@ -125,32 +192,19 @@ const handleChange = (
         {/* Nombres */}
         <div>
           <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
-            Nombres
+            Nombre Completo
           </label>
           <input
             type="text"
-            name="nombres"
-            value={formData.nombres}
-            onChange={handleChange}
-            required
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+  name="nombres"
+  value={formData.nombres}
+  readOnly
+  required
+  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
           />
         </div>
 
-        {/* Apellidos */}
-        <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
-            Apellidos
-          </label>
-          <input
-            type="text"
-            name="apellidos"
-            value={formData.apellidos}
-            onChange={handleChange}
-            required
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
-          />
-        </div>
+      
 
         <div>
           <label htmlFor="registro-dni" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
@@ -158,13 +212,11 @@ const handleChange = (
           </label>
           <input
             id="registro-dni"
-            name="dni"
-            value={formData.dni}
-            onChange={handleChange}
-            type="text"
-            inputMode="numeric"
-            maxLength={8}
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+  name="dni"
+  value={formData.dni}
+  readOnly
+  type="text"
+  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
           />
         </div>
 
@@ -173,12 +225,22 @@ const handleChange = (
             Empresa aliada
           </label>
           <input
-            id="registro-empresa"
-            name="empresaAliada"
-            value={formData.empresaAliada}
-            onChange={handleChange}
-            type="text"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+              id="registro-empresa"
+  name="empresaAliada"
+  value={formData.empresaAliada}
+  onChange={handleChange}
+  type="text"
+  disabled={tipoAlumnoInvitado === "Externo"}
+  placeholder={
+    tipoAlumnoInvitado === "Externo"
+      ? "No aplica para alumno externo"
+      : "Empresa aliada"
+  }
+  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] px-3 text-[13px] outline-none ${
+    tipoAlumnoInvitado === "Externo"
+      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+      : "bg-white text-gray-800 focus:border-[#2e86dc]"
+  }`}
           />
         </div>
 
@@ -220,12 +282,11 @@ const handleChange = (
           </label>
           <input
             id="registro-telefono"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-            type="tel"
-            autoComplete="tel"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+  name="telefono"
+  value={formData.telefono}
+  readOnly
+  type="tel"
+  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
           />
         </div>
 
@@ -268,11 +329,11 @@ const handleChange = (
             type="email"
             name="correo"
             value={formData.correo}
-            onChange={handleChange}
-            required
-            autoComplete="email"
-            inputMode="email"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+             readOnly
+             required
+             autoComplete="email"
+             inputMode="email"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-600 outline-none cursor-not-allowed"
           />
         </div>
 
@@ -357,27 +418,16 @@ const handleChange = (
         {/* Botón Registrarse */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={
+  isLoading ||
+  validandoInvitacion ||
+  !invitacionValida
+}
           className="mt-3 min-[480px]:mt-4 h-[38px] min-[380px]:h-[42px] min-[480px]:h-[45px] w-full rounded-[8px] bg-[#1554ad] text-[12px] min-[380px]:text-[13px] font-bold text-white shadow-sm transition hover:bg-[#0d4697] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? "REGISTRANDO..." : "REGISTRARSE"}
         </button>
 
-        {/* Separador Ó */}
-        <div className="relative py-0.5 text-center">
-          <span className="bg-white px-3 text-[11px] min-[380px]:text-[12px] font-semibold text-gray-500">
-            Ó
-          </span>
-        </div>
-
-        {/* Botón Iniciar Sesión */}
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="h-[38px] min-[380px]:h-[42px] min-[480px]:h-[45px] w-full rounded-[8px] bg-[#2d97e8] text-[12px] min-[380px]:text-[13px] font-bold text-white shadow-sm transition hover:bg-[#2088d8]"
-        >
-          INICIAR SESIÓN
-        </button>
       </form>
     </div>
   );

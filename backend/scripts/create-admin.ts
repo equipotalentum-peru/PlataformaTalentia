@@ -6,7 +6,6 @@ import pool from "../src/config/database";
 async function createAdmin() {
   try {
     const nombres = "Administrador";
-    const apellidos = "Talentia";
     const usuario = "admin";
     const password = "Admin1234";
 
@@ -37,7 +36,6 @@ async function createAdmin() {
       INSERT INTO users
       (
         nombres,
-        apellidos,
         usuario,
         password_hash,
         rol
@@ -53,13 +51,11 @@ async function createAdmin() {
       RETURNING
         id,
         nombres,
-        apellidos,
         usuario,
         rol
       `,
       [
         nombres,
-        apellidos,
         usuario,
         passwordHash,
       ]
