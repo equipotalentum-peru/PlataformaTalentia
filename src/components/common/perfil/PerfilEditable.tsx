@@ -1,11 +1,12 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import VistaPerfil from "@/components/common/perfil/vista-perfil";
 import { API_URL } from "@/lib/api";
+import { notificarFotoPerfil } from "@/lib/profile-events";
 
 type PerfilEstudiante = {
   id: string;
@@ -21,8 +22,6 @@ type PerfilEstudiante = {
   direccion: string | null;
   telefono: string | null;
   fotoPerfil: string | null;
-  idioma: string;
-  zonaHoraria: string;
 };
 
 type Props = {
@@ -41,11 +40,9 @@ type DatosEdicion = {
   nacionalidad: string;
   direccion: string;
   telefono: string;
-  idioma: string;
-  zonaHoraria: string;
 };
 
-type SeccionEdicion = "adicional" | "sistema" | "contacto";
+type SeccionEdicion = "adicional" | "contacto";
 type CampoEdicion = {
   nombre: keyof DatosEdicion;
   etiqueta: string;
@@ -64,13 +61,6 @@ const secciones: Record<
       { nombre: "fechaNacimiento", etiqueta: "Fecha de nacimiento", tipo: "date" },
       { nombre: "genero", etiqueta: "Género", tipo: "select" },
       { nombre: "nacionalidad", etiqueta: "Nacionalidad", maxLength: 80 },
-    ],
-  },
-  sistema: {
-    titulo: "Editar configuración del sistema",
-    campos: [
-      { nombre: "idioma", etiqueta: "Idioma", maxLength: 50, requerido: true },
-      { nombre: "zonaHoraria", etiqueta: "Zona horaria", maxLength: 50, requerido: true },
     ],
   },
   contacto: {
@@ -119,6 +109,11 @@ export default function PerfilEditable({ rolEsperado }: Props) {
   const [datosEdicion, setDatosEdicion] = useState<DatosEdicion | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [errorEdicion, setErrorEdicion] = useState("");
+  const archivoFoto = useRef<HTMLInputElement>(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [mensajeFoto, setMensajeFoto] = useState("");
+  const [errorFoto, setErrorFoto] = useState("");
+  const [eliminandoFoto, setEliminandoFoto] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -162,7 +157,7 @@ export default function PerfilEditable({ rolEsperado }: Props) {
   }, [router, rolEsperado]);
 
   function abrirEdicion(nuevaSeccion: SeccionEdicion) {
-    if (!perfil) return;
+    if (!perfil || subiendoFoto || eliminandoFoto) return;
 
     setDatosEdicion({
       fechaNacimiento: perfil.fechaNacimiento ?? "",
@@ -170,8 +165,6 @@ export default function PerfilEditable({ rolEsperado }: Props) {
       nacionalidad: perfil.nacionalidad ?? "",
       direccion: perfil.direccion ?? "",
       telefono: perfil.telefono ?? "",
-      idioma: perfil.idioma,
-      zonaHoraria: perfil.zonaHoraria,
     });
     setErrorEdicion("");
     setSeccion(nuevaSeccion);
@@ -220,6 +213,102 @@ export default function PerfilEditable({ rolEsperado }: Props) {
     }
   }
 
+  async function subirFoto(event: ChangeEvent<HTMLInputElement>) {
+    const archivo = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!archivo || subiendoFoto || eliminandoFoto || guardando || seccion !== null) return;
+
+    setErrorFoto("");
+    setMensajeFoto("");
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(archivo.type)) {
+      setErrorFoto("Selecciona una imagen JPG, PNG o WebP.");
+      return;
+    }
+
+    if (archivo.size > 5 * 1024 * 1024) {
+      setErrorFoto("La foto no debe superar los 5 MB.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("foto", archivo);
+    setSubiendoFoto(true);
+
+    try {
+      const response = await fetch(`${API_URL}/profile/photo`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        router.replace("/login");
+        return;
+      }
+
+      if (!response.ok || typeof data.fotoPerfil !== "string") {
+        throw new Error(data.message ?? "No se pudo subir la foto.");
+      }
+
+      setPerfil((perfilActual) =>
+        perfilActual ? { ...perfilActual, fotoPerfil: data.fotoPerfil } : perfilActual
+      );
+      notificarFotoPerfil(data.fotoPerfil);
+      setMensajeFoto("Foto actualizada correctamente.");
+    } catch (requestError) {
+      setErrorFoto(
+        requestError instanceof Error
+          ? requestError.message
+          : "No se pudo subir la foto."
+      );
+    } finally {
+      setSubiendoFoto(false);
+    }
+  }
+
+  async function eliminarFoto() {
+    if (!perfil?.fotoPerfil || subiendoFoto || eliminandoFoto || guardando || seccion !== null) return;
+    if (!window.confirm("¿Eliminar tu foto de perfil?")) return;
+
+    setErrorFoto("");
+    setMensajeFoto("");
+    setEliminandoFoto(true);
+
+    try {
+      const response = await fetch(`${API_URL}/profile/photo`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        router.replace("/login");
+        return;
+      }
+
+      if (!response.ok || data.fotoPerfil !== null) {
+        throw new Error(data.message ?? "No se pudo eliminar la foto.");
+      }
+
+      setPerfil((perfilActual) =>
+        perfilActual ? { ...perfilActual, fotoPerfil: null } : perfilActual
+      );
+      notificarFotoPerfil(null);
+      setMensajeFoto("Foto eliminada correctamente.");
+    } catch (requestError) {
+      setErrorFoto(
+        requestError instanceof Error
+          ? requestError.message
+          : "No se pudo eliminar la foto."
+      );
+    } finally {
+      setEliminandoFoto(false);
+    }
+  }
+
   if (error) return <div className="p-8 text-red-600">{error}</div>;
   if (!perfil) return <div className="p-8 text-gray-600">Cargando perfil...</div>;
 
@@ -228,8 +317,50 @@ export default function PerfilEditable({ rolEsperado }: Props) {
 
   return (
     <>
+      <input
+        ref={archivoFoto}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        aria-label="Seleccionar foto de perfil"
+        className="hidden"
+        onChange={subirFoto}
+        disabled={subiendoFoto || eliminandoFoto || guardando || seccion !== null}
+      />
+      {errorFoto || mensajeFoto ? (
+        <div className="px-6 pt-4 lg:px-10">
+          <div
+            className={`mx-auto flex max-w-[1050px] items-start gap-3 rounded-md border px-4 py-3 text-sm ${
+              errorFoto
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-[#bfdbfe] bg-[#eff6ff] text-[#2782df]"
+            }`}
+          >
+            <p role={errorFoto ? "alert" : "status"} className="min-w-0 flex-1 break-words py-1.5">
+              {errorFoto || mensajeFoto}
+            </p>
+            <button
+              type="button"
+              aria-label="Cerrar aviso de foto"
+              title="Cerrar aviso"
+              onClick={() => {
+                setMensajeFoto("");
+                setErrorFoto("");
+              }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-2xl leading-none transition hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
       <VistaPerfil
         iniciales={iniciales}
+        fotoPerfil={perfil.fotoPerfil ? new URL(perfil.fotoPerfil, API_URL).href : null}
+        onCambiarFoto={() => archivoFoto.current?.click()}
+        onEliminarFoto={eliminarFoto}
+        subiendoFoto={subiendoFoto}
+        eliminandoFoto={eliminandoFoto}
+        fotoDeshabilitada={guardando || seccion !== null}
         nombreCompleto={nombreCompleto}
         usuario={perfil.usuario}
         rol={rolEsperado}
@@ -247,10 +378,7 @@ export default function PerfilEditable({ rolEsperado }: Props) {
         nacionalidad={mostrarDato(perfil.nacionalidad)}
         direccion={mostrarDato(perfil.direccion)}
         telefono={mostrarDato(perfil.telefono)}
-        idioma={perfil.idioma}
-        zonaHoraria={perfil.zonaHoraria}
         onEditarAdicional={() => abrirEdicion("adicional")}
-        onEditarSistema={() => abrirEdicion("sistema")}
         onEditarContacto={() => abrirEdicion("contacto")}
       />
 

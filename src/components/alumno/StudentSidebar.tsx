@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount";
+import SidebarAvatar from "@/components/common/layout/SidebarAvatar";
 
 export default function StudentSidebar() {
   const pathname = usePathname();
-  const { nombre, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
+  const { nombre, fotoPerfil, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`);
@@ -152,17 +153,19 @@ export default function StudentSidebar() {
           href="/alumno/perfil"
           className="group flex h-[52px] w-full items-center gap-3 border-t border-white/70 px-5 text-left transition duration-200 hover:bg-white/30"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e8f1ff] transition group-hover:bg-white">
-            <svg
-              className="h-6 w-6 text-[#516987] transition group-hover:text-[#0b315f]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <circle cx="12" cy="8" r="3.5" />
-              <path d="M5 20c.8-3.4 3.2-5.3 7-5.3s6.2 1.9 7 5.3" />
-            </svg>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e8f1ff] transition group-hover:bg-white">
+            <SidebarAvatar fotoPerfil={fotoPerfil} nombre={nombre}>
+              <svg
+                className="h-6 w-6 text-[#516987] transition group-hover:text-[#0b315f]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c.8-3.4 3.2-5.3 7-5.3s6.2 1.9 7 5.3" />
+              </svg>
+            </SidebarAvatar>
           </div>
 
           <span

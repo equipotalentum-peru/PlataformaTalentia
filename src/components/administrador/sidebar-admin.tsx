@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount";
+import SidebarAvatar from "@/components/common/layout/SidebarAvatar";
 
 export default function SidebarAdmin() {
   const pathname = usePathname();
-  const { nombre, iniciales, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
+  const { nombre, iniciales, fotoPerfil, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
 
   const navItems = [
     { name: "Dashboard", href: "/administrador/dashboard", letter: "D" },
@@ -71,8 +72,10 @@ export default function SidebarAdmin() {
           aria-current={pathname === "/administrador/perfil" ? "page" : undefined}
           className="flex items-center gap-3 rounded-md transition hover:bg-white/40"
         >
-          <div className="w-10 h-10 rounded-full bg-[#C2DAF8] border border-white flex items-center justify-center text-sm font-bold text-[#183665]">
-            {iniciales || "?"}
+          <div className="w-10 h-10 shrink-0 overflow-hidden rounded-full bg-[#C2DAF8] border border-white flex items-center justify-center text-sm font-bold text-[#183665]">
+            <SidebarAvatar fotoPerfil={fotoPerfil} nombre={nombre}>
+              {iniciales || "?"}
+            </SidebarAvatar>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-[#0F2851] truncate">

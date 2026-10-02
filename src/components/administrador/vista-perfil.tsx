@@ -12,9 +12,6 @@ export default function VistaPerfil() {
     fechaNacimiento: "24 de octubre del 2000",
     genero: "Masculino",
     nacionalidad: "Peruana",
-    idioma: "Español, Perú",
-    zonaHoraria: "(UTC-5) Lima",
-    tema: "Clara",
     direccion: "Av. Alfredo Mendiola 2000 Independencia, Lima",
     telefono: "987654321",
   });
@@ -118,35 +115,6 @@ export default function VistaPerfil() {
           </div>
         </div>
 
-        {/* Sección 3: Configuración del sistema */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 text-[#3B82F6] font-extrabold text-sm">
-              ⚙️ <span>Configuración del sistema</span>
-            </div>
-            <button
-              type="button"
-              className="text-xs font-bold text-[#3B82F6] border border-[#3B82F6] px-3 py-1 rounded-xl hover:bg-blue-50 transition"
-            >
-              ✏️️ Editar
-            </button>
-          </div>
-
-          <div className="divide-y divide-gray-100 text-xs">
-            <div className="grid grid-cols-2 py-3">
-              <span className="font-extrabold text-[#0F2851]">Idioma</span>
-              <span className="font-semibold text-[#64748B]">{perfil.idioma}</span>
-            </div>
-            <div className="grid grid-cols-2 py-3">
-              <span className="font-extrabold text-[#0F2851]">Zona horaria</span>
-              <span className="font-semibold text-[#64748B]">{perfil.zonaHoraria}</span>
-            </div>
-            <div className="grid grid-cols-2 py-3">
-              <span className="font-extrabold text-[#0F2851]">Tema</span>
-              <span className="font-semibold text-[#64748B]">{perfil.tema}</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Sección 4: Información de contacto */}

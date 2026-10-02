@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 
 type CampoPerfil = {
   etiqueta: string;
@@ -7,6 +8,12 @@ type CampoPerfil = {
 
 type VistaPerfilProps = {
   iniciales: string;
+  fotoPerfil?: string | null;
+  onCambiarFoto?: () => void;
+  onEliminarFoto?: () => void;
+  subiendoFoto?: boolean;
+  eliminandoFoto?: boolean;
+  fotoDeshabilitada?: boolean;
   nombreCompleto: string;
   usuario: string;
   rol: "Estudiante" | "Docente" | "Administrador";
@@ -18,10 +25,7 @@ type VistaPerfilProps = {
   nacionalidad: string;
   direccion: string;
   telefono: string;
-  idioma: string;
-  zonaHoraria: string;
   onEditarAdicional?: () => void;
-  onEditarSistema?: () => void;
   onEditarContacto?: () => void;
 };
 
@@ -94,6 +98,12 @@ function TarjetaInformacion({
 
 export default function VistaPerfil({
   iniciales,
+  fotoPerfil,
+  onCambiarFoto,
+  onEliminarFoto,
+  subiendoFoto = false,
+  eliminandoFoto = false,
+  fotoDeshabilitada = false,
   nombreCompleto,
   usuario,
   rol,
@@ -105,10 +115,7 @@ export default function VistaPerfil({
   nacionalidad,
   direccion,
   telefono,
-  idioma,
-  zonaHoraria,
   onEditarAdicional,
-  onEditarSistema,
   onEditarContacto,
 }: VistaPerfilProps) {
   return (
@@ -120,14 +127,27 @@ export default function VistaPerfil({
 
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="relative h-28 w-28 shrink-0">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-[#2495e9] text-3xl font-semibold text-white">
-              {iniciales}
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#2495e9] text-3xl font-semibold text-white">
+              {fotoPerfil ? (
+                <Image
+                  src={fotoPerfil}
+                  alt={`Foto de perfil de ${nombreCompleto}`}
+                  width={112}
+                  height={112}
+                  unoptimized
+                  className="h-full w-full object-cover"
+                />
+              ) : iniciales}
             </div>
 
             <button
               type="button"
-              aria-label="Cambiar foto de perfil"
-              className="absolute bottom-0 right-0 flex h-10 w-10 items-center justify-center rounded-full border border-[#1679ca] bg-[#2495e9] text-black"
+              onClick={onCambiarFoto}
+              disabled={!onCambiarFoto || subiendoFoto || eliminandoFoto || fotoDeshabilitada}
+              aria-label={subiendoFoto ? "Subiendo foto de perfil" : "Cambiar foto de perfil"}
+              aria-busy={subiendoFoto}
+              title={subiendoFoto ? "Subiendo foto" : "Cambiar foto de perfil"}
+              className="absolute bottom-0 right-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#1679ca] bg-[#2495e9] text-black transition hover:bg-[#2782df] disabled:cursor-wait disabled:opacity-60"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -139,6 +159,30 @@ export default function VistaPerfil({
                 <path d="M20 4h-3.17L15 2H9L7.17 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H4V6h4.05l1.83-2h4.24l1.83 2H20v12m-8-11a5 5 0 1 0 0 10a5 5 0 0 0 0-10m0 8a3 3 0 1 1 0-6a3 3 0 0 1 0 6" />
               </svg>
             </button>
+            {fotoPerfil && (
+              <button
+                type="button"
+                onClick={onEliminarFoto}
+                disabled={!onEliminarFoto || subiendoFoto || eliminandoFoto || fotoDeshabilitada}
+                aria-label={eliminandoFoto ? "Eliminando foto de perfil" : "Eliminar foto de perfil"}
+                aria-busy={eliminandoFoto}
+                title={eliminandoFoto ? "Eliminando foto" : "Eliminar foto de perfil"}
+                className={`absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2782df] disabled:cursor-wait [@media(hover:none)]:opacity-100 ${eliminandoFoto ? "opacity-100" : "opacity-0"}`}
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-7 w-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M4 7h16" />
+                  <path d="M9 7V4h6v3" />
+                  <path d="M7 7l1 13h8l1-13" />
+                </svg>
+              </button>
+            )}
           </div>
 
           <div>
@@ -193,26 +237,6 @@ export default function VistaPerfil({
               { etiqueta: "Fecha de nacimiento", valor: fechaNacimiento },
               { etiqueta: "Género", valor: genero },
               { etiqueta: "Nacionalidad", valor: nacionalidad },
-            ]}
-          />
-
-          <TarjetaInformacion
-            titulo="Configuración del sistema"
-            onEditar={onEditarSistema}
-            icono={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.37-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7" />
-              </svg>
-            }
-            campos={[
-              { etiqueta: "Idioma", valor: idioma },
-              { etiqueta: "Zona horaria", valor: zonaHoraria },
             ]}
           />
 

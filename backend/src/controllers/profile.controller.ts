@@ -18,15 +18,16 @@ type ProfileRow = QueryResultRow & {
   direccion: string | null;
   telefono: string | null;
   foto_perfil: string | null;
-  idioma: string;
-  zona_horaria: string;
 };
 
 const profileColumns = `
   id, nombres, apellidos, usuario, correo, rol, id_persona,
   TO_CHAR(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
-  genero, nacionalidad, direccion, telefono, foto_perfil,
-  idioma, zona_horaria
+  genero, nacionalidad, direccion, telefono,
+  CASE WHEN foto_perfil IS NOT NULL
+    THEN '/api/profile/photo?v=' || EXTRACT(EPOCH FROM updated_at)::text
+    ELSE NULL
+  END AS foto_perfil
 `;
 
 const editableFields = {
@@ -35,8 +36,6 @@ const editableFields = {
   nacionalidad: "nacionalidad",
   direccion: "direccion",
   telefono: "telefono",
-  idioma: "idioma",
-  zonaHoraria: "zona_horaria",
 } as const;
 
 type EditableField = keyof typeof editableFields;
@@ -44,8 +43,6 @@ type EditableField = keyof typeof editableFields;
 const maxLengths: Partial<Record<EditableField, number>> = {
   nacionalidad: 80,
   telefono: 20,
-  idioma: 50,
-  zonaHoraria: 50,
 };
 
 function formatProfile(row: ProfileRow) {
@@ -63,8 +60,6 @@ function formatProfile(row: ProfileRow) {
     direccion: row.direccion,
     telefono: row.telefono,
     fotoPerfil: row.foto_perfil,
-    idioma: row.idioma,
-    zonaHoraria: row.zona_horaria,
   };
 }
 
@@ -115,10 +110,6 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
 
     const value = rawValue === null ? null : rawValue.trim() || null;
     const editableField = field as EditableField;
-
-    if ((field === "idioma" || field === "zonaHoraria") && value === null) {
-      return res.status(400).json({ message: `El campo ${field} es obligatorio.` });
-    }
 
     if (field === "genero" && value !== null && value !== "M" && value !== "F") {
       return res.status(400).json({ message: "El género debe ser M o F." });
