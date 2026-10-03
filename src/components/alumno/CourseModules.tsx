@@ -152,23 +152,51 @@ export default function CourseModules({ courseId }: CourseModulesProps) {
                 {module.contents.map((content) => {
                   const isViewed = viewedContentIds.has(content.id);
 
-                  // 1. Casteo seguro a string para evitar restricciones de tipos
-                  const contentType = (content.type as string).toLowerCase();
+                  /*
+                   * ==================================================
+                   * CORRECCIÓN 1:
+                   * Detectar correctamente el tipo de contenido.
+                   * ==================================================
+                   */
 
-                  // 2. Búsqueda limpia de la URL externa
-                  const item = content as Record<string, unknown>;
-                  const externalUrl = (item.url ||
-                    item.link ||
-                    item.fileUrl ||
-                    item.src) as string | undefined;
+                  const contentType = String(
+                    content.type || ""
+                  ).toLowerCase();
 
-                  // 3. Validación de enlace externo
+                  /*
+                   * ==================================================
+                   * CORRECCIÓN 2:
+                   * La URL de YouTube está almacenada en `file`.
+                   *
+                   * Antes solamente se buscaba:
+                   * url, link, fileUrl y src.
+                   *
+                   * Ahora también buscamos:
+                   * file
+                   * ==================================================
+                   */
+
+                  const externalUrl =
+                    content.file ||
+                    (content as Record<string, unknown>).url ||
+                    (content as Record<string, unknown>).link ||
+                    (content as Record<string, unknown>).fileUrl ||
+                    (content as Record<string, unknown>).src;
+
+                  /*
+                   * ==================================================
+                   * CORRECCIÓN 3:
+                   * Determinar si el contenido es un enlace externo.
+                   * ==================================================
+                   */
+
                   const isExternalLink =
                     contentType === "link" ||
                     contentType === "url" ||
                     contentType === "enlace" ||
                     Boolean(
                       externalUrl &&
+                        typeof externalUrl === "string" &&
                         (externalUrl.startsWith("http://") ||
                           externalUrl.startsWith("https://"))
                     );
@@ -225,8 +253,16 @@ export default function CourseModules({ courseId }: CourseModulesProps) {
                     </>
                   );
 
-                  // 4. Si es enlace externo y tiene una URL, renderiza etiqueta <a>
-                  if (isExternalLink && externalUrl) {
+                  /*
+                   * ==================================================
+                   * CORRECCIÓN 4:
+                   * Si es un enlace externo, NO usamos Next Link.
+                   *
+                   * Se abre directamente en una nueva pestaña.
+                   * ==================================================
+                   */
+
+                  if (isExternalLink && typeof externalUrl === "string") {
                     return (
                       <a
                         key={content.id}
@@ -241,7 +277,12 @@ export default function CourseModules({ courseId }: CourseModulesProps) {
                     );
                   }
 
-                  // 5. Si es vista interna de la plataforma, usa Next Link
+                  /*
+                   * ==================================================
+                   * CONTENIDO INTERNO
+                   * ==================================================
+                   */
+
                   return (
                     <Link
                       key={content.id}

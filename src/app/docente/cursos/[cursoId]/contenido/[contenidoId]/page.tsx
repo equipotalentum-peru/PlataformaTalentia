@@ -27,44 +27,48 @@ export default async function TeacherContentPage({
   const { cursoId, contenidoId } = await params;
 
   const courseId = Number(cursoId);
-  const contentId = Number(contenidoId);
+  const currentContentId = Number(contenidoId);
 
   const course = courses.find((item) => item.id === courseId);
   if (!course) notFound();
 
   const content = courseContents.find(
-    (item) => item.courseId === courseId && item.id === contentId
+    (item) => item.courseId === courseId && Number(item.id) === currentContentId
   );
   if (!content) notFound();
 
   /*
-   * REDIRECCIONES DE TIPOS QUE NO VAN EN ESTE VISOR
+   * 1. SI EL CONTENIDO ACTUAL ES UNA ACTIVIDAD O EVALUACIÓN,
+   * REDIRIGIMOS AUTOMÁTICAMENTE A SU VISTA CORRESPONDIENTE
    */
-  if (content.type === "activity") {
+  const contentType = String(content.type || "").toLowerCase();
+
+  if (contentType === "activity") {
     redirect(`/docente/cursos/${courseId}/actividades/${content.id}`);
   }
 
-  if (content.type === "quiz") {
+  if (contentType === "quiz") {
     redirect(`/docente/cursos/${courseId}/evaluaciones/${content.id}`);
   }
 
-  // Si intentan entrar a un enlace directamente por URL, lo regresamos al módulo
+  // Si intentan entrar a un enlace externo directamente, lo devolvemos al curso
   if (isExternalLink(content)) {
     redirect(`/docente/cursos/${courseId}`);
   }
 
-  const module = courseModules.find((item) => item.id === content.moduleId);
+  // Renombramos 'module' a 'courseModule' para evitar el conflicto con ESLint
+  const courseModule = courseModules.find((item) => item.id === content.moduleId);
 
   /*
-   * FILTRADO ESTRICTO DE CONTENIDOS PARA NAVEGACIÓN:
-   * Obtenemos SOLO los contenidos del curso que NO son enlaces externos.
+   * 2. FILTRAR LA NAVEGACIÓN: Excluir únicamente los enlaces externos.
    */
   const validNavContents = courseContents.filter(
     (item) => item.courseId === courseId && !isExternalLink(item)
   );
 
-  // Encontrar la posición actual dentro de la lista YA filtrada
-  const currentIndex = validNavContents.findIndex((item) => item.id === content.id);
+  const currentIndex = validNavContents.findIndex(
+    (item) => Number(item.id) === currentContentId
+  );
 
   const previousContent =
     currentIndex > 0 ? validNavContents[currentIndex - 1] : null;
@@ -74,7 +78,6 @@ export default async function TeacherContentPage({
       ? validNavContents[currentIndex + 1]
       : null;
 
-  // Generamos los enlaces con la función Helper
   const previousHref = previousContent
     ? getTeacherContentHref(courseId, previousContent)
     : undefined;
@@ -110,7 +113,7 @@ export default async function TeacherContentPage({
           </Link>
 
           <span className="min-w-0 truncate text-[11px] text-gray-700">
-            Módulo {content.moduleId}: {module?.title}
+            Módulo {content.moduleId}: {courseModule?.title}
             {" > "}
             {content.moduleId}.{content.order} {content.title}
           </span>

@@ -4,12 +4,11 @@ import TeacherActivityDetail from "@/components/docente/actividades/TeacherActiv
 
 import { activities } from "@/data/activities";
 import { courses } from "@/data/courses";
-import {
-  courseContents,
-} from "@/data/courseContents";
+import { courseContents } from "@/data/courseContents";
 
 import {
   getTeacherContentHref,
+  isExternalLink,
 } from "@/lib/teacher-content-navigation";
 
 type PageProps = {
@@ -40,9 +39,11 @@ export default async function TeacherActivityPage({
   }
 
   /*
-   * Buscamos el contenido correspondiente
-   * a esta actividad dentro del curso.
+   * =========================================================
+   * CONTENIDO ACTUAL
+   * =========================================================
    */
+
   const currentContent = courseContents.find(
     (content) =>
       content.courseId === courseId &&
@@ -55,11 +56,28 @@ export default async function TeacherActivityPage({
   }
 
   /*
-   * Todos los contenidos del curso en su orden.
+   * =========================================================
+   * CONTENIDOS NAVEGABLES
+   *
+   * CORRECCIÓN:
+   *
+   * Excluimos los enlaces externos.
+   *
+   * De esta manera YouTube no aparecerá como:
+   *
+   * Actividad → Anterior → YouTube
+   *
+   * sino:
+   *
+   * Actividad → Anterior → Documento anterior
+   * =========================================================
    */
+
   const contents = courseContents
     .filter(
-      (content) => content.courseId === courseId
+      (content) =>
+        content.courseId === courseId &&
+        !isExternalLink(content)
     )
     .sort((a, b) => {
       if (a.moduleId !== b.moduleId) {
@@ -70,24 +88,33 @@ export default async function TeacherActivityPage({
     });
 
   /*
-   * Posición actual.
+   * =========================================================
+   * POSICIÓN ACTUAL
+   * =========================================================
    */
+
   const currentIndex = contents.findIndex(
     (content) =>
       content.id === currentContent.id
   );
 
   /*
-   * Contenido anterior.
+   * =========================================================
+   * CONTENIDO ANTERIOR
+   * =========================================================
    */
+
   const previousContent =
     currentIndex > 0
       ? contents[currentIndex - 1]
       : null;
 
   /*
-   * Contenido siguiente.
+   * =========================================================
+   * CONTENIDO SIGUIENTE
+   * =========================================================
    */
+
   const nextContent =
     currentIndex >= 0 &&
     currentIndex < contents.length - 1

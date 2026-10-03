@@ -1,9 +1,15 @@
 import { notFound } from "next/navigation";
+
 import TeacherEvaluationViewer from "@/components/docente/evaluaciones/TeacherEvaluationViewer";
+
 import { courses } from "@/data/courses";
 import { quizzes } from "@/data/quizzes";
-import { courseContents, } from "@/data/courseContents";
-import { getTeacherContentHref, } from "@/lib/teacher-content-navigation";
+import { courseContents } from "@/data/courseContents";
+
+import {
+  getTeacherContentHref,
+  isExternalLink,
+} from "@/lib/teacher-content-navigation";
 
 type PageProps = {
   params: Promise<{
@@ -32,6 +38,12 @@ export default async function TeacherEvaluationPage({
     notFound();
   }
 
+  /*
+   * =========================================================
+   * CONTENIDO ACTUAL
+   * =========================================================
+   */
+
   const currentContent = courseContents.find(
     (content) =>
       content.courseId === courseId &&
@@ -43,18 +55,56 @@ export default async function TeacherEvaluationPage({
     notFound();
   }
 
+  /*
+   * =========================================================
+   * CONTENIDOS NAVEGABLES
+   *
+   * CORRECCIÓN:
+   * Los enlaces externos NO forman parte de la navegación.
+   * =========================================================
+   */
+
   const contents = courseContents
-    .filter((content) => content.courseId === courseId)
-    .sort((a, b) => a.id - b.id);
+    .filter(
+      (content) =>
+        content.courseId === courseId &&
+        !isExternalLink(content)
+    )
+    .sort((a, b) => {
+      if (a.moduleId !== b.moduleId) {
+        return a.moduleId - b.moduleId;
+      }
+
+      return a.order - b.order;
+    });
+
+  /*
+   * =========================================================
+   * POSICIÓN ACTUAL
+   * =========================================================
+   */
 
   const currentIndex = contents.findIndex(
-    (content) => content.id === currentContent.id
+    (content) =>
+      content.id === currentContent.id
   );
+
+  /*
+   * =========================================================
+   * CONTENIDO ANTERIOR
+   * =========================================================
+   */
 
   const previousContent =
     currentIndex > 0
       ? contents[currentIndex - 1]
       : null;
+
+  /*
+   * =========================================================
+   * CONTENIDO SIGUIENTE
+   * =========================================================
+   */
 
   const nextContent =
     currentIndex >= 0 &&
@@ -67,6 +117,7 @@ export default async function TeacherEvaluationPage({
       <div className="mx-auto max-w-[1080px]">
 
         {/* BARRA SUPERIOR */}
+
         <div className="mb-3 flex items-center gap-3">
           <a
             href={`/docente/cursos/${courseId}`}

@@ -1,13 +1,29 @@
 import type { CourseContent } from "@/data/courseContents";
 
+/*
+ * =========================================================
+ * DETERMINAR SI UN CONTENIDO ES UN ENLACE EXTERNO
+ * =========================================================
+ */
+
 export function isExternalLink(content: CourseContent): boolean {
-  if (!content) return false;
-  
+  if (!content) {
+    return false;
+  }
+
   const contentType = String(content.type || "").toLowerCase();
-  const externalUrl = (content as Record<string, unknown>).url || 
-                      (content as Record<string, unknown>).link || 
-                      (content as Record<string, unknown>).fileUrl || 
-                      (content as Record<string, unknown>).src;
+
+  /*
+   * La URL puede encontrarse en diferentes propiedades.
+   *
+   * En nuestro proyecto los enlaces de YouTube utilizan `file`.
+   */
+  const externalUrl =
+    content.file ||
+    (content as Record<string, unknown>).url ||
+    (content as Record<string, unknown>).link ||
+    (content as Record<string, unknown>).fileUrl ||
+    (content as Record<string, unknown>).src;
 
   return (
     contentType === "link" ||
@@ -15,11 +31,18 @@ export function isExternalLink(content: CourseContent): boolean {
     contentType === "enlace" ||
     Boolean(
       externalUrl &&
-      typeof externalUrl === "string" &&
-      (externalUrl.startsWith("http://") || externalUrl.startsWith("https://"))
+        typeof externalUrl === "string" &&
+        (externalUrl.startsWith("http://") ||
+          externalUrl.startsWith("https://"))
     )
   );
 }
+
+/*
+ * =========================================================
+ * OBTENER RUTA DEL CONTENIDO
+ * =========================================================
+ */
 
 export function getTeacherContentHref(
   courseId: number,
