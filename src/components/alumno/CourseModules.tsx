@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { courseContents, courseModules } from "@/data/courseContents";
-import { getViewedContentIds, markContentViewed } from "@/lib/progress";
-import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import { API_URL } from "@/lib/api";
 
 const MODULE_COLOR = "#70A9DC";
 
@@ -12,293 +13,152 @@ type CourseModulesProps = {
   courseId: number;
 };
 
-export default function CourseModules({ courseId }: CourseModulesProps) {
-  /*
-   * IDs de contenidos que el alumno ya visitó.
-   */
-  const [viewedContentIds, setViewedContentIds] = useState<Set<number>>(
-    new Set()
-  );
+type ModuloCurso = {
+  id: number;
+  numero: number;
+  titulo: string;
+  descripcion: string | null;
+  orden: number;
+};
 
-  const [openModules, setOpenModules] = useState<number[]>([1]);
+export default function CourseModules({
+  courseId,
+}: CourseModulesProps) {
+  const [modulos, setModulos] =
+    useState<ModuloCurso[]>([]);
 
-  /*
-   * ======================================================
-   * CARGAR PROGRESO
-   * ======================================================
-   */
+  const [cargando, setCargando] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
-    const loadProgress = () => {
-      setViewedContentIds(getViewedContentIds(courseId));
-    };
+    const controller =
+      new AbortController();
 
-    loadProgress();
+    async function cargarModulos() {
+      try {
+        setCargando(true);
+        setError("");
 
-    window.addEventListener("talentia-progress-updated", loadProgress);
+        const response = await fetch(
+          `${API_URL}/cursos/${courseId}/modulos`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
 
-    return () => {
-      window.removeEventListener("talentia-progress-updated", loadProgress);
-    };
-  }, [courseId]);
+        const data =
+          await response.json();
 
-  /*
-   * ======================================================
-   * ABRIR / CERRAR MÓDULO
-   * ======================================================
-   */
+        if (!response.ok) {
+          throw new Error(
+            data.message ??
+              "No se pudieron cargar los módulos."
+          );
+        }
 
-  const toggleModule = (moduleId: number) => {
-    setOpenModules((current) =>
-      current.includes(moduleId)
-        ? current.filter((id) => id !== moduleId)
-        : [...current, moduleId]
-    );
-  };
+        setModulos(
+          Array.isArray(data.modulos)
+            ? data.modulos
+            : []
+        );
+      } catch (error) {
+        if (
+          controller.signal.aborted
+        ) {
+          return;
+        }
 
-  /*
-   * ======================================================
-   * MÓDULOS
-   * ======================================================
-   */
+        setError(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron cargar los módulos."
+        );
+      } finally {
+        if (
+          !controller.signal.aborted
+        ) {
+          setCargando(false);
+        }
+      }
+    }
 
-  const modulesWithProgress = useMemo(() => {
-    return courseModules.map((module) => {
-      const contents = courseContents.filter(
-        (content) =>
-          content.courseId === courseId && content.moduleId === module.id
+    if (
+      Number.isInteger(courseId) &&
+      courseId > 0
+    ) {
+      void cargarModulos();
+    } else {
+      setError(
+        "Curso no válido."
       );
 
-      const viewedCount = contents.filter((content) =>
-        viewedContentIds.has(content.id)
-      ).length;
+      setCargando(false);
+    }
 
-      const total = contents.length;
+    return () =>
+      controller.abort();
 
-      const progress = total > 0 ? (viewedCount / total) * 100 : 0;
+  }, [courseId]);
 
-      return {
-        ...module,
-        contents,
-        viewedCount,
-        total,
-        progress,
-      };
-    });
-  }, [courseId, viewedContentIds]);
+  if (cargando) {
+    return (
+      <div className="rounded-lg bg-white px-4 py-5 text-center text-[13px] text-gray-500">
+        Cargando módulos...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        {error}
+      </div>
+    );
+  }
+
+  if (modulos.length === 0) {
+    return (
+      <div className="rounded-lg bg-white px-4 py-5 text-center text-[13px] text-gray-500">
+        Este curso todavía no tiene módulos publicados.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
-      {modulesWithProgress.map((module) => {
-        const isOpen = openModules.includes(module.id);
+      {modulos.map((modulo) => (
+        <div
+          key={modulo.id}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5"
+          style={{
+            backgroundColor:
+              MODULE_COLOR,
+          }}
+        >
+          <div className="flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-white" />
 
-        const fullyCompleted =
-          module.total > 0 && module.viewedCount === module.total;
+          <span className="flex-1 text-[14px] font-semibold text-[#12395B]">
+            Módulo {modulo.numero}:{" "}
+            {modulo.titulo}
+          </span>
 
-        return (
-          <div key={module.id} className="overflow-hidden rounded-lg">
-            {/* ==========================================
-                CABECERA DEL MÓDULO
-               ========================================== */}
-
-            <button
-              type="button"
-              onClick={() => toggleModule(module.id)}
-              className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:brightness-95"
-              style={{
-                backgroundColor: MODULE_COLOR,
-              }}
-            >
-              {/* PROGRESO DEL MÓDULO */}
-              <div className="flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-white">
-                {fullyCompleted && (
-                  <svg
-                    className="h-[11px] w-[11px]"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={MODULE_COLOR}
-                    strokeWidth="4"
-                  >
-                    <path d="M5 12l4 4L19 6" />
-                  </svg>
-                )}
-              </div>
-
-              {/* TÍTULO */}
-              <span className="flex-1 text-[14px] font-semibold text-[#12395B]">
-                Módulo {module.id}: {module.title}
-              </span>
-
-              {/* FLECHA */}
-              <svg
-                className={`h-5 w-5 text-gray-500 transition-transform ${
-                  isOpen ? "rotate-180" : ""
-                }`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-
-            {/* ==========================================
-                CONTENIDOS DEL MÓDULO
-               ========================================== */}
-
-            {isOpen && (
-              <div className="bg-white">
-                {module.contents.map((content) => {
-                  const isViewed = viewedContentIds.has(content.id);
-
-                  /*
-                   * ==================================================
-                   * CORRECCIÓN 1:
-                   * Detectar correctamente el tipo de contenido.
-                   * ==================================================
-                   */
-
-                  const contentType = String(
-                    content.type || ""
-                  ).toLowerCase();
-
-                  /*
-                   * ==================================================
-                   * CORRECCIÓN 2:
-                   * La URL de YouTube está almacenada en `file`.
-                   *
-                   * Antes solamente se buscaba:
-                   * url, link, fileUrl y src.
-                   *
-                   * Ahora también buscamos:
-                   * file
-                   * ==================================================
-                   */
-
-                  const externalUrl =
-                    content.file ||
-                    (content as Record<string, unknown>).url ||
-                    (content as Record<string, unknown>).link ||
-                    (content as Record<string, unknown>).fileUrl ||
-                    (content as Record<string, unknown>).src;
-
-                  /*
-                   * ==================================================
-                   * CORRECCIÓN 3:
-                   * Determinar si el contenido es un enlace externo.
-                   * ==================================================
-                   */
-
-                  const isExternalLink =
-                    contentType === "link" ||
-                    contentType === "url" ||
-                    contentType === "enlace" ||
-                    Boolean(
-                      externalUrl &&
-                        typeof externalUrl === "string" &&
-                        (externalUrl.startsWith("http://") ||
-                          externalUrl.startsWith("https://"))
-                    );
-
-                  const handleClick = () => {
-                    if (
-                      content.type !== "quiz" &&
-                      content.type !== "activity"
-                    ) {
-                      markContentViewed(courseId, content.id);
-                    }
-                  };
-
-                  const commonClasses =
-                    "group flex items-center gap-3 border-b border-gray-100 px-5 py-2.5 transition hover:bg-[#f7f9fc]";
-
-                  const contentInnerHtml = (
-                    <>
-                      {/* ICONO DEL CONTENIDO */}
-                      <span className="flex w-6 shrink-0 items-center justify-center text-black">
-                        <CourseContentIcon
-                          type={content.type}
-                          className="h-5 w-5"
-                        />
-                      </span>
-
-                      {/* NOMBRE */}
-                      <span className="flex-1 text-[13px] text-gray-800">
-                        {module.id}.{content.order} {content.title}
-                      </span>
-
-                      {/* ESTADO DEL CONTENIDO */}
-                      <span
-                        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 bg-white"
-                        style={{
-                          borderColor: MODULE_COLOR,
-                          backgroundColor: isViewed
-                            ? MODULE_COLOR
-                            : "#ffffff",
-                        }}
-                      >
-                        {isViewed && (
-                          <svg
-                            className="h-2.5 w-2.5 text-white"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          >
-                            <path d="M5 12l4 4L19 6" />
-                          </svg>
-                        )}
-                      </span>
-                    </>
-                  );
-
-                  /*
-                   * ==================================================
-                   * CORRECCIÓN 4:
-                   * Si es un enlace externo, NO usamos Next Link.
-                   *
-                   * Se abre directamente en una nueva pestaña.
-                   * ==================================================
-                   */
-
-                  if (isExternalLink && typeof externalUrl === "string") {
-                    return (
-                      <a
-                        key={content.id}
-                        href={externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={handleClick}
-                        className={commonClasses}
-                      >
-                        {contentInnerHtml}
-                      </a>
-                    );
-                  }
-
-                  /*
-                   * ==================================================
-                   * CONTENIDO INTERNO
-                   * ==================================================
-                   */
-
-                  return (
-                    <Link
-                      key={content.id}
-                      href={`/alumno/cursos/${courseId}/contenido/${content.id}`}
-                      onClick={handleClick}
-                      className={commonClasses}
-                    >
-                      {contentInnerHtml}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+          <svg
+            className="h-5 w-5 text-gray-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+      ))}
     </div>
   );
 }

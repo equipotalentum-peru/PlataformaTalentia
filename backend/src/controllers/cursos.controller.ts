@@ -81,3 +81,84 @@ export async function obtenerMisCursos(
     });
   }
 }
+
+
+export async function obtenerModulosCurso(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const estudianteId = Number(req.userId);
+    const cursoId = Number(req.params.cursoId);
+
+    if (!Number.isInteger(estudianteId) || estudianteId <= 0) {
+      return res.status(401).json({
+        message: "Sesión no válida.",
+      });
+    }
+
+    if (!Number.isInteger(cursoId) || cursoId <= 0) {
+      return res.status(400).json({
+        message: "Curso no válido.",
+      });
+    }
+
+    const accesoResult = await pool.query(
+      `SELECT
+        c.id,
+        c.nombre,
+        c.codigo
+       FROM matriculas m
+       INNER JOIN ofertas_curso oc
+         ON oc.id = m.oferta_curso_id
+       INNER JOIN cursos c
+         ON c.id = oc.curso_id
+       INNER JOIN usuarios u
+         ON u.id = m.estudiante_id
+       WHERE m.estudiante_id = $1
+         AND c.id = $2
+         AND u.rol = 'Estudiante'
+         AND m.estado IN ('Activa', 'Completada')
+         AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
+         AND oc.publicado = TRUE
+         AND c.estado = 'Activo'
+       LIMIT 1`,
+      [estudianteId, cursoId]
+    );
+
+    if (!accesoResult.rowCount) {
+      return res.status(403).json({
+        message: "No estás matriculado en este curso.",
+      });
+    }
+
+    const modulosResult = await pool.query(
+      `SELECT
+        id,
+        numero,
+        titulo,
+        descripcion,
+        orden
+       FROM modulos_curso
+       WHERE curso_id = $1
+         AND activo = TRUE
+       ORDER BY orden ASC`,
+      [cursoId]
+    );
+
+    return res.status(200).json({
+      curso: accesoResult.rows[0],
+      modulos: modulosResult.rows,
+    });
+  } catch (error) {
+    console.error(
+      "Error obteniendo módulos del curso:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "No se pudieron obtener los módulos del curso.",
+    });
+  }
+}
