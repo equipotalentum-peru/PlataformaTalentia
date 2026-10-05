@@ -107,7 +107,8 @@ export async function obtenerModulosCurso(
       `SELECT
         c.id,
         c.nombre,
-        c.codigo
+        c.codigo,
+        c.imagen_portada AS imagen
        FROM matriculas m
        INNER JOIN ofertas_curso oc
          ON oc.id = m.oferta_curso_id
@@ -132,19 +133,39 @@ export async function obtenerModulosCurso(
       });
     }
 
-    const modulosResult = await pool.query(
-      `SELECT
-        id,
-        numero,
-        titulo,
-        descripcion,
-        orden
-       FROM modulos_curso
-       WHERE curso_id = $1
-         AND activo = TRUE
-       ORDER BY orden ASC`,
-      [cursoId]
-    );
+const modulosResult = await pool.query(
+  `SELECT
+     mc.id,
+     mc.numero,
+     mc.titulo,
+     mc.descripcion,
+     mc.orden,
+     COALESCE(
+       (
+         SELECT json_agg(
+           json_build_object(
+             'id', cc.id,
+             'titulo', cc.titulo,
+             'tipo', cc.tipo,
+             'descripcion', cc.descripcion,
+             'orden', cc.orden,
+             'rutaArchivo', cc.ruta_archivo,
+             'urlEnlace', cc.url_enlace
+           )
+           ORDER BY cc.orden, cc.id
+         )
+         FROM contenidos_curso cc
+         WHERE cc.modulo_id = mc.id
+           AND cc.estado = 'Publicado'
+       ),
+       '[]'::json
+     ) AS contenidos
+   FROM modulos_curso mc
+   WHERE mc.curso_id = $1
+     AND mc.activo = TRUE
+   ORDER BY mc.orden, mc.id`,
+  [cursoId]
+);
 
     return res.status(200).json({
       curso: accesoResult.rows[0],

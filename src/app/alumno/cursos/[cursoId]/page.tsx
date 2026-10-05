@@ -1,3 +1,6 @@
+"use client";
+
+import { use, useState } from "react";
 import Link from "next/link";
 import CourseModules from "@/components/alumno/CourseModules";
 import CourseInfo from "@/components/alumno/CourseInfo";
@@ -8,12 +11,18 @@ type CourseDetailPageProps = {
   }>;
 };
 
-export default async function CourseDetailPage({
+export default function CourseDetailPage({
   params,
 }: CourseDetailPageProps) {
-  const { cursoId } = await params;
+  const { cursoId } = use(params);
+  const [curso, setCurso] = useState<{
+    id: string;
+    nombre: string;
+    imagen: string | null;
+  } | null>(null);
 
   const courseId = Number(cursoId);
+  const cursoActual = curso && Number(curso.id) === courseId ? curso : null;
 
   return (
     <div className="min-h-screen px-3 py-4 lg:px-4">
@@ -38,17 +47,19 @@ export default async function CourseDetailPage({
         </Link>
 
         {/* BANNER */}
-        <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-          <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"
-            alt="Herramientas TIC"
-            className="h-full w-full object-cover"
-          />
+        <div className="relative flex min-h-[180px] items-end overflow-hidden rounded-t-xl bg-[#12395B] p-5">
+          {cursoActual?.imagen && (
+            <img
+              src={cursoActual.imagen}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
 
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/50" />
 
-          <h1 className="absolute bottom-7 left-5 text-[32px] font-bold text-white">
-            Herramientas TIC
+          <h1 className="relative min-w-0 break-words text-[24px] font-bold text-white">
+            {cursoActual?.nombre ?? "Curso"}
           </h1>
         </div>
 
@@ -87,7 +98,7 @@ export default async function CourseDetailPage({
         <div className="flex flex-col gap-5 py-2 lg:flex-row">
 
           <section className="flex-1">
-            <CourseModules courseId={courseId} />
+            <CourseModules courseId={courseId} onCursoLoaded={setCurso} />
           </section>
 
           <CourseInfo progress={30} />

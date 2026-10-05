@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import {
   useEffect,
@@ -6,11 +7,38 @@ import {
 } from "react";
 
 import { API_URL } from "@/lib/api";
+import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
+import type { ContentType } from "@/data/courseContents";
 
 const MODULE_COLOR = "#70A9DC";
 
+const tiposIcono: Record<string, ContentType> = {
+  pdf: "pdf",
+  docx: "word",
+  pptx: "ppt",
+  video: "video",
+  enlace: "link",
+  actividad: "activity",
+  evaluacion: "quiz",
+};
+
 type CourseModulesProps = {
   courseId: number;
+  onCursoLoaded?: (curso: {
+  id: string;
+  nombre: string;
+  imagen: string | null;
+}) => void;
+};
+
+type ContenidoCurso = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  descripcion: string | null;
+  orden: number;
+  rutaArchivo: string | null;
+  urlEnlace: string | null;
 };
 
 type ModuloCurso = {
@@ -19,10 +47,12 @@ type ModuloCurso = {
   titulo: string;
   descripcion: string | null;
   orden: number;
+  contenidos: ContenidoCurso[];
 };
 
 export default function CourseModules({
   courseId,
+  onCursoLoaded,
 }: CourseModulesProps) {
   const [modulos, setModulos] =
     useState<ModuloCurso[]>([]);
@@ -32,6 +62,7 @@ export default function CourseModules({
 
   const [error, setError] =
     useState("");
+  const [codigoCurso, setCodigoCurso] = useState("");
 
   useEffect(() => {
     const controller =
@@ -60,6 +91,8 @@ export default function CourseModules({
               "No se pudieron cargar los módulos."
           );
         }
+        onCursoLoaded?.(data.curso);
+        setCodigoCurso(data.curso.codigo);
 
         setModulos(
           Array.isArray(data.modulos)
@@ -92,18 +125,20 @@ export default function CourseModules({
       courseId > 0
     ) {
       void cargarModulos();
-    } else {
-      setError(
-        "Curso no válido."
-      );
-
-      setCargando(false);
     }
 
     return () =>
       controller.abort();
 
-  }, [courseId]);
+  }, [courseId, onCursoLoaded]);
+
+  if (!Number.isInteger(courseId) || courseId <= 0) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        Curso no válido.
+      </div>
+    );
+  }
 
   if (cargando) {
     return (
@@ -130,25 +165,18 @@ export default function CourseModules({
   }
 
   return (
-    <div className="space-y-2">
-      {modulos.map((modulo) => (
-        <div
-          key={modulo.id}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5"
-          style={{
-            backgroundColor:
-              MODULE_COLOR,
-          }}
+  <div className="space-y-2">
+    {modulos.map((modulo) => (
+      <details key={modulo.id} className="group">
+        <summary
+          className="flex cursor-pointer list-none items-center gap-3 rounded-lg px-3 py-2.5 focus-visible:outline-2 focus-visible:outline-[#12395B] [&::-webkit-details-marker]:hidden"
+          style={{ backgroundColor: MODULE_COLOR }}
         >
-          <div className="flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-white" />
-
-          <span className="flex-1 text-[14px] font-semibold text-[#12395B]">
-            Módulo {modulo.numero}:{" "}
-            {modulo.titulo}
+          <span className="min-w-0 flex-1 break-words text-[14px] font-semibold text-[#12395B]">
+            Módulo {modulo.numero}: {modulo.titulo}
           </span>
-
           <svg
-            className="h-5 w-5 text-gray-500"
+            className="h-5 w-5 shrink-0 text-[#12395B] transition-transform group-open:rotate-180"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -157,8 +185,49 @@ export default function CourseModules({
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
-        </div>
-      ))}
-    </div>
-  );
+        </summary>
+
+        <ul className="mt-1 divide-y divide-gray-200 bg-white px-4">
+          {(modulo.contenidos ?? []).map((contenido) => (
+            <li
+            key={contenido.id}
+            className="flex items-center gap-3 py-3 text-[14px] text-[#12395B]"
+            >
+              <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center"
+              title={contenido.tipo.toUpperCase()}
+              aria-label={`Tipo: ${contenido.tipo}`}
+              >
+                <CourseContentIcon
+                type={tiposIcono[contenido.tipo] ?? "pdf"}
+                className="h-5 w-5"/>
+                </span>
+                {(contenido.rutaArchivo &&
+                (contenido.tipo === "pdf" || contenido.tipo === "pptx")) ||
+                (codigoCurso === "ESP-002" && modulo.numero === 1 && contenido.tipo === "actividad") ? (
+                  <Link
+                    href={`/alumno/cursos/${courseId}/contenido/${contenido.id}?material=1`}
+                    className="min-w-0 flex-1 break-words hover:underline focus-visible:underline"
+                  >
+                    {contenido.titulo}
+                  </Link>
+                ) : (
+                  <span className="min-w-0 flex-1 break-words">
+                    {contenido.titulo}
+                  </span>
+                )}
+                  </li>
+            
+            
+          ))}
+          {!modulo.contenidos?.length && (
+            <li className="py-3 text-sm text-gray-500">
+              Este módulo todavía no tiene contenidos.
+            </li>
+          )}
+        </ul>
+      </details>
+    ))}
+  </div>
+);
 }

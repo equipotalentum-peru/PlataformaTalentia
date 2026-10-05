@@ -4,11 +4,15 @@ import ContentViewer from "@/components/alumno/contenido/ContentViewer";
 import { courseContents, courseModules } from "@/data/courseContents";
 import ContentBackButton from "@/components/alumno/ContentBackButton";
 import SectionNavigation from "@/components/alumno/SectionNavigation";
+import MaterialViewer from "@/components/alumno/contenido/MaterialViewer";
 
 type ContentPageProps = {
   params: Promise<{
     cursoId: string;
     contenidoId: string;
+  }>;
+  searchParams: Promise<{
+    material?: string;
   }>;
 };
 
@@ -28,11 +32,39 @@ function checkIsExternalLink(content: Record<string, unknown>): boolean {
   );
 }
 
-export default async function ContentPage({ params }: ContentPageProps) {
+export default async function ContentPage({ params, searchParams }: ContentPageProps) {
   const { cursoId, contenidoId } = await params;
 
   const courseId = Number(cursoId);
   const contentId = Number(contenidoId);
+
+  const { material } = await searchParams;
+
+  if (material === "1") {
+    if (![courseId, contentId].every(
+      (id) => Number.isSafeInteger(id) && id > 0
+    )) {
+      return <p>Contenido no válido.</p>;
+    }
+
+    return (
+      <div className="min-h-screen px-4 py-4 lg:px-5">
+        <div className="mx-auto max-w-[1000px]">
+          <Link
+            href={`/alumno/cursos/${courseId}`}
+            className="mb-4 inline-block text-[#12395B] hover:underline"
+          >
+            Volver al curso
+          </Link>
+          <MaterialViewer
+            key={`${courseId}-${contentId}`}
+            courseId={courseId}
+            contentId={contentId}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const content = courseContents.find(
     (item) => item.courseId === courseId && item.id === contentId

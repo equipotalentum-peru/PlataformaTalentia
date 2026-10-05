@@ -19,6 +19,7 @@ type SectionNavigationProps = {
 
   previousHref?: string;
   nextHref?: string;
+  trackLocalProgress?: boolean;
 };
 
 export default function SectionNavigation({
@@ -27,9 +28,10 @@ export default function SectionNavigation({
   currentContentType,
   previousHref,
   nextHref,
+  trackLocalProgress = true,
 }: SectionNavigationProps) {
   const handleSectionNavigation = () => {
-    if (currentContentType !== "quiz" && currentContentType !== "activity") {
+    if (trackLocalProgress && currentContentType !== "quiz" && currentContentType !== "activity") {
       markContentViewed(
         courseId,
         currentContentId
@@ -38,7 +40,7 @@ export default function SectionNavigation({
   };
 
   const handlePrevious = () => {
-    if (currentContentType !== "quiz") {
+    if (trackLocalProgress && currentContentType !== "quiz") {
       markContentViewed(
         courseId,
         currentContentId

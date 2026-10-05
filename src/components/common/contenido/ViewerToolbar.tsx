@@ -178,7 +178,7 @@ export default function ViewerToolbar({
       <div className="group relative justify-self-end">
         <a
           href={file}
-          download
+          download={type === "video" ? true : `${title.replace(/[\\/:*?"<>|]/g, "-").trim() || "contenido"}.${{ pdf: "pdf", ppt: "pptx", word: "docx" }[type]}`}
           aria-label="Descargar archivo"
           title="Descargar archivo"
           className="

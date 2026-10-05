@@ -11,6 +11,7 @@ import {
 import {
   activities,
   type ActivitySubmission,
+  type ActivityDefinition,
 } from "@/data/activities";
 
 import { markContentViewed } from "@/lib/progress";
@@ -22,6 +23,8 @@ type ActivityViewerProps = {
   previousHref?: string;
   nextHref?: string;
   exitHref: string;
+  activityDefinition?: ActivityDefinition;
+  trackLocalProgress?: boolean;
 };
 
 export default function ActivityViewer({
@@ -30,13 +33,15 @@ export default function ActivityViewer({
   previousHref,
   nextHref,
   exitHref,
+  activityDefinition,
+  trackLocalProgress = true,
 }: ActivityViewerProps) {
   const activity = useMemo(
     () =>
-      activities.find(
+      activityDefinition ?? activities.find(
         (item) => item.id === activityId
       ),
-    [activityId]
+    [activityId, activityDefinition]
   );
 
   const [text, setText] = useState("");
@@ -238,14 +243,15 @@ export default function ActivityViewer({
 
     setShowConfirmModal(false);
 
+    setShowSubmitted(true);
+
     /*
      * Para el prototipo:
      * entregar la actividad = completarla.
      */
-    markContentViewed(
-      courseId,
-      activityId
-    );
+    if (trackLocalProgress) {
+      markContentViewed(courseId, activityId);
+    }
   };
 
   /*
