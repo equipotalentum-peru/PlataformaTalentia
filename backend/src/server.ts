@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
+import cursosRoutes from "./routes/cursos.routes";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/cursos", cursosRoutes);
 
 app.listen(PORT, () => {
   console.log(

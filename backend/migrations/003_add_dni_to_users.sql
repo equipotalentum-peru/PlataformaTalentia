@@ -1,9 +1,0 @@
-BEGIN;
-
-ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS dni VARCHAR(8);
-
-CREATE UNIQUE INDEX IF NOT EXISTS users_dni_unique_idx
-    ON users (dni);
-
-COMMIT;
