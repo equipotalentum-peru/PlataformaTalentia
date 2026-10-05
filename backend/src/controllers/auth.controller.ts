@@ -69,7 +69,7 @@ export async function sendRegistrationInvitation(
     const existingUser = await pool.query(
       `
       SELECT id
-      FROM users
+      FROM usuarios
       WHERE LOWER(correo) = LOWER($1)
       `,
       [email]
@@ -84,10 +84,10 @@ export async function sendRegistrationInvitation(
     // Invalidar invitaciones anteriores del mismo correo
     await pool.query(
       `
-      UPDATE registration_invitations
-      SET used = TRUE
-      WHERE LOWER(email) = LOWER($1)
-        AND used = FALSE
+      UPDATE invitaciones_registro
+      SET usada = TRUE
+      WHERE LOWER(correo) = LOWER($1)
+        AND usada = FALSE
       `,
       [email]
     );
@@ -103,10 +103,10 @@ export async function sendRegistrationInvitation(
 
     await pool.query(
   `
-  INSERT INTO registration_invitations (
-    email,
-    token_hash,
-    expires_at,
+  INSERT INTO invitaciones_registro (
+    correo,
+    hash_token,
+    expira_en,
     nombre,
     dni,
     telefono,
@@ -248,19 +248,19 @@ export async function verifyRegistrationInvitation(
   `
   SELECT
     id,
-    email,
+    correo AS email,
     nombre,
     dni,
     telefono,
     tipo_alumno,
     empresa_aliada,
-    expires_at,
-    used
-  FROM registration_invitations
-  WHERE token_hash = $1
-    AND used = FALSE
-    AND expires_at > NOW()
-  ORDER BY created_at DESC
+    expira_en AS expira_en,
+    usada AS usada
+  FROM invitaciones_registro
+  WHERE hash_token = $1
+    AND usada = FALSE
+    AND expira_en > NOW()
+  ORDER BY creado_en DESC
   LIMIT 1
   `,
   [tokenHash]
@@ -394,12 +394,12 @@ const invitationResult = await pool.query(
   `
   SELECT
     id,
-    email
-  FROM registration_invitations
-  WHERE token_hash = $1
-    AND used = FALSE
-    AND expires_at > NOW()
-  ORDER BY created_at DESC
+    correo AS email
+  FROM invitaciones_registro
+  WHERE hash_token = $1
+    AND usada = FALSE
+    AND expira_en > NOW()
+  ORDER BY creado_en DESC
   LIMIT 1
   `,
   [tokenHash]
@@ -426,7 +426,7 @@ if (
 
     const existingUser = await pool.query(
       `SELECT id
-       FROM users
+       FROM usuarios
        WHERE LOWER(usuario) = LOWER($1)
           OR LOWER(correo) = LOWER($2)
           OR dni = $3`,
@@ -451,7 +451,7 @@ if (
 
     const result = await pool.query(
   `
-  INSERT INTO users (
+  INSERT INTO usuarios (
     nombres,
     dni,
     empresa_aliada,
@@ -461,7 +461,7 @@ if (
     fecha_nacimiento,
     direccion,
     correo,
-    password_hash,
+    hash_contrasena,
     rol
   )
   VALUES (
@@ -502,9 +502,9 @@ if (
 
 await pool.query(
   `
-  UPDATE registration_invitations
+  UPDATE invitaciones_registro
   SET
-    used = TRUE,
+    usada = TRUE,
     estado = 'Matriculado'
   WHERE id = $1
   `,
@@ -558,10 +558,10 @@ export async function login(
         nombres,
         usuario,
         correo,
-        password_hash,
+        hash_contrasena,
         rol,
         id_persona
-       FROM users
+       FROM usuarios
        WHERE LOWER(usuario) = LOWER($1)`,
       [usuario.trim()]
     );
@@ -578,7 +578,7 @@ export async function login(
     const passwordValid =
       await bcrypt.compare(
         password,
-        user.password_hash
+        user.hash_contrasena
       );
 
     if (!passwordValid) {
@@ -662,7 +662,7 @@ export async function forgotPassword(
         id,
         nombres,
         correo
-       FROM users
+       FROM usuarios
        WHERE LOWER(correo) = LOWER($1)`,
       [correo.trim()]
     );
@@ -699,10 +699,10 @@ export async function forgotPassword(
      * Invalidar códigos anteriores.
      */
     await pool.query(
-      `UPDATE password_reset_codes
-       SET used = TRUE
-       WHERE user_id = $1
-       AND used = FALSE`,
+      `UPDATE codigos_restablecimiento
+       SET usado = TRUE
+       WHERE usuario_id = $1
+       AND usado = FALSE`,
       [user.id]
     );
 
@@ -711,11 +711,11 @@ export async function forgotPassword(
      * Expira en 10 minutos.
      */
     await pool.query(
-      `INSERT INTO password_reset_codes
+      `INSERT INTO codigos_restablecimiento
         (
-          user_id,
-          code_hash,
-          expires_at
+          usuario_id,
+          hash_codigo,
+          expira_en
         )
        VALUES
         (
@@ -819,7 +819,7 @@ export async function verifyResetCode(
     const userResult =
       await pool.query(
         `SELECT id
-         FROM users
+         FROM usuarios
          WHERE LOWER(correo) = LOWER($1)`,
         [correo.trim()]
       );
@@ -838,13 +838,13 @@ export async function verifyResetCode(
       await pool.query(
         `SELECT
           id,
-          code_hash,
-          expires_at
-         FROM password_reset_codes
-         WHERE user_id = $1
-         AND used = FALSE
-         AND expires_at > NOW()
-         ORDER BY created_at DESC
+          hash_codigo,
+          expira_en
+         FROM codigos_restablecimiento
+         WHERE usuario_id = $1
+         AND usado = FALSE
+         AND expira_en > NOW()
+         ORDER BY creado_en DESC
          LIMIT 1`,
         [user.id]
       );
@@ -862,7 +862,7 @@ export async function verifyResetCode(
     const codigoValido =
       await bcrypt.compare(
         codigo,
-        reset.code_hash
+        reset.hash_codigo
       );
 
     if (!codigoValido) {
@@ -925,7 +925,7 @@ export async function resetPassword(
     const userResult =
       await pool.query(
         `SELECT id
-         FROM users
+         FROM usuarios
          WHERE LOWER(correo) = LOWER($1)`,
         [correo.trim()]
       );
@@ -944,12 +944,12 @@ export async function resetPassword(
       await pool.query(
         `SELECT
           id,
-          code_hash
-         FROM password_reset_codes
-         WHERE user_id = $1
-         AND used = FALSE
-         AND expires_at > NOW()
-         ORDER BY created_at DESC
+          hash_codigo
+         FROM codigos_restablecimiento
+         WHERE usuario_id = $1
+         AND usado = FALSE
+         AND expira_en > NOW()
+         ORDER BY creado_en DESC
          LIMIT 1`,
         [user.id]
       );
@@ -967,7 +967,7 @@ export async function resetPassword(
     const codigoValido =
       await bcrypt.compare(
         codigo,
-        reset.code_hash
+        reset.hash_codigo
       );
 
     if (!codigoValido) {
@@ -990,10 +990,10 @@ export async function resetPassword(
       await client.query("BEGIN");
 
       await client.query(
-        `UPDATE users
+        `UPDATE usuarios
          SET
-           password_hash = $1,
-           updated_at = CURRENT_TIMESTAMP
+           hash_contrasena = $1,
+           actualizado_en = CURRENT_TIMESTAMP
          WHERE id = $2`,
         [
           passwordHash,
@@ -1002,8 +1002,8 @@ export async function resetPassword(
       );
 
       await client.query(
-        `UPDATE password_reset_codes
-         SET used = TRUE
+        `UPDATE codigos_restablecimiento
+         SET usado = TRUE
          WHERE id = $1`,
         [reset.id]
       );
@@ -1048,11 +1048,11 @@ export async function getRegistrationStatuses(
   try {
     const result = await pool.query(
       `
-      SELECT DISTINCT ON (LOWER(email))
-        email,
+      SELECT DISTINCT ON (LOWER(correo))
+        correo AS email,
         estado
-      FROM registration_invitations
-      ORDER BY LOWER(email), created_at DESC
+      FROM invitaciones_registro
+      ORDER BY LOWER(correo), creado_en DESC
       `
     );
 

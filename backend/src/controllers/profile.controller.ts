@@ -24,7 +24,7 @@ const profileColumns = `
   TO_CHAR(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
   genero, nacionalidad, direccion, telefono,
   CASE WHEN foto_perfil IS NOT NULL
-    THEN '/api/profile/photo?v=' || EXTRACT(EPOCH FROM updated_at)::text
+    THEN '/api/profile/photo?v=' || EXTRACT(EPOCH FROM actualizado_en)::text
     ELSE NULL
   END AS foto_perfil
 `;
@@ -64,7 +64,7 @@ function formatProfile(row: ProfileRow) {
 export async function getProfile(req: AuthenticatedRequest, res: Response) {
   try {
     const result = await pool.query<ProfileRow>(
-      `SELECT ${profileColumns} FROM users WHERE id = $1`,
+      `SELECT ${profileColumns} FROM usuarios WHERE id = $1`,
       [req.userId]
     );
 
@@ -136,8 +136,8 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
 
   try {
     const result = await pool.query<ProfileRow>(
-      `UPDATE users
-       SET ${assignments.join(", ")}, updated_at = CURRENT_TIMESTAMP
+      `UPDATE usuarios
+       SET ${assignments.join(", ")}, actualizado_en = CURRENT_TIMESTAMP
        WHERE id = $${values.length}
        RETURNING ${profileColumns}`,
       values

@@ -35,11 +35,11 @@ export async function uploadProfilePhoto(req: AuthenticatedRequest, res: Respons
 
   try {
     const result = await pool.query<{ version: string }>(
-      `UPDATE users
+      `UPDATE usuarios
        SET foto_perfil = $1,
-           updated_at = CURRENT_TIMESTAMP
+           actualizado_en = CURRENT_TIMESTAMP
        WHERE id = $2
-       RETURNING EXTRACT(EPOCH FROM updated_at)::text AS version`,
+       RETURNING EXTRACT(EPOCH FROM actualizado_en)::text AS version`,
       [foto, req.userId]
     );
 
@@ -60,9 +60,9 @@ export async function uploadProfilePhoto(req: AuthenticatedRequest, res: Respons
 export async function deleteProfilePhoto(req: AuthenticatedRequest, res: Response) {
   try {
     const result = await pool.query(
-      `UPDATE users
+      `UPDATE usuarios
        SET foto_perfil = NULL,
-           updated_at = CURRENT_TIMESTAMP
+           actualizado_en = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING id`,
       [req.userId]
@@ -89,7 +89,7 @@ export async function getProfilePhoto(req: AuthenticatedRequest, res: Response) 
     const result = await pool.query<{
       foto_perfil: Buffer | null;
     }>(
-      "SELECT foto_perfil FROM users WHERE id = $1",
+      "SELECT foto_perfil FROM usuarios WHERE id = $1",
       [req.userId]
     );
     const perfil = result.rows[0];

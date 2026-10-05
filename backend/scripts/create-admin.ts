@@ -6,13 +6,15 @@ import pool from "../src/config/database";
 async function createAdmin() {
   try {
     const nombres = "Administrador";
+    const apellidos = "Talentia";
     const usuario = "admin";
+    const correo = "admin@talentia.local";
     const password = "Admin1234";
 
     const existingUser = await pool.query(
       `
       SELECT id
-      FROM users
+      FROM usuarios
       WHERE LOWER(usuario) = LOWER($1)
       `,
       [usuario]
@@ -33,12 +35,15 @@ async function createAdmin() {
 
     const result = await pool.query(
       `
-      INSERT INTO users
+      INSERT INTO usuarios
       (
         nombres,
+        apellidos,
         usuario,
-        password_hash,
-        rol
+        correo,
+        hash_contrasena,
+        rol,
+        activo
       )
       VALUES
       (
@@ -46,7 +51,9 @@ async function createAdmin() {
         $2,
         $3,
         $4,
-        'Administrador'
+        $5,
+        'Administrador',
+        TRUE
       )
       RETURNING
         id,
@@ -56,7 +63,9 @@ async function createAdmin() {
       `,
       [
         nombres,
+        apellidos,
         usuario,
+        correo,
         passwordHash,
       ]
     );
