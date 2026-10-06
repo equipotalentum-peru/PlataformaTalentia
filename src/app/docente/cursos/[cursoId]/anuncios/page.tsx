@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { courses } from "@/data/courses";
-
-import {
-  teacherAnnouncements as initialAnnouncements,
-  type TeacherAnnouncement,
-} from "@/data/teacher-announcements";
+import type { TeacherAnnouncement } from "@/data/teacher-announcements";
+import { API_URL } from "@/lib/api";
+import { formatearFechaAnuncio, peticionAnuncios } from "@/lib/anuncios-api";
 
 import AnnouncementHeader from "@/components/common/anuncios/AnnouncementHeader";
 import AnnouncementList from "@/components/common/anuncios/AnnouncementList";
@@ -31,182 +28,137 @@ type Filter =
 export default function TeacherAnnouncementsPage({
   params,
 }: PageProps) {
-  const [courseId, setCourseId] = useState(1);
+  const [courseId, setCourseId] = useState(0);
+  const [course, setCourse] = useState({ nombre: "", imagen: "" });
+  const [announcements, setAnnouncements] = useState<TeacherAnnouncement[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [actionError, setActionError] = useState("");
 
-  const [announcements, setAnnouncements] =
-    useState<TeacherAnnouncement[]>(
-      initialAnnouncements
-    );
-
-  const [filter, setFilter] =
-    useState<Filter>("Todos");
-
-  const [search, setSearch] = useState("");
-
-  const [menuOpen, setMenuOpen] =
-    useState<number | null>(null);
-
-  const [createOpen, setCreateOpen] =
-    useState(false);
-
-  const [editingAnnouncement, setEditingAnnouncement] =
-    useState<TeacherAnnouncement | null>(null);
+  const [filter, setFilter] = useState<Filter>("Todos");
+  const [search] = useState("");
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<TeacherAnnouncement | null>(null);
 
   useEffect(() => {
+    let activo = true;
     params.then(({ cursoId }) => {
-      setCourseId(Number(cursoId));
+      if (activo) setCourseId(Number(cursoId));
+    }).catch(() => {
+      if (activo) setLoadError("No se pudo determinar el curso.");
     });
+    return () => { activo = false; };
   }, [params]);
 
-  const course =
-    courses.find((item) => item.id === courseId) ??
-    courses[0];
+  const loadAnnouncements = useCallback(async () => {
+    if (!courseId) return;
+    setLoading(true);
+    setLoadError("");
+    try {
+      const data = await peticionAnuncios<{
+        curso: { id: number; nombre: string; imagen: string | null };
+        anuncios: Array<{
+          id: number; title: string; content: string; date: string;
+          status: "Publicado" | "Borrador" | "Oculto"; views: number;
+        }>;
+      }>(`${API_URL}/cursos/${courseId}/anuncios`);
+
+      setCourse({ nombre: data.curso.nombre, imagen: data.curso.imagen ?? "" });
+      setAnnouncements(data.anuncios.map((item) => ({
+        id: Number(item.id),
+        title: item.title,
+        content: item.content,
+        date: formatearFechaAnuncio(item.date),
+        read: true,
+        status: item.status,
+        views: Number(item.views) || 0,
+      })));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "No se pudieron cargar los anuncios.");
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    void loadAnnouncements();
+  }, [loadAnnouncements]);
 
   const filteredAnnouncements = useMemo(() => {
     const term = search.trim().toLowerCase();
-
     return announcements.filter((announcement) => {
-      const matchesSearch =
-        !term ||
-        `${announcement.title} ${announcement.content}`
-          .toLowerCase()
-          .includes(term);
-
-      const matchesFilter =
-        filter === "Todos" ||
-        (filter === "Publicados" &&
-          announcement.status === "Publicado") ||
-        (filter === "Borradores" &&
-          announcement.status === "Borrador") ||
-        (filter === "Ocultos" &&
-          announcement.status === "Oculto");
-
+      const matchesSearch = !term || `${announcement.title} ${announcement.content}`.toLowerCase().includes(term);
+      const matchesFilter = filter === "Todos"
+        || (filter === "Publicados" && announcement.status === "Publicado")
+        || (filter === "Borradores" && announcement.status === "Borrador")
+        || (filter === "Ocultos" && announcement.status === "Oculto");
       return matchesSearch && matchesFilter;
     });
   }, [announcements, filter, search]);
 
-  const counts = {
-    Todos: announcements.length,
-    Publicados: announcements.filter(
-      (item) => item.status === "Publicado"
-    ).length,
-    Borradores: announcements.filter(
-      (item) => item.status === "Borrador"
-    ).length,
-    Ocultos: announcements.filter(
-      (item) => item.status === "Oculto"
-    ).length,
-  };
-
-  const createAnnouncement = ({
-    title,
-    content,
-    status,
-  }: {
-    title: string;
-    content: string;
-    status: "Publicado" | "Borrador";
+  const createAnnouncement = async ({ title, content, status }: {
+    title: string; content: string; status: "Publicado" | "Borrador";
   }) => {
-    const newAnnouncement: TeacherAnnouncement = {
-      id:
-        Math.max(
-          0,
-          ...announcements.map(
-            (item) => item.id
-          )
-        ) + 1,
-      title,
-      content,
-      date: "Hoy",
-      read: true,
-      status,
-      views: 0,
-    };
-
-    setAnnouncements((current) => [
-      newAnnouncement,
-      ...current,
-    ]);
-
+    setActionError("");
+    await peticionAnuncios(`${API_URL}/cursos/${courseId}/anuncios`, {
+      method: "POST",
+      body: JSON.stringify({ titulo: title, contenido: content, estado: status }),
+    });
     setCreateOpen(false);
+    await loadAnnouncements();
   };
 
-  const editAnnouncement = ({
-    id,
-    title,
-    content,
-  }: {
-    id: number;
-    title: string;
-    content: string;
+  const editAnnouncement = async ({ id, title, content }: {
+    id: number; title: string; content: string;
   }) => {
-    setAnnouncements((current) =>
-      current.map((announcement) =>
-        announcement.id === id
-          ? {
-              ...announcement,
-              title,
-              content,
-            }
-          : announcement
-      )
-    );
-
+    setActionError("");
+    await peticionAnuncios(`${API_URL}/anuncios/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ titulo: title, contenido: content }),
+    });
     setEditingAnnouncement(null);
+    await loadAnnouncements();
   };
 
-  const duplicateAnnouncement = (
-    announcement: TeacherAnnouncement
-  ) => {
-    const duplicate: TeacherAnnouncement = {
-      ...announcement,
-      id:
-        Math.max(
-          0,
-          ...announcements.map(
-            (item) => item.id
-          )
-        ) + 1,
-      title: `Copia de ${announcement.title}`,
-      status: "Borrador",
-      views: 0,
-    };
-
-    setAnnouncements((current) => [
-      duplicate,
-      ...current,
-    ]);
-
+  const duplicateAnnouncement = async (announcement: TeacherAnnouncement) => {
     setMenuOpen(null);
+    setActionError("");
+    try {
+      await peticionAnuncios(`${API_URL}/cursos/${courseId}/anuncios`, {
+        method: "POST",
+        body: JSON.stringify({ titulo: `Copia de ${announcement.title}`, contenido: announcement.content, estado: "Borrador" }),
+      });
+      await loadAnnouncements();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "No se pudo duplicar el anuncio.");
+    }
   };
 
-  const hideAnnouncement = (
-    announcement: TeacherAnnouncement
-  ) => {
-    setAnnouncements((current) =>
-      current.map((item) =>
-        item.id === announcement.id
-          ? {
-              ...item,
-              status: "Oculto",
-            }
-          : item
-      )
-    );
-
+  const hideAnnouncement = async (announcement: TeacherAnnouncement) => {
     setMenuOpen(null);
+    setActionError("");
+    try {
+      await peticionAnuncios(`${API_URL}/anuncios/${announcement.id}/estado`, {
+        method: "PATCH",
+        body: JSON.stringify({ estado: "Oculto" }),
+      });
+      await loadAnnouncements();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "No se pudo ocultar el anuncio.");
+    }
   };
 
-  const deleteAnnouncement = (
-    announcement: TeacherAnnouncement
-  ) => {
-    setAnnouncements((current) =>
-      current.filter(
-        (item) => item.id !== announcement.id
-      )
-    );
-
+  const deleteAnnouncement = async (announcement: TeacherAnnouncement) => {
     setMenuOpen(null);
+    if (!window.confirm(`¿Eliminar el anuncio «${announcement.title}»? Esta acción no se puede deshacer.`)) return;
+    setActionError("");
+    try {
+      await peticionAnuncios(`${API_URL}/anuncios/${announcement.id}`, { method: "DELETE" });
+      await loadAnnouncements();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "No se pudo eliminar el anuncio.");
+    }
   };
 
   return (
@@ -224,15 +176,15 @@ export default function TeacherAnnouncementsPage({
         {/* BANNER */}
         <div className="relative h-[150px] overflow-hidden rounded-t-xl">
           <img
-            src={course.imagen}
-            alt={course.nombre}
+            src={course.imagen || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"}
+            alt={course.nombre || "Curso"}
             className="h-full w-full object-cover"
           />
 
           <div className="absolute inset-0 bg-black/20" />
 
           <h1 className="absolute bottom-7 left-5 text-[32px] font-bold text-white">
-            {course.nombre}
+            {course.nombre || "Anuncios del curso"}
           </h1>
         </div>
 
@@ -276,6 +228,21 @@ export default function TeacherAnnouncementsPage({
         </div>
 
         <div className="mt-2 space-y-2">
+          {loadError && (
+            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+              <span>{loadError}</span>
+              <button type="button" onClick={() => void loadAnnouncements()} className="shrink-0 font-semibold underline">Reintentar</button>
+            </div>
+          )}
+          {actionError && (
+            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+              <span>{actionError}</span>
+              <button type="button" onClick={() => setActionError("")} className="font-semibold">×</button>
+            </div>
+          )}
+          {loading && announcements.length === 0 && (
+            <div className="rounded-lg bg-white px-4 py-6 text-center text-[11px] text-gray-500">Cargando anuncios...</div>
+          )}
 
           {/* CABECERA */}
           <AnnouncementHeader
@@ -422,7 +389,7 @@ export default function TeacherAnnouncementsPage({
             )}
           />
 
-          {filteredAnnouncements.length === 0 && (
+          {!loading && !loadError && filteredAnnouncements.length === 0 && (
             <div className="rounded-xl bg-white py-10 text-center text-[11px] text-gray-500">
               No hay anuncios que coincidan con
               la búsqueda.

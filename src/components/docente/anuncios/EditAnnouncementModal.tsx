@@ -11,7 +11,7 @@ type EditAnnouncementModalProps = {
     id: number;
     title: string;
     content: string;
-  }) => void;
+  }) => Promise<void> | void;
 };
 
 export default function EditAnnouncementModal({
@@ -22,6 +22,8 @@ export default function EditAnnouncementModal({
 }: EditAnnouncementModalProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!announcement) {
@@ -30,22 +32,48 @@ export default function EditAnnouncementModal({
 
     setTitle(announcement.title);
     setContent(announcement.content);
+    setError("");
   }, [announcement]);
 
   if (!open || !announcement) {
     return null;
   }
 
-  const submit = () => {
+  const close = () => {
+    if (saving) return;
+    setError("");
+    onClose();
+  };
+
+  const submit = async () => {
     if (!title.trim() || !content.trim()) {
+      setError("El título y el contenido son obligatorios.");
       return;
     }
 
-    onSave({
-      id: announcement.id,
-      title: title.trim(),
-      content: content.trim(),
-    });
+    if (title.trim().length > 200) {
+      setError("El título no puede superar los 200 caracteres.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      await onSave({
+        id: announcement.id,
+        title: title.trim(),
+        content: content.trim(),
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo editar el anuncio."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -53,7 +81,7 @@ export default function EditAnnouncementModal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
-          onClose();
+          close();
         }
       }}
     >
@@ -66,8 +94,9 @@ export default function EditAnnouncementModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="text-[22px] leading-none text-gray-500 hover:text-black"
+            aria-label="Cerrar"
           >
             ×
           </button>
@@ -81,6 +110,7 @@ export default function EditAnnouncementModal({
 
             <input
               value={title}
+              maxLength={200}
               onChange={(event) =>
                 setTitle(event.target.value)
               }
@@ -101,23 +131,34 @@ export default function EditAnnouncementModal({
               className="h-[150px] w-full resize-none rounded-md bg-[#eeeeee] p-3 text-[10px] outline-none"
             />
           </label>
+
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[10px] text-red-700"
+            >
+              {error}
+            </p>
+          )}
         </div>
 
         <div className="mt-5 flex justify-end gap-3">
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md bg-[#eeeeee] px-5 py-2 text-[10px] font-medium text-gray-700"
+            onClick={close}
+            disabled={saving}
+            className="rounded-md bg-[#eeeeee] px-5 py-2 text-[10px] font-medium text-gray-700 disabled:opacity-60"
           >
             Cancelar
           </button>
 
           <button
             type="button"
-            onClick={submit}
-            className="rounded-md bg-[#3186d8] px-5 py-2 text-[10px] font-semibold text-white"
+            onClick={() => void submit()}
+            disabled={saving}
+            className="rounded-md bg-[#3186d8] px-5 py-2 text-[10px] font-semibold text-white disabled:opacity-60"
           >
-            Publicar anuncio
+            {saving ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </div>

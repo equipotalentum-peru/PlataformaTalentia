@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import {
-  announcements,
-  type Announcement,
-} from "@/data/announcements";
+import type { Announcement } from "@/data/announcements";
+import { API_URL } from "@/lib/api";
+import { formatearFechaAnuncio, peticionAnuncios } from "@/lib/anuncios-api";
 
 type AnnouncementsPageProps = {
   params: Promise<{
@@ -19,51 +18,91 @@ type Filter = "Todos" | "Leídos" | "No leídos";
 export default function AnnouncementsPage({
   params,
 }: AnnouncementsPageProps) {
-  const [courseId, setCourseId] = useState<number>(1);
+  const [courseId, setCourseId] = useState<number>(0);
+  const [course, setCourse] = useState({ nombre: "", imagen: "" });
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filter, setFilter] = useState<Filter>("Todos");
-  const [selectedAnnouncement, setSelectedAnnouncement] =
-    useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let activo = true;
     params.then(({ cursoId }) => {
-      setCourseId(Number(cursoId));
+      if (activo) setCourseId(Number(cursoId));
+    }).catch(() => {
+      if (activo) setError("No se pudo determinar el curso.");
     });
+    return () => { activo = false; };
   }, [params]);
 
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelectedAnnouncement(null);
-      }
-    };
+    if (!courseId) return;
+    const controller = new AbortController();
 
-    if (selectedAnnouncement) {
-      document.addEventListener("keydown", handleEscape);
+    async function cargarAnuncios() {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch(`${API_URL}/cursos/${courseId}/anuncios`, {
+          method: "GET",
+          credentials: "include",
+          signal: controller.signal,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(typeof data.message === "string" ? data.message : "No se pudieron cargar los anuncios.");
+        }
+        setCourse({ nombre: data.curso.nombre, imagen: data.curso.imagen ?? "" });
+        setAnnouncements((Array.isArray(data.anuncios) ? data.anuncios : []).map((item: {
+          id: number; title: string; content: string; date: string; read: boolean;
+        }) => ({
+          id: Number(item.id),
+          title: item.title,
+          date: formatearFechaAnuncio(item.date),
+          content: item.content,
+          read: Boolean(item.read),
+        })));
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : "No se pudieron cargar los anuncios.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     }
 
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
+    void cargarAnuncios();
+    return () => controller.abort();
+  }, [courseId]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedAnnouncement(null);
     };
+    if (selectedAnnouncement) document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [selectedAnnouncement]);
 
-  const filteredAnnouncements = announcements.filter(
-    (announcement) => {
-      if (filter === "Leídos") {
-        return announcement.read;
-      }
+  const filteredAnnouncements = announcements.filter((announcement) => {
+    if (filter === "Leídos") return announcement.read;
+    if (filter === "No leídos") return !announcement.read;
+    return true;
+  });
 
-      if (filter === "No leídos") {
-        return !announcement.read;
-      }
-
-      return true;
-    }
-  );
-
-  const openAnnouncement = (
-    announcement: Announcement
-  ) => {
+  const openAnnouncement = async (announcement: Announcement) => {
     setSelectedAnnouncement(announcement);
+    if (announcement.read) return;
+
+    try {
+      await peticionAnuncios(`${API_URL}/anuncios/${announcement.id}/lectura`, {
+        method: "POST",
+      });
+      setAnnouncements((current) => current.map((item) => item.id === announcement.id ? { ...item, read: true } : item));
+      setSelectedAnnouncement((current) => current?.id === announcement.id ? { ...current, read: true } : current);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo registrar la lectura.");
+    }
   };
 
   return (
@@ -92,15 +131,15 @@ export default function AnnouncementsPage({
           {/* BANNER */}
           <div className="relative h-[150px] overflow-hidden rounded-t-xl">
             <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"
-              alt="Herramientas TIC"
+              src={course.imagen || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"}
+              alt={course.nombre || "Curso"}
               className="h-full w-full object-cover"
             />
 
             <div className="absolute inset-0 bg-black/20" />
 
             <h1 className="absolute bottom-7 left-5 text-[32px] font-bold text-white">
-              Herramientas Tic
+              {course.nombre || "Anuncios del curso"}
             </h1>
           </div>
 
@@ -166,6 +205,16 @@ export default function AnnouncementsPage({
               </div>
             </div>
           </section>
+
+          {error && (
+            <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+              <span>{error}</span>
+              <button type="button" onClick={() => window.location.reload()} className="shrink-0 font-semibold underline">Reintentar</button>
+            </div>
+          )}
+          {loading && announcements.length === 0 && (
+            <div className="mt-2 rounded-lg bg-white px-4 py-6 text-center text-[11px] text-gray-500">Cargando anuncios...</div>
+          )}
 
           {/* FILTROS */}
           <div className="my-2 flex gap-2">
@@ -266,7 +315,7 @@ export default function AnnouncementsPage({
           </div>
 
           {/* SIN RESULTADOS */}
-          {filteredAnnouncements.length === 0 && (
+          {!loading && !error && filteredAnnouncements.length === 0 && (
             <div className="rounded-xl bg-white py-10 text-center text-[12px] text-gray-500">
               No hay anuncios en esta categoría.
             </div>

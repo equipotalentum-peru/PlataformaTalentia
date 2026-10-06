@@ -8,6 +8,7 @@ import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
 import cursosRoutes from "./routes/cursos.routes";
+import anunciosRoutes from "./routes/anuncios.routes";
 
 const app = express();
 
@@ -23,13 +24,13 @@ app.use(
 );
 
 app.use(express.json());
-
 app.use(cookieParser());
 
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cursos", cursosRoutes);
+app.use("/api", anunciosRoutes);
 
 app.listen(PORT, () => {
   console.log(

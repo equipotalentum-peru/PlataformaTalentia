@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   obtenerMisCursos,
+  obtenerMisCursosDocente,
   obtenerModulosCurso,
 } from "../controllers/cursos.controller";
 
@@ -14,6 +15,13 @@ router.get(
   "/mis-cursos",
   requireAuth,
   obtenerMisCursos
+);
+
+// Debe declararse antes de las rutas con parámetro (/:cursoId/...)
+router.get(
+  "/docente/mis-cursos",
+  requireAuth,
+  obtenerMisCursosDocente
 );
 
 router.get(

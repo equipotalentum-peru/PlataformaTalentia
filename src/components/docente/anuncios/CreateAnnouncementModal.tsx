@@ -9,7 +9,7 @@ type CreateAnnouncementModalProps = {
     title: string;
     content: string;
     status: "Publicado" | "Borrador";
-  }) => void;
+  }) => Promise<void> | void;
 };
 
 export default function CreateAnnouncementModal({
@@ -19,29 +19,54 @@ export default function CreateAnnouncementModal({
 }: CreateAnnouncementModalProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [status, setStatus] =
-    useState<"Publicado" | "Borrador">("Publicado");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   if (!open) {
     return null;
   }
 
-  const submit = (
+  const close = () => {
+    if (saving) return;
+    setError("");
+    onClose();
+  };
+
+  const submit = async (
     selectedStatus: "Publicado" | "Borrador"
   ) => {
     if (!title.trim() || !content.trim()) {
+      setError("El título y el contenido son obligatorios.");
       return;
     }
 
-    onSave({
-      title: title.trim(),
-      content: content.trim(),
-      status: selectedStatus,
-    });
+    if (title.trim().length > 200) {
+      setError("El título no puede superar los 200 caracteres.");
+      return;
+    }
 
-    setTitle("");
-    setContent("");
-    setStatus("Publicado");
+    setSaving(true);
+    setError("");
+
+    try {
+      // Si el servidor falla, se lanza el error y NO se borra lo escrito.
+      await onSave({
+        title: title.trim(),
+        content: content.trim(),
+        status: selectedStatus,
+      });
+
+      setTitle("");
+      setContent("");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo guardar el anuncio."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -49,7 +74,7 @@ export default function CreateAnnouncementModal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
-          onClose();
+          close();
         }
       }}
     >
@@ -62,8 +87,9 @@ export default function CreateAnnouncementModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="text-[22px] leading-none text-gray-500 hover:text-black"
+            aria-label="Cerrar"
           >
             ×
           </button>
@@ -78,6 +104,7 @@ export default function CreateAnnouncementModal({
 
             <input
               value={title}
+              maxLength={200}
               onChange={(event) =>
                 setTitle(event.target.value)
               }
@@ -95,66 +122,46 @@ export default function CreateAnnouncementModal({
               onChange={(event) =>
                 setContent(event.target.value)
               }
-              className="h-[95px] w-full resize-none rounded-md bg-[#eeeeee] p-3 text-[10px] outline-none"
+              className="h-[120px] w-full resize-none rounded-md bg-[#eeeeee] p-3 text-[10px] outline-none"
             />
           </label>
 
-          <div>
-            <p className="mb-2 text-[10px] font-semibold text-[#3186d8]">
-              Estado:
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[10px] text-red-700"
+            >
+              {error}
             </p>
-
-            <div className="flex gap-8">
-              <label className="flex items-center gap-2 text-[10px]">
-                <input
-                  type="radio"
-                  name="announcement-status"
-                  checked={status === "Borrador"}
-                  onChange={() =>
-                    setStatus("Borrador")
-                  }
-                />
-                Borrador
-              </label>
-
-              <label className="flex items-center gap-2 text-[10px]">
-                <input
-                  type="radio"
-                  name="announcement-status"
-                  checked={status === "Publicado"}
-                  onChange={() =>
-                    setStatus("Publicado")
-                  }
-                />
-                Publicado
-              </label>
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700"
+            onClick={close}
+            disabled={saving}
+            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700 disabled:opacity-60"
           >
             Cancelar
           </button>
 
           <button
             type="button"
-            onClick={() => submit("Borrador")}
-            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700"
+            onClick={() => void submit("Borrador")}
+            disabled={saving}
+            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700 disabled:opacity-60"
           >
-            Guardar borrador
+            {saving ? "Guardando..." : "Guardar borrador"}
           </button>
 
           <button
             type="button"
-            onClick={() => submit("Publicado")}
-            className="rounded-md bg-[#3186d8] px-4 py-2 text-[10px] font-semibold text-white"
+            onClick={() => void submit("Publicado")}
+            disabled={saving}
+            className="rounded-md bg-[#3186d8] px-4 py-2 text-[10px] font-semibold text-white disabled:opacity-60"
           >
-            Publicar anuncio
+            {saving ? "Publicando..." : "Publicar anuncio"}
           </button>
         </div>
       </div>

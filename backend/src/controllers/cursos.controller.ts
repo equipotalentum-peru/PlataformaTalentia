@@ -183,3 +183,73 @@ const modulosResult = await pool.query(
     });
   }
 }
+
+/**
+ * GET /api/cursos/docente/mis-cursos
+ * Cursos cuya oferta tiene asignado al docente autenticado.
+ */
+export async function obtenerMisCursosDocente(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const docenteId = Number(req.userId);
+
+    if (!Number.isInteger(docenteId) || docenteId <= 0) {
+      return res.status(401).json({
+        message: "Sesión no válida.",
+      });
+    }
+
+    const usuarioResult = await pool.query(
+      `SELECT id, rol
+       FROM usuarios
+       WHERE id = $1 AND activo = TRUE
+       LIMIT 1`,
+      [docenteId]
+    );
+
+    if (!usuarioResult.rowCount) {
+      return res.status(401).json({
+        message: "Usuario no encontrado o inactivo.",
+      });
+    }
+
+    if (usuarioResult.rows[0].rol !== "Docente") {
+      return res.status(403).json({
+        message: "Este recurso es exclusivo para docentes.",
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT DISTINCT ON (c.id)
+         c.id,
+         c.nombre,
+         c.codigo,
+         c.imagen_portada AS imagen,
+         (
+           SELECT COUNT(*)::INTEGER
+           FROM matriculas m
+           WHERE m.oferta_curso_id = oc.id
+             AND m.estado IN ('Activa', 'Completada')
+         ) AS alumnos
+       FROM ofertas_curso oc
+       INNER JOIN cursos c ON c.id = oc.curso_id
+       WHERE oc.docente_id = $1
+         AND oc.estado <> 'Cancelado'
+         AND c.estado = 'Activo'
+       ORDER BY c.id, oc.actualizado_en DESC, oc.id DESC`,
+      [docenteId]
+    );
+
+    return res.status(200).json({
+      cursos: result.rows,
+    });
+  } catch (error) {
+    console.error("Error obteniendo cursos del docente:", error);
+
+    return res.status(500).json({
+      message: "No se pudieron obtener los cursos del docente.",
+    });
+  }
+}
