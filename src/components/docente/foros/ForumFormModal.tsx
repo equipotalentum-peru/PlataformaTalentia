@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { TeacherForumStatus } from "@/data/teacher-forums";
 
-type ForumFormValues = {
+export type ForumFormValues = {
   title: string;
   description: string;
   closeDate: string;
@@ -18,6 +18,8 @@ type ForumFormModalProps = {
   initialValues?: Partial<ForumFormValues>;
   onClose: () => void;
   onSubmit: (values: ForumFormValues) => void;
+  saving?: boolean;
+  error?: string;
 };
 
 export default function ForumFormModal({
@@ -26,43 +28,28 @@ export default function ForumFormModal({
   initialValues,
   onClose,
   onSubmit,
+  saving = false,
+  error = "",
 }: ForumFormModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [closeDate, setCloseDate] = useState("");
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [closeDate, setCloseDate] = useState(initialValues?.closeDate ?? "");
   const [allowStudentReplies, setAllowStudentReplies] =
-    useState(true);
+    useState(initialValues?.allowStudentReplies ?? true);
   const [
     showRepliesAfterParticipation,
     setShowRepliesAfterParticipation,
-  ] = useState(true);
+  ] = useState(initialValues?.showRepliesAfterParticipation ?? true);
 
   const [status, setStatus] =
-    useState<TeacherForumStatus>("Publicado");
-
-  useEffect(() => {
-    if (!open) return;
-
-    setTitle(initialValues?.title ?? "");
-    setDescription(initialValues?.description ?? "");
-    setCloseDate(initialValues?.closeDate ?? "");
-    setAllowStudentReplies(
-      initialValues?.allowStudentReplies ?? true
-    );
-    setShowRepliesAfterParticipation(
-      initialValues?.showRepliesAfterParticipation ?? true
-    );
-    setStatus(
-      initialValues?.status ?? "Publicado"
-    );
-  }, [open, initialValues]);
+    useState<TeacherForumStatus>(initialValues?.status ?? "Publicado");
 
   if (!open) {
     return null;
   }
 
-  const handleSubmit = () => {
-    if (!title.trim() || !description.trim()) {
+  const handleSubmit = (selectedStatus = status) => {
+    if (saving || !title.trim() || !description.trim()) {
       return;
     }
 
@@ -72,7 +59,7 @@ export default function ForumFormModal({
       closeDate,
       allowStudentReplies,
       showRepliesAfterParticipation,
-      status,
+      status: selectedStatus,
     });
   };
 
@@ -85,7 +72,9 @@ export default function ForumFormModal({
         }
       }}
     >
-      <div className="w-full max-w-[430px] rounded-xl bg-white p-5 shadow-2xl">
+      <div role="dialog" aria-modal="true" aria-label={mode === "create" ? "Crear nuevo foro" : "Editar foro"}
+        onKeyDown={event => { if (event.key === "Escape" && !saving) onClose(); }}
+        className="max-h-[90vh] w-full max-w-[430px] overflow-y-auto rounded-lg bg-white p-5 shadow-2xl">
 
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-start gap-3">
@@ -119,6 +108,7 @@ export default function ForumFormModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={saving}
             className="text-[22px] leading-none text-gray-700"
             aria-label="Cerrar"
           >
@@ -135,6 +125,9 @@ export default function ForumFormModal({
 
             <input
               value={title}
+              autoFocus
+              maxLength={200}
+              disabled={saving}
               onChange={(event) =>
                 setTitle(event.target.value)
               }
@@ -149,6 +142,8 @@ export default function ForumFormModal({
 
             <textarea
               value={description}
+              maxLength={10000}
+              disabled={saving}
               onChange={(event) =>
                 setDescription(event.target.value)
               }
@@ -167,6 +162,7 @@ export default function ForumFormModal({
 
             <input
               type="date"
+              disabled={saving}
               value={closeDate}
               onChange={(event) =>
                 setCloseDate(event.target.value)
@@ -177,6 +173,7 @@ export default function ForumFormModal({
             <label className="mt-3 flex items-center gap-2 text-[10px] text-gray-700">
               <input
                 type="checkbox"
+                disabled={saving}
                 checked={allowStudentReplies}
                 onChange={(event) =>
                   setAllowStudentReplies(
@@ -192,6 +189,7 @@ export default function ForumFormModal({
             <label className="mt-2 flex items-center gap-2 text-[10px] text-gray-700">
               <input
                 type="checkbox"
+                disabled={saving}
                 checked={showRepliesAfterParticipation}
                 onChange={(event) =>
                   setShowRepliesAfterParticipation(
@@ -205,14 +203,14 @@ export default function ForumFormModal({
             </label>
           </div>
 
-          {mode === "create" && (
+          {(
             <div>
               <p className="mb-1 text-[10px] font-semibold text-gray-800">
                 Estado
               </p>
 
               <div className="flex gap-5">
-                {(["Borrador", "Publicado"] as const).map(
+                {(["Borrador", "Publicado", ...(mode === "edit" ? ["Cerrado", "Oculto"] : [])] as TeacherForumStatus[]).map(
                   (item) => (
                     <label
                       key={item}
@@ -220,6 +218,7 @@ export default function ForumFormModal({
                     >
                       <input
                         type="radio"
+                        disabled={saving}
                         name="forum-status"
                         checked={status === item}
                         onChange={() =>
@@ -237,11 +236,13 @@ export default function ForumFormModal({
 
         </div>
 
+        {error && <p role="alert" className="mt-3 text-[11px] text-red-600">{error}</p>}
         <div className="mt-5 flex flex-wrap justify-end gap-2">
 
           <button
             type="button"
             onClick={onClose}
+            disabled={saving}
             className="rounded-md bg-[#e8eef5] px-4 py-2 text-[10px] font-semibold text-[#3186d8]"
           >
             Cancelar
@@ -250,16 +251,8 @@ export default function ForumFormModal({
           {mode === "create" && (
             <button
               type="button"
-              onClick={() =>
-                onSubmit({
-                  title: title.trim(),
-                  description: description.trim(),
-                  closeDate,
-                  allowStudentReplies,
-                  showRepliesAfterParticipation,
-                  status: "Borrador",
-                })
-              }
+              disabled={saving || !title.trim() || !description.trim()}
+              onClick={() => handleSubmit("Borrador")}
               className="rounded-md bg-[#dbeefa] px-4 py-2 text-[10px] font-semibold text-[#3186d8]"
             >
               Guardar borrador
@@ -268,12 +261,11 @@ export default function ForumFormModal({
 
           <button
             type="button"
-            onClick={handleSubmit}
+            disabled={saving || !title.trim() || !description.trim()}
+            onClick={() => handleSubmit()}
             className="rounded-md bg-[#00b8b3] px-4 py-2 text-[10px] font-semibold text-white"
           >
-            {mode === "create"
-              ? "Publicar foro"
-              : "Publicar foro"}
+            {saving ? "Guardando..." : mode === "edit" ? "Guardar cambios" : status === "Borrador" ? "Guardar borrador" : "Publicar foro"}
           </button>
         </div>
       </div>

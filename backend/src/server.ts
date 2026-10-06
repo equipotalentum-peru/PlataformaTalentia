@@ -11,6 +11,7 @@ import cursosRoutes from "./routes/cursos.routes";
 import anunciosRoutes from "./routes/anuncios.routes";
 import calificacionesRoutes from "./routes/calificaciones.routes";
 
+import forosRoutes from "./routes/foros.routes";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(
   "/api/calificaciones",
   calificacionesRoutes
 );
+app.use("/api/foros", forosRoutes);
 
 app.listen(PORT, () => {
   console.log(

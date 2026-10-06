@@ -11,6 +11,8 @@ type ReplyComposerProps = {
   onCancelReply: () => void;
   onReply: () => void;
   users: string[];
+  initials: string;
+  disabled?: boolean;
 };
 
 export default function ReplyComposer({
@@ -20,6 +22,8 @@ export default function ReplyComposer({
   onCancelReply,
   onReply,
   users,
+  initials,
+  disabled = false,
 }: ReplyComposerProps) {
   const mentionText = value.match(
     /@([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]*)$/
@@ -49,7 +53,7 @@ export default function ReplyComposer({
   return (
     <div className="flex gap-3 border-t border-gray-100 pt-4">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00b8b3] text-[10px] font-semibold text-white">
-        GP
+        {initials}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -79,15 +83,17 @@ export default function ReplyComposer({
               onChange={onChange}
               suggestions={suggestions}
               onSelectSuggestion={handleSelectMention}
+              disabled={disabled}
             />
           </div>
 
           <button
             type="button"
             onClick={onReply}
+            disabled={disabled || !value.trim()}
             className="rounded-md bg-[#00b8b3] px-5 py-2 text-[10px] font-medium text-white hover:bg-[#00a7a2]"
           >
-            Responder
+            {disabled ? "Enviando..." : "Responder"}
           </button>
         </div>
       </div>

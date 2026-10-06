@@ -1,0 +1,13 @@
+@media (max-width: 767px) {
+  :global(main):has(.course) {
+    margin-left: 0;
+  }
+
+  :global(aside):has(+ main .course) {
+    display: none;
+  }
+
+  :global(aside):has(+ main .course[data-menu-open="true"]) {
+    display: flex;
+  }
+}

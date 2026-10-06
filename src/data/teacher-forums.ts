@@ -3,7 +3,8 @@ import { forums, type Forum } from "./forums";
 export type TeacherForumStatus =
   | "Publicado"
   | "Borrador"
-  | "Cerrado";
+  | "Cerrado"
+  | "Oculto";
 
 export type TeacherForum = Forum & {
   status: TeacherForumStatus;
