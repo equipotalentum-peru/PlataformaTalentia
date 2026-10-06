@@ -10,6 +10,7 @@ import profileRoutes from "./routes/profile.routes";
 import cursosRoutes from "./routes/cursos.routes";
 import anunciosRoutes from "./routes/anuncios.routes";
 import calificacionesRoutes from "./routes/calificaciones.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 
 import forosRoutes from "./routes/foros.routes";
 
@@ -39,6 +40,11 @@ app.use(
   calificacionesRoutes
 );
 app.use("/api/foros", forosRoutes);
+
+app.use(
+  "/api/dashboard",
+  dashboardRoutes
+);
 
 app.listen(PORT, () => {
   console.log(
