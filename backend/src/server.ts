@@ -9,6 +9,8 @@ import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
 import cursosRoutes from "./routes/cursos.routes";
 import anunciosRoutes from "./routes/anuncios.routes";
+import calificacionesRoutes from "./routes/calificaciones.routes";
+
 
 const app = express();
 
@@ -31,6 +33,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cursos", cursosRoutes);
 app.use("/api", anunciosRoutes);
+app.use(
+  "/api/calificaciones",
+  calificacionesRoutes
+);
 
 app.listen(PORT, () => {
   console.log(
