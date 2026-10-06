@@ -1,4 +1,11 @@
+"use client";
+
+import { useEffect, useMemo, useState, } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
+import type { ClassSession, } from "@/data/classes";
+import { obtenerClasesAlumno, } from "@/lib/clases-api";
 
 type ClassesPageProps = {
   params: Promise<{
@@ -6,90 +13,170 @@ type ClassesPageProps = {
   }>;
 };
 
-const clases = [
-  {
-    id: 1,
-    numero: "01",
-    tema: "Introducción a las TIC",
-    fecha: "Lun, 7 de sep. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Finalizada",
-  },
-  {
-    id: 2,
-    numero: "02",
-    tema: "Herramientas de productividad",
-    fecha: "Lun, 14 de sep. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Finalizada",
-  },
-  {
-    id: 3,
-    numero: "03",
-    tema: "Colaboración en la nube",
-    fecha: "Lun, 21 de sep. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Finalizada",
-  },
-  {
-    id: 4,
-    numero: "04",
-    tema: "Seguridad digital",
-    fecha: "Lun, 28 de sep. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Finalizada",
-  },
-  {
-    id: 5,
-    numero: "05",
-    tema: "Comunicación digital",
-    fecha: "Lun, 5 de oct. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Finalizada",
-  },
-  {
-    id: 6,
-    numero: "06",
-    tema: "Gestión y organización de la información",
-    fecha: "Lun, 7 de oct. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Próxima",
-  },
-  {
-    id: 7,
-    numero: "07",
-    tema: "Herramientas de creación de contenido",
-    fecha: "Lun, 12 de oct. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Programada",
-  },
-  {
-    id: 8,
-    numero: "08",
-    tema: "Inteligencia artificial aplicada",
-    fecha: "Lun, 19 de oct. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Programada",
-  },
-  {
-    id: 9,
-    numero: "09",
-    tema: "Proyecto final",
-    fecha: "Lun, 26 de oct. de 2026",
-    horario: "10:00 – 11:30 (GTM-5)",
-    estado: "Programada",
-  },
-];
-
-export default async function ClassesPage({
+export default function ClassesPage({
   params,
 }: ClassesPageProps) {
-  const { cursoId } = await params;
-  const courseId = Number(cursoId);
+  const router = useRouter();
+
+  const [courseId, setCourseId] =
+    useState<number | null>(null);
+
+  const [clases, setClases] =
+    useState<ClassSession[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  useEffect(() => {
+    params.then(({ cursoId }) => {
+      const id = Number(cursoId);
+
+      if (
+        !Number.isSafeInteger(id) ||
+        id <= 0
+      ) {
+        setError("Curso no válido.");
+        setLoading(false);
+        return;
+      }
+
+      setCourseId(id);
+
+      obtenerClasesAlumno(id)
+        .then((data) => {
+          setClases(
+            Array.isArray(data.clases)
+              ? data.clases
+              : []
+          );
+        })
+        .catch((err) => {
+          if (
+            err instanceof Error
+          ) {
+            setError(err.message);
+          } else {
+            setError(
+              "No se pudieron cargar las clases."
+            );
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    });
+  }, [params]);
 
   const proximaClase = clases.find(
-    (clase) => clase.estado === "Próxima"
+    (clase) =>
+      clase.estado === "En curso"
+  ) ??
+  clases.find(
+    (clase) =>
+      clase.estado === "Próxima"
+  ) ??
+  clases.find(
+    (clase) =>
+      clase.estado === "Programada"
   );
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center">
+        Cargando clases...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  const handleJoin = async (
+    clase: ClassSession
+  ) => {
+    if (!courseId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/clases/alumno/${courseId}/${clase.id}/unirse`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            "No se pudo abrir la reunión."
+        );
+      }
+
+      window.open(
+        data.joinUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRecording = async (
+    clase: ClassSession
+  ) => {
+    if (!courseId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/clases/alumno/${courseId}/${clase.id}/grabaciones`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            "No se pudo obtener la grabación."
+        );
+      }
+
+      const grabacion =
+        data.grabaciones?.[0];
+
+      if (!grabacion?.url) {
+        throw new Error(
+          "No hay grabaciones disponibles."
+        );
+      }
+
+      window.open(
+        grabacion.url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="min-h-screen px-3 py-4 lg:px-4">
@@ -188,7 +275,9 @@ export default async function ClassesPage({
 
                 <div>
                   <p className="text-[10px] font-medium uppercase text-gray-500">
-                    Próxima clase
+                    {proximaClase.estado === "En curso"
+                      ? "Clase en curso"
+                      : "Próxima clase"}
                   </p>
 
                   <h2 className="text-[17px] font-bold text-gray-900">
@@ -255,6 +344,34 @@ export default async function ClassesPage({
 
               <button
                 type="button"
+                onClick={async () => {
+                  try {
+                    const response = await fetch(
+                      `${API_URL}/clases/alumno/${courseId}/${proximaClase.id}/unirse`,
+                      {
+                        credentials: "include",
+                      }
+                    );
+
+                    const data =
+                      await response.json();
+
+                    if (!response.ok) {
+                      throw new Error(
+                        data.message ??
+                          "No se pudo abrir la reunión."
+                      );
+                    }
+
+                    window.open(
+                      data.joinUrl,
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  } catch (error) {
+                    console.error(error);
+                  }
+                }}
                 className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#3186d8] px-5 text-[12px] font-medium text-white transition hover:bg-[#2777c1]"
               >
                 <svg
@@ -351,11 +468,13 @@ export default async function ClassesPage({
                       <td className="px-4 py-2.5">
                         <span
                           className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-medium ${
-                            finalizada
+                            clase.estado === "Finalizada"
                               ? "bg-[#cef1d2] text-[#27a844]"
-                              : proxima
-                                ? "bg-[#77c3fb] text-[#2479c5]"
-                                : "bg-[#77c3fb] text-[#2479c5]"
+                              : clase.estado === "En curso"
+                                ? "bg-[#ffe6a3] text-[#c58a00]"
+                                : clase.estado === "Cancelada"
+                                  ? "bg-[#f7c7c7] text-[#c44242]"
+                                  : "bg-[#77c3fb] text-[#2479c5]"
                           }`}
                         >
                           {clase.estado}
@@ -363,41 +482,143 @@ export default async function ClassesPage({
                       </td>
 
                       <td className="px-4 py-2.5 text-right">
-                        <button
-                          type="button"
-                          disabled={!finalizada && !proxima}
-                          className={`inline-flex min-w-[140px] items-center justify-center gap-2 rounded-md px-3 py-1.5 text-[10px] font-medium transition ${
-                            finalizada
-                              ? "bg-[#3186d8] text-white hover:bg-[#2777c1]"
-                              : proxima
-                                ? "bg-[#3186d8] text-white hover:bg-[#2777c1]"
-                                : "cursor-not-allowed bg-gray-300 text-gray-500"
-                          }`}
-                        >
-                          <svg
-                            className="h-3.5 w-3.5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
+                        {finalizada && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleRecording(clase)
+                            }
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-medium text-white transition hover:bg-[#2777c1]"
                           >
-                            <rect
-                              x="3"
-                              y="7"
-                              width="18"
-                              height="12"
-                              rx="2"
-                            />
-                            <path d="M8 7l1.5-3h5L16 7" />
-                            <circle cx="12" cy="13" r="3" />
-                          </svg>
+                            <svg
+                              className="h-3.5 w-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect
+                                x="3"
+                                y="7"
+                                width="18"
+                                height="12"
+                                rx="2"
+                              />
+                              <path d="M8 7l1.5-3h5L16 7" />
+                              <circle
+                                cx="12"
+                                cy="13"
+                                r="3"
+                              />
+                            </svg>
 
-                          {finalizada
-                            ? "Ver grabación"
-                            : proxima
-                              ? "Unirse por Zoom"
-                              : "Unirse por Zoom"}
-                        </button>
+                            Ver grabación
+                          </button>
+                        )}
+
+                        {clase.estado === "En curso" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleJoin(clase)
+                            }
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-medium text-white transition hover:bg-[#2777c1]"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect
+                                x="3"
+                                y="7"
+                                width="18"
+                                height="12"
+                                rx="2"
+                              />
+                              <path d="M8 7l1.5-3h5L16 7" />
+                              <circle
+                                cx="12"
+                                cy="13"
+                                r="3"
+                              />
+                            </svg>
+
+                            Unirse por Zoom
+                          </button>
+                        )}
+
+                        {clase.estado === "Próxima" && (
+                          <button
+                            type="button"
+                            disabled
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-gray-300 px-4 text-[10px] font-medium text-gray-500"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect
+                                x="3"
+                                y="7"
+                                width="18"
+                                height="12"
+                                rx="2"
+                              />
+                              <path d="M8 7l1.5-3h5L16 7" />
+                              <circle
+                                cx="12"
+                                cy="13"
+                                r="3"
+                              />
+                            </svg>
+
+                            Unirse por Zoom
+                          </button>
+                        )}
+
+                        {clase.estado === "Programada" && (
+                          <button
+                            type="button"
+                            disabled
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-gray-300 px-4 text-[10px] font-medium text-gray-500"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect
+                                x="3"
+                                y="7"
+                                width="18"
+                                height="12"
+                                rx="2"
+                              />
+                              <path d="M8 7l1.5-3h5L16 7" />
+                              <circle
+                                cx="12"
+                                cy="13"
+                                r="3"
+                              />
+                            </svg>
+
+                            Unirse por Zoom
+                          </button>
+                        )}
+
+                        {clase.estado === "Cancelada" && (
+                          <span className="text-gray-400">
+                            —
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

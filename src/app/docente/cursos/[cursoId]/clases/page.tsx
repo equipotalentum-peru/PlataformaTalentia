@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, } from "react";
 import Link from "next/link";
-
+import { API_URL } from "@/lib/api";
+import { obtenerClasesDocente, crearClase, editarClase, cancelarClase, } from "@/lib/clases-api";
+import type { ClassSession, } from "@/data/classes";
 import { courses } from "@/data/courses";
-import {
-  classSessions,
-  type ClassSession,
-} from "@/data/classes";
-
 import ClassHeader from "@/components/common/clases/ClassHeader";
 import ClassList from "@/components/common/clases/ClassList";
 
@@ -25,8 +22,9 @@ export default function TeacherClassesPage({
     params,
 }: PageProps) {
     const [courseId, setCourseId] = useState(1);
-    const [classes, setClasses] =
-        useState<ClassSession[]>(classSessions);
+    const [classes, setClasses] = useState<ClassSession[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const [createOpen, setCreateOpen] = useState(false);
 
@@ -39,7 +37,30 @@ export default function TeacherClassesPage({
 
         useEffect(() => {
             params.then(({ cursoId }) => {
-                setCourseId(Number(cursoId));
+                const id = Number(cursoId);
+
+                setCourseId(id);
+
+                obtenerClasesDocente(id)
+                .then((data) => {
+                    setClasses(
+                    Array.isArray(data.clases)
+                        ? data.clases
+                        : []
+                    );
+                })
+                .catch((err) => {
+                    console.error(err);
+
+                    setError(
+                    err instanceof Error
+                        ? err.message
+                        : "No se pudieron cargar las clases."
+                    );
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
             });
         }, [params]);
 
@@ -61,96 +82,239 @@ export default function TeacherClassesPage({
         }, 2200);
     };
 
-    const handleCreate = ({
+    const handleCreate = async ({
         title,
         date,
+        startTime,
+        endTime,
     }: {
         title: string;
         date: string;
+        startTime: string;
+        endTime: string;
     }) => {
-        const nextId =
-        Math.max(...classes.map((item) => item.id), 0) + 1;
+        try {
+            await crearClase(
+            courseId,
+            {
+                tema: title,
+                iniciaEn: `${date}T${startTime}:00-05:00`,
+                terminaEn: `${date}T${endTime}:00-05:00`,
+            }
+            );
 
-        const nextNumber = String(nextId).padStart(2, "0");
+            const data =
+            await obtenerClasesDocente(
+                courseId
+            );
 
-        setClasses((current) => [
-        ...current,
-        {
-            id: nextId,
-            numero: nextNumber,
-            tema: title,
-            fecha: date,
-            horario: "10:00 – 11:30 (GTM-5)",
-            estado: "Programada",
-            docente: "Prof. Gloria Rocha",
-        },
-        ]);
+            setClasses(
+            Array.isArray(data.clases)
+                ? data.clases
+                : []
+            );
 
-        setCreateOpen(false);
-        showNotice("Clase programada correctamente.");
+            setCreateOpen(false);
+
+            showNotice(
+            "Clase programada correctamente."
+            );
+        } catch (error) {
+            showNotice(
+            error instanceof Error
+                ? error.message
+                : "No se pudo crear la clase."
+            );
+        }
     };
 
-    const handleEdit = ({
+    const handleEdit = async ({
         id,
         title,
         date,
+        startTime,
+        endTime,
     }: {
         id: number;
         title: string;
         date: string;
+        startTime: string;
+        endTime: string;
     }) => {
-        setClasses((current) =>
-        current.map((item) =>
-            item.id === id
-            ? {
-                ...item,
+        try {
+            await editarClase(
+            courseId,
+            id,
+            {
                 tema: title,
-                fecha: date,
-                }
-            : item
-        )
-        );
+                iniciaEn: `${date}T${startTime}:00-05:00`,
+                terminaEn: `${date}T${endTime}:00-05:00`,
+            }
+            );
 
-        setEditOpen(false);
-        setSelectedClass(null);
-        showNotice("Clase actualizada correctamente.");
+            const data =
+            await obtenerClasesDocente(
+                courseId
+            );
+
+            setClasses(
+            Array.isArray(data.clases)
+                ? data.clases
+                : []
+            );
+
+            setEditOpen(false);
+            setSelectedClass(null);
+
+            showNotice(
+            "Clase actualizada correctamente."
+            );
+        } catch (error) {
+            showNotice(
+            error instanceof Error
+                ? error.message
+                : "No se pudo editar la clase."
+            );
+        }
     };
 
-    const upcomingClass = useMemo(
-        () =>
-        classes.find((item) => item.estado === "Próxima") ??
-        classes.find((item) => item.estado === "Programada"),
-        [classes]
-    );
-
-    const handleCancel = (item: ClassSession) => {
-        setClasses((current) =>
-        current.map((classItem) =>
-            classItem.id === item.id
-            ? {
-                ...classItem,
-                estado: "Cancelada",
-                }
-            : classItem
-        )
+    const highlightedClass =
+        classes.find(
+            (item) =>
+            item.estado === "En curso"
+        ) ??
+        classes.find(
+            (item) =>
+            item.estado === "Próxima"
+        ) ??
+        classes.find(
+            (item) =>
+            item.estado === "Programada"
         );
 
-        showNotice("Clase cancelada.");
+    const handleCancel = async (
+        item: ClassSession
+    ) => {
+        try {
+            await cancelarClase(
+            courseId,
+            item.id
+            );
+
+            const data =
+            await obtenerClasesDocente(
+                courseId
+            );
+
+            setClasses(
+            Array.isArray(data.clases)
+                ? data.clases
+                : []
+            );
+
+            showNotice(
+            "Clase cancelada."
+            );
+        } catch (error) {
+            showNotice(
+            error instanceof Error
+                ? error.message
+                : "No se pudo cancelar la clase."
+            );
+        }
     };
 
-    const handleStart = (item: ClassSession) => {
-        setClasses((current) =>
-        current.map((classItem) =>
-            classItem.id === item.id
-            ? {
-                ...classItem,
-                estado: "En curso",
-                }
-            : classItem
-        )
-        );
+    const handleStart = async (
+        item: ClassSession
+    ) => {
+        try {
+            const response = await fetch(
+            `${API_URL}/clases/docente/${courseId}/${item.id}/iniciar`,
+            {
+                method: "POST",
+                credentials: "include",
+            }
+            );
 
-        showNotice("Clase iniciada.");
+            const data = await response.json();
+
+            if (!response.ok) {
+            throw new Error(
+                data.message ??
+                "No se pudo iniciar la clase."
+            );
+            }
+
+            setClasses((current) =>
+            current.map((classItem) =>
+                classItem.id === item.id
+                ? {
+                    ...classItem,
+                    estado: "En curso",
+                    }
+                : classItem
+            )
+            );
+
+            if (data.startUrl) {
+            window.open(
+                data.startUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+            }
+
+            showNotice("Clase iniciada.");
+        } catch (error) {
+            showNotice(
+            error instanceof Error
+                ? error.message
+                : "No se pudo iniciar la clase."
+            );
+        }
+    };
+
+    const handleRecording = async (
+        item: ClassSession
+    ) => {
+        try {
+            const response = await fetch(
+            `${API_URL}/clases/docente/${courseId}/${item.id}/grabaciones`,
+            {
+                credentials: "include",
+            }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+            throw new Error(
+                data.message ??
+                "No se pudo obtener la grabación."
+            );
+            }
+
+            const grabacion =
+            data.grabaciones?.[0];
+
+            if (!grabacion?.url) {
+            throw new Error(
+                "No hay grabaciones disponibles para esta clase."
+            );
+            }
+
+            window.open(
+            grabacion.url,
+            "_blank",
+            "noopener,noreferrer"
+            );
+        } catch (error) {
+            showNotice(
+            error instanceof Error
+                ? error.message
+                : "No se pudo obtener la grabación."
+            );
+        }
     };
 
     const handleEditOpen = (item: ClassSession) => {
@@ -232,7 +396,7 @@ export default function TeacherClassesPage({
             />
 
             {/* PRÓXIMA CLASE */}
-            {upcomingClass && (
+            {highlightedClass && (
                 <section className="mb-2 rounded-xl bg-white px-5 py-3 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -261,25 +425,27 @@ export default function TeacherClassesPage({
 
                     <div>
                         <p className="text-[9px] font-medium uppercase text-gray-500">
-                        Próxima clase
+                            {highlightedClass.estado === "En curso"
+                                ? "Clase en curso"
+                                : "Próxima clase"}
                         </p>
 
                         <h2 className="text-[16px] font-bold text-gray-900">
-                        Sesión {upcomingClass.numero}:{" "}
-                        {upcomingClass.tema}
+                        Sesión {highlightedClass.numero}:{" "}
+                        {highlightedClass.tema}
                         </h2>
 
                         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] text-gray-600">
                         <span>
-                            📅 {upcomingClass.fecha}
+                            📅 {highlightedClass.fecha}
                         </span>
 
                         <span>
-                            ◷ {upcomingClass.horario}
+                            ◷ {highlightedClass.horario}
                         </span>
 
                         <span>
-                            👤 {upcomingClass.docente}
+                            👤 {highlightedClass.docente}
                         </span>
                         </div>
                     </div>
@@ -290,7 +456,7 @@ export default function TeacherClassesPage({
                     <button
                         type="button"
                         onClick={() =>
-                        handleEditOpen(upcomingClass)
+                        handleEditOpen(highlightedClass)
                         }
                         className="flex items-center gap-1.5 rounded-md bg-[#dbeefa] px-3 py-2 text-[9px] font-medium text-[#3186d8]"
                     >
@@ -300,7 +466,7 @@ export default function TeacherClassesPage({
                     <button
                         type="button"
                         onClick={() =>
-                        handleCancel(upcomingClass)
+                        handleCancel(highlightedClass)
                         }
                         className="flex items-center gap-1.5 rounded-md bg-[#f4dddd] px-3 py-2 text-[9px] font-medium text-[#a44a4a]"
                     >
@@ -310,12 +476,15 @@ export default function TeacherClassesPage({
                     <button
                         type="button"
                         onClick={() =>
-                        handleStart(upcomingClass)
+                            handleStart(highlightedClass)
                         }
-                        className="flex items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 py-2 text-[9px] font-semibold text-white"
-                    >
+                        className="flex items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 py-2 text-[9px] font-semibold text-white transition hover:bg-[#00aaa6]"
+                        >
                         <span>●</span>
-                        Iniciar clase
+
+                        {highlightedClass.estado === "En curso"
+                            ? "Volver a clase"
+                            : "Iniciar clase"}
                     </button>
 
                     </div>
@@ -330,6 +499,7 @@ export default function TeacherClassesPage({
                 onEdit={handleEditOpen}
                 onCancel={handleCancel}
                 onStart={handleStart}
+                onRecording={handleRecording}
                 onDetails={(item) =>
                 showNotice(
                     `Detalles de la sesión ${item.numero}.`

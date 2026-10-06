@@ -10,12 +10,16 @@ export default function ClassStatus({
   const styles: Record<ClassStatusType, string> = {
     Finalizada:
       "bg-[#c9efca] text-[#32a348]",
+
     Próxima:
       "bg-[#77c3fb] text-[#2479c5]",
+
     Programada:
       "bg-[#77c3fb] text-[#2479c5]",
+
     "En curso":
-      "bg-[#b8f0d1] text-[#168349]",
+      "bg-[#ffe6a3] text-[#c58a00]",
+
     Cancelada:
       "bg-[#f7c7c7] text-[#c44242]",
   };

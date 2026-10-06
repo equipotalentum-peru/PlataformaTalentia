@@ -8,6 +8,8 @@ type ClassTableProps = {
   onCancel?: (classSession: ClassSession) => void;
   onStart?: (classSession: ClassSession) => void;
   onDetails?: (classSession: ClassSession) => void;
+  onRecording?: (classSession: ClassSession) => void;
+  onJoin?: (classSession: ClassSession) => void;
 };
 
 function VideoIcon() {
@@ -83,6 +85,8 @@ export default function ClassTable({
   onCancel,
   onStart,
   onDetails,
+  onRecording,
+  onJoin,
 }: ClassTableProps) {
   return (
     <div className="overflow-x-auto">
@@ -122,6 +126,7 @@ export default function ClassTable({
             const finished = item.estado === "Finalizada";
             const upcoming = item.estado === "Próxima";
             const scheduled = item.estado === "Programada";
+            const inProgress = item.estado === "En curso";
 
             return (
               <tr
@@ -155,6 +160,9 @@ export default function ClassTable({
                     {finished ? (
                       <button
                         type="button"
+                        onClick={() =>
+                          onRecording?.(item)
+                        }
                         className="flex items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#00a7a2]"
                       >
                         <VideoIcon />
@@ -170,19 +178,23 @@ export default function ClassTable({
                   {role === "teacher" ? (
                     <>
                       {finished && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => onDetails?.(item)}
-                            className="flex items-center gap-1 rounded-md bg-[#dbeefa] px-3 py-1.5 text-[9px] font-medium text-[#3186d8]"
+                            onClick={() =>
+                              onDetails?.(item)
+                            }
+                            className="flex items-center gap-1 rounded-md bg-[#dbeefa] px-3 py-1.5 text-[9px] font-medium text-[#3186d8] transition hover:bg-[#c9e5f7]"
                           >
                             Ver detalles
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => onDetails?.(item)}
-                            className="flex h-7 w-7 items-center justify-center rounded-md bg-[#dbeefa] text-[#3186d8]"
+                            onClick={() =>
+                              onDetails?.(item)
+                            }
+                            className="flex h-7 w-7 items-center justify-center rounded-md bg-[#dbeefa] text-[#3186d8] transition hover:bg-[#c9e5f7]"
                             aria-label="Más acciones"
                           >
                             <MoreIcon />
@@ -190,26 +202,49 @@ export default function ClassTable({
                         </div>
                       )}
 
-                      {upcoming && (
+                      {(upcoming || scheduled) && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onEdit?.(item)
+                            }
+                            className="flex h-8 items-center gap-1.5 rounded-md bg-[#dbeefa] px-3 text-[9px] font-medium text-[#3186d8] transition hover:bg-[#c9e5f7]"
+                          >
+                            <EditIcon />
+                            Editar
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onCancel?.(item)
+                            }
+                            className="flex h-8 items-center gap-1.5 rounded-md bg-[#f7dada] px-3 text-[9px] font-medium text-[#b64a4a] transition hover:bg-[#f2cccc]"
+                          >
+                            <TrashIcon />
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+
+                      {inProgress && (
                         <button
                           type="button"
-                          onClick={() => onEdit?.(item)}
-                          className="flex items-center gap-1.5 rounded-md bg-[#dbeefa] px-3 py-1.5 text-[9px] font-medium text-[#3186d8]"
+                          onClick={() =>
+                            onStart?.(item)
+                          }
+                          className="flex h-8 items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 text-[9px] font-medium text-white transition hover:bg-[#00aaa6]"
                         >
-                          <EditIcon />
-                          Editar
+                          <VideoIcon />
+                          Ingresar
                         </button>
                       )}
 
-                      {scheduled && (
-                        <button
-                          type="button"
-                          onClick={() => onEdit?.(item)}
-                          className="flex items-center gap-1.5 rounded-md bg-[#dbeefa] px-3 py-1.5 text-[9px] font-medium text-[#3186d8]"
-                        >
-                          <EditIcon />
-                          Editar
-                        </button>
+                      {item.estado === "Cancelada" && (
+                        <span className="text-[9px] text-gray-400">
+                          —
+                        </span>
                       )}
                     </>
                   ) : (
@@ -217,17 +252,23 @@ export default function ClassTable({
                       {finished && (
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white"
+                          onClick={() =>
+                            onRecording?.(item)
+                          }
+                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#2777c1]"
                         >
                           <VideoIcon />
                           Ver grabación
                         </button>
                       )}
 
-                      {upcoming && (
+                      {(upcoming || inProgress) && (
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white"
+                          onClick={() =>
+                            onJoin?.(item)
+                          }
+                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#2777c1]"
                         >
                           <VideoIcon />
                           Unirse por Zoom

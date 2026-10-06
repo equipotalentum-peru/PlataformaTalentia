@@ -8,6 +8,8 @@ type ClassListProps = {
   onCancel?: (classSession: ClassSession) => void;
   onStart?: (classSession: ClassSession) => void;
   onDetails?: (classSession: ClassSession) => void;
+  onRecording?: (classSession: ClassSession) => void;
+  onJoin?: (classSession: ClassSession) => void;
 };
 
 export default function ClassList({
@@ -17,6 +19,8 @@ export default function ClassList({
   onCancel,
   onStart,
   onDetails,
+  onRecording,
+  onJoin,
 }: ClassListProps) {
   return (
     <section className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -33,6 +37,8 @@ export default function ClassList({
         onCancel={onCancel}
         onStart={onStart}
         onDetails={onDetails}
+        onRecording={onRecording}
+        onJoin={onJoin}
       />
     </section>
   );

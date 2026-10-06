@@ -11,6 +11,8 @@ type EditClassModalProps = {
     id: number;
     title: string;
     date: string;
+    startTime: string;
+    endTime: string;
   }) => void;
 };
 
@@ -22,6 +24,8 @@ export default function EditClassModal({
 }: EditClassModalProps) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("10:00");
+  const [endTime, setEndTime] = useState("11:30");
 
   useEffect(() => {
     if (!classSession) {
@@ -30,14 +34,13 @@ export default function EditClassModal({
 
     setTitle(classSession.tema);
 
-    const parsed = new Date(
-      classSession.fecha
-        .replace("Lun, ", "")
-        .replace(" de sep. de 2026", "-09-2026")
-    );
-
-    if (!Number.isNaN(parsed.getTime())) {
-      setDate("");
+    if (classSession.iniciaEn) {
+      setDate(
+        classSession.iniciaEn.slice(0, 10)
+      );
+      setStartTime(
+        classSession.iniciaEn.slice(11, 16)
+      );
     }
   }, [classSession]);
 
@@ -54,6 +57,8 @@ export default function EditClassModal({
       id: classSession.id,
       title: title.trim(),
       date,
+      startTime,
+      endTime,
     });
   };
 
@@ -112,6 +117,22 @@ export default function EditClassModal({
               className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[11px] outline-none"
             />
           </label>
+
+          <input
+            type="time"
+            value={startTime}
+            onChange={(event) =>
+              setStartTime(event.target.value)
+            }
+          />
+
+          <input
+            type="time"
+            value={endTime}
+            onChange={(event) =>
+              setEndTime(event.target.value)
+            }
+          />
         </div>
 
         <div className="mt-7 flex justify-center">
