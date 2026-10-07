@@ -8,8 +8,14 @@ import {
 
 import { requireAuth } from "../middleware/auth.middleware";
 import { obtenerArchivoContenido } from "../controllers/contenido-archivo.controller";
+import { subirArchivoContenido } from "../controllers/contenido-subida.controller";
+import { gestionarContenido } from "../controllers/contenido-gestion.controller";
 
 const router = Router();
+router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
+router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
+
+router.post("/:cursoId/modulos/:moduloId/archivo", requireAuth, subirArchivoContenido);
 
 router.get(
   "/mis-cursos",

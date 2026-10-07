@@ -103,33 +103,45 @@ export async function obtenerModulosCurso(
       });
     }
 
-    const accesoResult = await pool.query(
-      `SELECT
+      const accesoResult = await pool.query(
+      `SELECT DISTINCT
         c.id,
         c.nombre,
         c.codigo,
-        c.imagen_portada AS imagen
-       FROM matriculas m
-       INNER JOIN ofertas_curso oc
-         ON oc.id = m.oferta_curso_id
-       INNER JOIN cursos c
-         ON c.id = oc.curso_id
-       INNER JOIN usuarios u
-         ON u.id = m.estudiante_id
-       WHERE m.estudiante_id = $1
-         AND c.id = $2
-         AND u.rol = 'Estudiante'
-         AND m.estado IN ('Activa', 'Completada')
-         AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
-         AND oc.publicado = TRUE
-         AND c.estado = 'Activo'
-       LIMIT 1`,
+        c.imagen_portada AS imagen,
+        u.rol
+      FROM cursos c
+      INNER JOIN ofertas_curso oc ON oc.curso_id = c.id
+      INNER JOIN usuarios u ON u.id = $1
+      WHERE c.id = $2
+        AND c.estado = 'Activo'
+        AND u.activo = TRUE
+        AND (
+          (
+            u.rol = 'Docente'
+            AND oc.docente_id = u.id
+            AND oc.estado <> 'Cancelado'
+          )
+          OR (
+            u.rol = 'Estudiante'
+            AND oc.publicado = TRUE
+            AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
+            AND EXISTS (
+              SELECT 1
+              FROM matriculas m
+              WHERE m.oferta_curso_id = oc.id
+                AND m.estudiante_id = u.id
+                AND m.estado IN ('Activa', 'Completada')
+            )
+          )
+        )
+      LIMIT 1`,
       [estudianteId, cursoId]
     );
 
     if (!accesoResult.rowCount) {
       return res.status(403).json({
-        message: "No estás matriculado en este curso.",
+      message: "No tienes acceso a este curso.",
       });
     }
 
@@ -150,13 +162,17 @@ const modulosResult = await pool.query(
              'descripcion', cc.descripcion,
              'orden', cc.orden,
              'rutaArchivo', cc.ruta_archivo,
-             'urlEnlace', cc.url_enlace
+             'urlEnlace', cc.url_enlace,
+             'estado', cc.estado
            )
            ORDER BY cc.orden, cc.id
          )
          FROM contenidos_curso cc
          WHERE cc.modulo_id = mc.id
-           AND cc.estado = 'Publicado'
+           AND (
+             cc.estado = 'Publicado'
+             OR ($2 = 'Docente' AND cc.estado = 'Borrador')
+           )
        ),
        '[]'::json
      ) AS contenidos
@@ -164,7 +180,7 @@ const modulosResult = await pool.query(
    WHERE mc.curso_id = $1
      AND mc.activo = TRUE
    ORDER BY mc.orden, mc.id`,
-  [cursoId]
+  [cursoId, accesoResult.rows[0].rol]
 );
 
     return res.status(200).json({

@@ -64,8 +64,6 @@ export default function CourseModules({
   const [error, setError] =
     useState("");
 
-  const [codigoCurso, setCodigoCurso] =
-    useState("");
 
   /*
    * IDs de contenidos que el alumno
@@ -117,9 +115,6 @@ export default function CourseModules({
           data.curso
         );
 
-        setCodigoCurso(
-          data.curso.codigo
-        );
 
         setModulos(
           Array.isArray(
@@ -440,6 +435,7 @@ export default function CourseModules({
                       );
 
                     const puedeAbrirse =
+                      ["pdf", "pptx", "docx", "video"].includes(contenido.tipo) ||
                       esActividad ||
                       esEvaluacion ||
                       tieneArchivo ||

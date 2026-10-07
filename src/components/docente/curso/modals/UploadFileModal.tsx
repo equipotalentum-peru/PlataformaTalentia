@@ -5,10 +5,10 @@ import { useRef, useState } from "react";
 type UploadFileModalProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (file: File) => void;
+  onSubmit: (file: File) => Promise<void>;
 };
 
-const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "png", "jpg", "jpeg", "rar", "zip"];
+const allowedExtensions = ["pdf", "docx", "pptx"];
 
 function isAllowed(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -20,10 +20,12 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   if (!open) return null;
 
   const pickFile = (file?: File) => {
+    if (uploading) return;
     if (!file) return;
     if (!isAllowed(file)) {
       setSelectedFile(null);
@@ -47,17 +49,22 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
   };
 
   const close = () => {
+    if (uploading) return;
     reset();
     onClose();
   };
 
-  const submit = () => {
+  const submit = async () => {
+    if (uploading) return;
     if (!selectedFile) {
       setError("Selecciona un archivo para continuar.");
       return;
     }
-    onSubmit(selectedFile);
-    reset();
+    setUploading(true);
+    setError("");
+    try { await onSubmit(selectedFile); reset(); }
+    catch (error) { setError(error instanceof Error ? error.message : "No se pudo subir el archivo."); }
+    finally { setUploading(false); }
   };
 
   return (
@@ -99,22 +106,23 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
           </button>
           {selectedFile && <p className="mt-2 truncate text-[9px] font-semibold text-[#1d5b92]">{selectedFile.name}</p>}
           <p className="mt-2 text-[6.5px] text-gray-500">Tamaño máximo: 200 MB</p>
-          <p className="mt-1 text-[6.5px] text-gray-500">Formatos permitidos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, PNG, JPG, JPEG, RAR, ZIP</p>
+          <p className="mt-1 text-[6.5px] text-gray-500">Formatos permitidos: PDF, DOCX, PPTX</p>
         </div>
 
         <input
           ref={inputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.rar,.zip"
+          accept=".pdf,.docx,.pptx"
+          disabled={uploading}
           onChange={(event) => pickFile(event.target.files?.[0])}
         />
 
-        {error && <p className="mt-2 text-center text-[9px] font-medium text-red-600">{error}</p>}
+        {error && <p role="alert" className="mt-2 text-center text-[9px] font-medium text-red-600">{error}</p>}
 
         <div className="mt-3 flex justify-end gap-2">
           <button type="button" onClick={close} className="h-8 rounded-md bg-[#efe6fa] px-4 text-[10px] font-semibold text-[#4b5fa7] hover:bg-[#e7dcf4]">Cancelar</button>
-          <button type="button" onClick={submit} className="h-8 rounded-md bg-[#08489d] px-4 text-[10px] font-semibold text-white hover:bg-[#063e89]">Subir archivo</button>
+          <button type="button" onClick={() => void submit()} disabled={uploading} className="h-8 rounded-md bg-[#08489d] px-4 text-[10px] font-semibold text-white hover:bg-[#063e89] disabled:opacity-50">{uploading ? "Subiendo..." : "Subir archivo"}</button>
         </div>
       </div>
     </div>

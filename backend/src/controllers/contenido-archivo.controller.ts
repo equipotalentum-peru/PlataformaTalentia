@@ -25,17 +25,23 @@ export async function obtenerArchivoContenido(
        JOIN modulos_curso mc ON mc.id = cc.modulo_id
        JOIN cursos c ON c.id = mc.curso_id
        WHERE cc.id = $1 AND c.id = $2
-         AND cc.estado = 'Publicado' AND mc.activo = TRUE
-         AND c.estado = 'Activo' AND cc.tipo IN ('pdf', 'pptx')
+         AND mc.activo = TRUE
+         AND c.estado = 'Activo' AND cc.tipo IN ('pdf', 'pptx', 'docx', 'video')
          AND EXISTS (
-           SELECT 1 FROM matriculas m
-           JOIN ofertas_curso oc ON oc.id = m.oferta_curso_id
-           JOIN usuarios u ON u.id = m.estudiante_id
-           WHERE m.estudiante_id = $3 AND oc.curso_id = c.id
-             AND u.rol = 'Estudiante'
-             AND m.estado IN ('Activa', 'Completada')
-             AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
-             AND oc.publicado = TRUE
+           SELECT 1 FROM ofertas_curso oc
+           JOIN usuarios u ON u.id = $3
+           WHERE oc.curso_id = c.id AND u.activo = TRUE
+             AND (
+               (u.rol = 'Docente' AND oc.docente_id = u.id
+                AND oc.estado <> 'Cancelado' AND cc.estado IN ('Publicado', 'Borrador'))
+               OR
+               (u.rol = 'Estudiante' AND cc.estado = 'Publicado'
+                AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
+                AND oc.publicado = TRUE AND EXISTS (
+                  SELECT 1 FROM matriculas m WHERE m.oferta_curso_id = oc.id
+                    AND m.estudiante_id = u.id AND m.estado IN ('Activa', 'Completada')
+                ))
+             )
          )`,
       [contenidoId, cursoId, estudianteId]
     );

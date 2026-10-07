@@ -24,7 +24,8 @@ type Props = {
 export default function MaterialViewer({ courseId, contentId }: Props) {
   const [material, setMaterial] = useState<{
     titulo: string;
-    tipo: | "pdf" | "ppt" | "word" | "video" | "activity";
+    tipo: "pdf" | "ppt" | "word" | "video" | "activity";
+
     archivo: string;
     previousHref?: string;
     nextHref?: string;
@@ -47,14 +48,12 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
         );
         const data = await response.json();
         if (!response.ok) throw new Error(data.message);
-        const contenidos: (Contenido & { numeroModulo: number })[] = data.modulos.flatMap(
-          (modulo: { numero: number; contenidos: Contenido[] }) =>
-            modulo.contenidos.map((item) => ({ ...item, numeroModulo: modulo.numero }))
+        const contenidos: Contenido[] = data.modulos.flatMap(
+          (modulo: { contenidos: Contenido[] }) => modulo.contenidos
         );
         const materiales = contenidos.filter(
             (item) =>
               (
-                item.rutaArchivo &&
                 [
                   "pdf",
                   "docx",
@@ -69,6 +68,7 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
               item.tipo ===
                 "evaluacion"
           );
+
         const indice = materiales.findIndex(
           (item) => Number(item.id) === contentId
         );
@@ -126,6 +126,16 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
           });
           return;
         }
+        if (!contenido.rutaArchivo) {
+          if (controller.signal.aborted) return;
+          setMaterial({
+            titulo: contenido.titulo,
+            tipo: contenido.tipo === "docx" ? "word" : contenido.tipo === "video" ? "video" : contenido.tipo === "pdf" ? "pdf" : "ppt",
+            archivo: "",
+            ...navegacion,
+          });
+          return;
+        }
         const fichero = await fetch(
           `${API_URL}/cursos/${courseId}/contenidos/${contentId}/archivo`,
           opciones
@@ -147,6 +157,7 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
           titulo:
             contenido.titulo,
           tipo: tipoMaterial,
+
           archivo,
           ...navegacion,
         });

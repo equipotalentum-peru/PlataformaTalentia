@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import type { Course } from "@/data/courses";
-import { courseContents, courseModules, type ContentType } from "@/data/courseContents";
+import { useEffect, useMemo, useState } from "react";
+import { courses, type Course } from "@/data/courses";
+import type { ContentType } from "@/data/courseContents";
+import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import TeacherCourseInfo from "./TeacherCourseInfo";
 import CreateModuleModal from "./modals/CreateModuleModal";
@@ -13,11 +14,12 @@ import UploadFileModal from "./modals/UploadFileModal";
 import AddLinkModal from "./modals/AddLinkModal";
 
 type TeacherCourseDetailProps = {
-  course: Course;
+  courseId: number;
 };
 
 type LocalModule = {
   id: number;
+  number: number;
   title: string;
 };
 
@@ -67,18 +69,19 @@ function BackIcon() {
   );
 }
 
-function DottedMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+function DottedMenu({ onEdit, onDelete, onPublish, status, disabled }: { onEdit: () => void; onDelete: () => void; onPublish: () => void; status: string; disabled: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="relative">
-      <button type="button" onClick={() => setOpen((value) => !value)} className="flex h-7 w-7 items-center justify-center rounded-md text-[#58708d] hover:bg-[#eef5fb]" aria-label="Acciones del contenido">
+      <button type="button" disabled={disabled} onClick={() => setOpen((value) => !value)} className="flex h-7 w-7 items-center justify-center rounded-md text-[#58708d] hover:bg-[#eef5fb]" aria-label="Acciones del contenido">
         <MoreIcon />
       </button>
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[40] cursor-default" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-[50] w-24 overflow-hidden rounded-md border border-[#e0e5eb] bg-white py-1 shadow-lg">
+          <div className="absolute right-0 top-8 z-[50] w-40 whitespace-nowrap rounded-md border border-[#e0e5eb] bg-white py-1 shadow-lg">
+            <button type="button" onClick={() => { setOpen(false); onPublish(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-gray-700 hover:bg-[#f4f8fc]">{status === "Borrador" ? "Publicar" : "Volver a borrador"}</button>
             <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-gray-700 hover:bg-[#f4f8fc]">Editar</button>
             <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-red-600 hover:bg-red-50">Eliminar</button>
           </div>
@@ -88,22 +91,72 @@ function DottedMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => 
   );
 }
 
-export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps) {
+type ModuleResponse = {
+  curso: { id: string; nombre: string; codigo: string; imagen: string | null };
+  modulos: { id: string; numero: number; titulo: string; contenidos: {
+    id: string; titulo: string; tipo: string; orden: number; rutaArchivo: string | null;
+    urlEnlace: string | null; estado: "Publicado" | "Borrador";
+  }[] }[];
+};
+
+const contentTypes: Record<string, ContentType> = {
+  pdf: "pdf", docx: "word", pptx: "ppt", video: "video", enlace: "link",
+  actividad: "activity", evaluacion: "quiz",
+};
+
+export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailProps) {
   const router = useRouter();
-  const [modules, setModules] = useState<LocalModule[]>(() => courseModules.map(({ id, title }) => ({ id, title })));
-  const [contents, setContents] = useState<LocalContent[]>(() =>
-    courseContents
-      .filter((item) => item.courseId === course.id)
-      .map((item) => ({ ...item, status: item.id === 8 ? "Borrador" : "Publicado" }))
-  );
-  const [openModules, setOpenModules] = useState<number[]>([1]);
+  const [course, setCourse] = useState<Course>(() => ({
+    ...(courses.find(item => item.id === courseId) ?? { alumnos: 0, actividades: 0, evaluaciones: 0, progreso: 0, accent: "#54d6d8" }),
+    id: courseId, nombre: "", codigo: "", imagen: "",
+  }));
+  const [modules, setModules] = useState<LocalModule[]>([]);
+  const [contents, setContents] = useState<LocalContent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [openModules, setOpenModules] = useState<number[]>([]);
   const [createModuleOpen, setCreateModuleOpen] = useState(false);
   const [createModuleTitle, setCreateModuleTitle] = useState("");
   const [addContentOpen, setAddContentOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
-  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(1);
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
+  const [editing, setEditing] = useState<LocalContent | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      try {
+        const response = await fetch(`${API_URL}/cursos/${courseId}/modulos`, { credentials: "include", signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message ?? "No se pudo cargar el curso.");
+        if (controller.signal.aborted) return;
+        const result = data as ModuleResponse;
+        setCourse(current => ({ ...current, id: Number(result.curso.id), nombre: result.curso.nombre,
+          codigo: result.curso.codigo, imagen: result.curso.imagen ?? "" }));
+        setModules(result.modulos.map(module => ({ id: Number(module.id), number: module.numero, title: module.titulo })));
+        setContents(result.modulos.flatMap(module => module.contenidos.map(content => ({
+          id: Number(content.id), moduleId: Number(module.id), order: content.orden, title: content.titulo,
+          type: contentTypes[content.tipo] ?? "pdf", status: content.estado,
+          file: content.tipo === "enlace" ? content.urlEnlace ?? undefined : content.rutaArchivo ?? undefined,
+        }))));
+        const first = result.modulos[0];
+        if (revision === 0) {
+          setOpenModules(first ? [Number(first.id)] : []);
+          setSelectedModuleId(first ? Number(first.id) : null);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "No se pudo cargar el curso.");
+      } finally { if (!controller.signal.aborted) setLoading(false); }
+    }
+    void load();
+    return () => controller.abort();
+  }, [courseId, revision]);
 
   const modulesWithContents = useMemo(() => {
     return modules.map((module) => ({
@@ -132,7 +185,7 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
     }
 
     const nextId = Math.max(0, ...modules.map((module) => module.id)) + 1;
-    setModules((current) => [...current, { id: nextId, title }]);
+    setModules((current) => [...current, { id: nextId, number: Math.max(0, ...current.map(module => module.number)) + 1, title }]);
     setOpenModules((current) => [...current, nextId]);
     setSelectedModuleId(nextId);
     setCreateModuleTitle("");
@@ -187,13 +240,19 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
     showNotice("Contenido agregado como borrador.");
   };
 
-  const handleFileSubmit = (file: File) => {
-    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-    const type: ContentType = extension === "pdf" ? "pdf" : extension === "ppt" || extension === "pptx" ? "ppt" : extension === "doc" || extension === "docx" ? "word" : extension === "mp4" || extension === "webm" || extension === "mov" ? "video" : "link";
-    const safeTitle = file.name.replace(/\.[^.]+$/, "");
-    const previewUrl = URL.createObjectURL(file);
-    addLocalContent(type, safeTitle, type === "link" ? undefined : previewUrl);
+  const handleFileSubmit = async (file: File) => {
+    const moduleId = selectedModuleId;
+    if (!moduleId) throw new Error("Selecciona un módulo para subir el archivo.");
+    const body = new FormData();
+    body.append("archivo", file);
+    const response = await fetch(`${API_URL}/cursos/${courseId}/modulos/${moduleId}/archivo`, {
+      method: "POST", credentials: "include", body,
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message ?? "No se pudo subir el archivo.");
     setUploadOpen(false);
+    setRevision(value => value + 1);
+    showNotice("Archivo guardado como borrador.");
   };
 
   const handleLinkSubmit = (title: string, url: string) => {
@@ -201,10 +260,35 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
     setLinkOpen(false);
   };
 
-  const deleteContent = (contentId: number) => {
-    setContents((current) => current.filter((content) => content.id !== contentId));
-    showNotice("Contenido eliminado.");
+  const updateContent = async (contentId: number, changes: { titulo?: string; estado?: string }, deleting = false) => {
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/cursos/${courseId}/contenidos/${contentId}`, {
+        method: deleting ? "DELETE" : "PATCH", credentials: "include",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(changes),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "No se pudo guardar el cambio.");
+      setContents(current => deleting ? current.filter(content => content.id !== contentId) : current.map(content => content.id === contentId ? { ...content, title: data.contenido.titulo, status: data.contenido.estado } : content));
+      showNotice(deleting ? "Contenido eliminado." : "Cambio guardado.");
+    } finally { setSaving(false); }
   };
+
+  const deleteContent = async (content: LocalContent) => {
+    if (!window.confirm(`¿Eliminar "${content.title}" del curso?`)) return;
+    try { await updateContent(content.id, {}, true); }
+    catch (error) { showNotice(error instanceof Error ? error.message : "No se pudo eliminar."); }
+  };
+
+  const publishContent = async (content: LocalContent) => {
+    try { await updateContent(content.id, { estado: content.status === "Borrador" ? "Publicado" : "Borrador" }); }
+    catch (error) { showNotice(error instanceof Error ? error.message : "No se pudo cambiar el estado."); }
+  };
+
+  if (loading || loadError) return <div className="min-h-screen px-3 py-4 lg:px-5"><div className="mx-auto max-w-[1000px]">
+    <Link href="/docente/cursos" className="text-[11px] text-gray-700">Volver a cursos</Link>
+    <p role={loadError ? "alert" : "status"} className="mt-4 text-[12px] text-gray-600">{loadError || "Cargando curso..."}</p>
+  </div></div>;
 
   return (
     <div className="min-h-screen px-3 py-4 lg:px-5">
@@ -215,9 +299,9 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
         </Link>
 
         <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-          <img src={course.imagen} alt={course.nombre} className="h-full w-full object-cover" />
+          {course.imagen && <img src={course.imagen} alt={course.nombre} className="h-full w-full object-cover" />}
           <div className="absolute inset-0 bg-black/20" />
-          <h1 className="absolute bottom-7 left-4 text-[31px] font-bold tracking-[-0.8px] text-white">{course.nombre}</h1>
+          <h1 className="absolute bottom-7 left-4 right-4 break-words text-[31px] font-bold leading-tight text-white">{course.nombre}</h1>
         </div>
 
         <div className="flex flex-wrap border-b border-[#9ca3ad] bg-[#eef2f8]">
@@ -274,9 +358,9 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
                   const color = moduleColors[index % moduleColors.length];
 
                   return (
-                    <div key={module.id} className="overflow-hidden rounded-lg">
+                    <div key={module.id} className="rounded-lg">
                       <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[31px] w-full items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" style={{ backgroundColor: color }}>
-                        <span className="flex-1 text-[10px] font-semibold text-[#173f63]">Modulo {module.id}: {module.title}</span>
+                        <span className="flex-1 text-[10px] font-semibold text-[#173f63]">Modulo {module.number}: {module.title}</span>
                         <ChevronIcon open={open} />
                       </button>
 
@@ -306,7 +390,7 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
                                   className="h-4 w-4 shrink-0 text-[#667482]"
                                 />
                                 <span className="min-w-0 flex-1 truncate text-[10px] text-gray-800">
-                                  {module.id}.{content.order} {content.title}
+                                  {module.number}.{content.order} {content.title}
                                 </span>
                               </>
                             );
@@ -347,10 +431,11 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
                                 </span>
 
                                 <DottedMenu
-                                  onEdit={() =>
-                                    showNotice(`Editar: ${content.title}`)
-                                  }
-                                  onDelete={() => deleteContent(content.id)}
+                                  disabled={saving}
+                                  status={content.status}
+                                  onPublish={() => void publishContent(content)}
+                                  onEdit={() => { setEditing(content); setEditTitle(content.title); setEditError(""); }}
+                                  onDelete={() => void deleteContent(content)}
                                 />
                               </div>
                             );
@@ -373,7 +458,25 @@ export default function TeacherCourseDetail({ course }: TeacherCourseDetailProps
         </div>
       </div>
 
-      {notice && <div className="fixed bottom-5 right-5 z-[120] rounded-lg bg-[#163f66] px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">{notice}</div>}
+      {notice && <div role="status" className="fixed bottom-5 right-5 z-[120] rounded-lg bg-[#163f66] px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">{notice}</div>}
+      {editing && <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 px-4">
+        <form role="dialog" aria-modal="true" aria-labelledby="edit-content-title" className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl" onSubmit={async event => {
+          event.preventDefault();
+          if (saving) return;
+          setEditError("");
+          try { await updateContent(editing.id, { titulo: editTitle }); setEditing(null); }
+          catch (error) { setEditError(error instanceof Error ? error.message : "No se pudo guardar."); }
+        }}>
+          <h2 id="edit-content-title" className="mb-4 text-lg font-semibold text-[#3186d8]">Editar contenido</h2>
+          <label htmlFor="content-title" className="text-sm">Título</label>
+          <input autoFocus id="content-title" required maxLength={200} disabled={saving} value={editTitle} onChange={event => setEditTitle(event.target.value)} className="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm" />
+          {editError && <p role="alert" className="mt-2 text-sm text-red-600">{editError}</p>}
+          <div className="mt-4 flex justify-end gap-2">
+            <button type="button" disabled={saving} onClick={() => setEditing(null)} className="rounded-md bg-[#efe6fa] px-3 py-2 text-sm">Cancelar</button>
+            <button disabled={saving} className="rounded-md bg-[#3186d8] px-3 py-2 text-sm text-white">{saving ? "Guardando..." : "Guardar"}</button>
+          </div>
+        </form>
+      </div>}
 
       <CreateModuleModal open={createModuleOpen} value={createModuleTitle} onChange={setCreateModuleTitle} onClose={() => setCreateModuleOpen(false)} onSave={saveModule} />
       <AddContentModal open={addContentOpen} onClose={() => setAddContentOpen(false)} onSelect={selectContentType} />
