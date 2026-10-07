@@ -8,7 +8,7 @@ type UploadFileModalProps = {
   onSubmit: (file: File) => Promise<void>;
 };
 
-const allowedExtensions = ["pdf", "docx", "pptx"];
+const allowedExtensions = ["pdf", "docx", "pptx", "mp4"];
 
 function isAllowed(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -81,7 +81,7 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
             </div>
             <div>
               <h2 id="upload-file-title" className="text-[14px] font-bold text-[#3186d8]">Insertar archivo</h2>
-              <p className="text-[8px] text-[#54759a]">Sube un documento, presentación, hoja de cálculo u otros.</p>
+              <p className="text-[8px] text-[#54759a]">Sube un documento, presentación o video.</p>
             </div>
           </div>
           <button type="button" onClick={close} className="rounded-full p-1 text-[24px] leading-none text-gray-800 hover:bg-gray-100" aria-label="Cerrar">×</button>
@@ -106,14 +106,14 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
           </button>
           {selectedFile && <p className="mt-2 truncate text-[9px] font-semibold text-[#1d5b92]">{selectedFile.name}</p>}
           <p className="mt-2 text-[6.5px] text-gray-500">Tamaño máximo: 200 MB</p>
-          <p className="mt-1 text-[6.5px] text-gray-500">Formatos permitidos: PDF, DOCX, PPTX</p>
+          <p className="mt-1 text-[6.5px] text-gray-500">Formatos permitidos: PDF, DOCX, PPTX, MP4</p>
         </div>
 
         <input
           ref={inputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.docx,.pptx"
+          accept=".pdf,.docx,.pptx,.mp4"
           disabled={uploading}
           onChange={(event) => pickFile(event.target.files?.[0])}
         />

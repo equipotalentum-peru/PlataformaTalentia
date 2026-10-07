@@ -9,6 +9,7 @@ import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 
 const formats: Record<string, { tipo: string; mime: string }> = {
+  ".mp4": { tipo: "video", mime: "video/mp4" },
   ".pdf": { tipo: "pdf", mime: "application/pdf" },
   ".docx": { tipo: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   ".pptx": { tipo: "pptx", mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
@@ -16,7 +17,7 @@ const formats: Record<string, { tipo: string; mime: string }> = {
 const receive = multer({
   dest: tmpdir(), limits: { fileSize: 200 * 1024 * 1024, files: 1, fields: 0, parts: 1 },
   fileFilter: (_req, file, callback) => {
-    if (!formats[path.extname(file.originalname).toLowerCase()]) return callback(new Error("Formato no permitido. Usa PDF, DOCX o PPTX."));
+    if (!formats[path.extname(file.originalname).toLowerCase()]) return callback(new Error("Formato no permitido. Usa PDF, DOCX, PPTX o MP4."));
     callback(null, true);
   },
 }).single("archivo");
@@ -42,9 +43,14 @@ export async function subirArchivoContenido(req: AuthenticatedRequest, res: Resp
     const extension = path.extname(req.file.originalname).toLowerCase();
     const format = formats[extension];
     const handle = await open(temporary, "r");
-    const header = Buffer.alloc(5);
-    try { await handle.read(header, 0, 5, 0); } finally { await handle.close(); }
-    const valid = extension === ".pdf" ? header.toString() === "%PDF-" : header.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+    const header = Buffer.alloc(12);
+    let bytesRead = 0;
+    try { ({ bytesRead } = await handle.read(header, 0, header.length, 0)); } finally { await handle.close(); }
+    const valid = extension === ".mp4"
+      ? bytesRead === 12 && header.toString("ascii", 4, 8) === "ftyp" && header.readUInt32BE(0) >= 16 && header.readUInt32BE(0) <= req.file.size
+      : extension === ".pdf"
+        ? header.toString("ascii", 0, 5) === "%PDF-"
+        : header.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
     if (!valid) return res.status(400).json({ message: "El archivo no corresponde al formato seleccionado." });
     const originalName = path.basename(req.file.originalname.replaceAll("\\", "/")).replace(/[\x00-\x1f\x7f]/g, "").slice(0, 255);
     const title = originalName.slice(0, -extension.length).trim().slice(0, 200) || "Archivo";
@@ -77,7 +83,7 @@ export async function subirArchivoContenido(req: AuthenticatedRequest, res: Resp
     finally { client.release(); }
   } catch (error) {
     if (error instanceof multer.MulterError || (error instanceof Error && error.message.startsWith("Formato no permitido"))) {
-      return res.status(400).json({ message: "Sube un solo archivo PDF, DOCX o PPTX de hasta 200 MB." });
+      return res.status(400).json({ message: "Sube un solo archivo PDF, DOCX, PPTX o MP4 de hasta 200 MB." });
     }
     console.error("Error subiendo contenido:", error);
     return res.status(500).json({ message: "No se pudo guardar el archivo. Inténtalo nuevamente." });
