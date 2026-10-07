@@ -1,92 +1,132 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { courses } from "@/data/courses";
+import { API_URL } from "@/lib/api";
 
-const pendingReviews = [
-  {
-    tipo: "Actividad",
-    titulo: "Práctica 2: Herramientas colaborativas",
-    curso: "Herramientas TIC",
-    detalle: "12 entregas pendientes",
-  },
-  {
-    tipo: "Examen",
-    titulo: "Examen Parcial: Algoritmos de ordenación",
-    curso: "Algoritmos",
-    detalle: "5 entregas pendientes",
-  },
-  {
-    tipo: "Actividad",
-    titulo: "Informe de investigación",
-    curso: "Psicología",
-    detalle: "8 entregas pendientes",
-  },
-  {
-    tipo: "Actividad",
-    titulo: "Cuestionario 1: Introducción",
-    curso: "Matemáticas",
-    detalle: "3 entregas pendientes",
-  },
-];
+type PendienteRevision = {
+  id: number;
+  tipo: "Actividad" | "Examen" | "Evaluación";
+  titulo: string;
+  curso: string;
+  codigo: string;
+  cursoId: number;
+  contenidoId: number;
+  pendientes: number;
+  fecha: string | null;
+};
 
-const upcomingEvaluations = [
-  {
-    title: "Examen Unidad 2",
-    course: "Herramientas TIC",
-    date: "7 de sep. de 2026",
-    time: "11:00",
-  },
-  {
-    title: "Examen Parcial",
-    course: "Psicología",
-    date: "10 de sep. de 2026",
-    time: "14:00",
-  },
-  {
-    title: "Cuestionario 2",
-    course: "Matemáticas",
-    date: "15 de sep. de 2026",
-    time: "10:00",
-  },
-];
+type CursoDocente = {
+  id: number;
+  nombre: string;
+  codigo: string;
+  imagen: string | null;
+  alumnos: number;
+};
 
-const recentActivity = [
-  {
-    text: "Se publicaron las calificaciones de Practica 1",
-    date: "Hoy, 09:12",
-  },
-  {
-    text: "5 nuevos alumnos se matricularon en Algoritmos",
-    date: "Hoy, 08:45",
-  },
-  {
-    text: "Se creó un nuevo contenido en Programación",
-    date: "Hoy, 20:30",
-  },
-];
+type EvaluacionDashboard = {
+  id: number;
+  titulo: string;
+  curso: string;
+  codigo: string;
+  fecha: string | null;
+};
 
-const courseStudents = [
-  {
-    nombre: "Herramientas TIC",
-    codigo: "HT001",
-    alumnos: 126,
-  },
-  {
-    nombre: "Psicología",
-    codigo: "PSI001",
-    alumnos: 82,
-  },
-  {
-    nombre: "Matemáticas",
-    codigo: "MAT001",
-    alumnos: 64,
-  },
-  {
-    nombre: "Programación",
-    codigo: "P001",
-    alumnos: 91,
-  },
-];
+type ActividadReciente = {
+  tipo: string;
+  texto: string;
+  fecha: string;
+};
+
+type DashboardData = {
+  docente: {
+    nombres: string;
+    apellidos: string;
+  };
+  resumen: {
+    cursosAsignados: number;
+    alumnos: number;
+    actividadesPorCalificar: number;
+    evaluacionesProximas: number;
+    revisionesPendientes: number;
+  };
+  pendientesRevision: PendienteRevision[];
+  cursos: CursoDocente[];
+  resumenAlumnos: {
+    total: number;
+    alDia: number;
+    conPendientes: number;
+    bajoRendimiento: number;
+  };
+  evaluaciones: EvaluacionDashboard[];
+  actividadReciente: ActividadReciente[];
+};
+
+const IMAGEN_POR_DEFECTO =
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
+
+const CIRCULO_RADIO = 51;
+const CIRCUNFERENCIA = 2 * Math.PI * CIRCULO_RADIO;
+
+function formatearFechaLarga() {
+  return new Intl.DateTimeFormat("es-PE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+    .format(new Date())
+    .replace(/^./, (letra) => letra.toUpperCase());
+}
+
+function formatearFechaCorta(fecha: string | null) {
+  if (!fecha) return "";
+
+  const valor = new Date(fecha);
+
+  if (Number.isNaN(valor.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(valor);
+}
+
+function formatearFechaHora(fecha: string) {
+  const valor = new Date(fecha);
+
+  if (Number.isNaN(valor.getTime())) {
+    return "";
+  }
+
+  const ahora = new Date();
+  const esHoy =
+    valor.getFullYear() === ahora.getFullYear() &&
+    valor.getMonth() === ahora.getMonth() &&
+    valor.getDate() === ahora.getDate();
+
+  if (esHoy) {
+    return `Hoy, ${new Intl.DateTimeFormat("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(valor)}`;
+  }
+
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(valor);
+}
 
 function KpiIcon({
   type,
@@ -157,61 +197,177 @@ function KpiIcon({
 }
 
 export default function TeacherDashboardPage() {
+  const router = useRouter();
+
+  const [datos, setDatos] = useState<DashboardData | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarDashboard() {
+      try {
+        setCargando(true);
+        setError("");
+
+        const response = await fetch(
+          `${API_URL}/dashboard/docente`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data.message === "string"
+              ? data.message
+              : "No se pudo cargar el dashboard del docente."
+          );
+        }
+
+        setDatos(data as DashboardData);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo cargar el dashboard del docente."
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargando(false);
+        }
+      }
+    }
+
+    void cargarDashboard();
+
+    return () => controller.abort();
+  }, [router]);
+
+  const pendientesRevision = datos?.pendientesRevision ?? [];
+  const cursos = datos?.cursos ?? [];
+  const evaluaciones = datos?.evaluaciones ?? [];
+  const actividadReciente = datos?.actividadReciente ?? [];
+
+  const resumenAlumnos = datos?.resumenAlumnos ?? {
+    total: 0,
+    alDia: 0,
+    conPendientes: 0,
+    bajoRendimiento: 0,
+  };
+
+  const totalAlumnos = Math.max(0, Number(resumenAlumnos.total) || 0);
+
+  const porcentajeAlDia = useMemo(() => {
+    if (totalAlumnos === 0) return 0;
+    return resumenAlumnos.alDia / totalAlumnos;
+  }, [resumenAlumnos.alDia, totalAlumnos]);
+
+  const porcentajePendientes = useMemo(() => {
+    if (totalAlumnos === 0) return 0;
+    return resumenAlumnos.conPendientes / totalAlumnos;
+  }, [resumenAlumnos.conPendientes, totalAlumnos]);
+
+  const arcoAlDia = CIRCUNFERENCIA * porcentajeAlDia;
+  const arcoPendientes = CIRCUNFERENCIA * porcentajePendientes;
+  const arcoBajoRendimiento = Math.max(
+    0,
+    CIRCUNFERENCIA - arcoAlDia - arcoPendientes
+  );
+
+  const kpis = [
+    {
+      label: "Cursos asignados",
+      value: String(datos?.resumen.cursosAsignados ?? 0),
+      type: "courses" as const,
+      box: "bg-[#eec5ff]",
+      icon: "bg-[#e1a8fa] text-[#7e43b1]",
+      number: "text-[#7e43b1]",
+    },
+    {
+      label: "Alumnos",
+      value: String(datos?.resumen.alumnos ?? 0),
+      type: "students" as const,
+      box: "bg-[#adffc9]",
+      icon: "bg-[#80efac] text-[#16a349]",
+      number: "text-[#16a349]",
+    },
+    {
+      label: "Actividades por calificar",
+      value: String(datos?.resumen.actividadesPorCalificar ?? 0),
+      type: "activities" as const,
+      box: "bg-[#ffe3a5]",
+      icon: "bg-[#ffd27c] text-[#d89200]",
+      number: "text-[#d89200]",
+    },
+    {
+      label: "Evaluaciones próximas",
+      value: String(datos?.resumen.evaluacionesProximas ?? 0),
+      type: "evaluations" as const,
+      box: "bg-[#9fd9ff]",
+      icon: "bg-[#71c3f6] text-[#2677bb]",
+      number: "text-[#2677bb]",
+    },
+  ];
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen w-full px-[24px] py-[22px] lg:px-[30px]">
+        <h1 className="text-[34px] font-semibold text-gray-950">
+          Dashboard del docente
+        </h1>
+        <p className="mt-8 text-[14px] text-gray-500">
+          Cargando dashboard...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full px-[24px] py-[22px] lg:px-[30px]">
+        <h1 className="text-[34px] font-semibold text-gray-950">
+          Dashboard del docente
+        </h1>
+        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-[14px] text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen px-[24px] py-[22px] lg:px-[30px]">
-
       {/* ENCABEZADO */}
       <header className="mb-5">
         <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-[#3186d8]">
-          Jueves, 4 de septiembre, 2026
+          {formatearFechaLarga()}
         </p>
 
         <h1 className="mt-1 text-[38px] font-semibold tracking-[-0.7px] text-[#3186d8]">
-          Bienvenida Gloria
+          Bienvenida {datos?.docente.nombres || "Docente"}
         </h1>
 
         <p className="mt-1 text-[14px] text-[#3186d8]">
-          Tienes 4 actividades pendientes de calificar esta semana
+          Tienes {datos?.resumen.actividadesPorCalificar ?? 0} actividades pendientes de calificar
         </p>
       </header>
 
       {/* KPI */}
       <section className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-
-        {[
-          {
-            label: "Cursos asignados",
-            value: "5",
-            type: "courses" as const,
-            box: "bg-[#eec5ff]",
-            icon: "bg-[#e1a8fa] text-[#7e43b1]",
-            number: "text-[#7e43b1]",
-          },
-          {
-            label: "Alumnos",
-            value: "126",
-            type: "students" as const,
-            box: "bg-[#adffc9]",
-            icon: "bg-[#80efac] text-[#16a349]",
-            number: "text-[#16a349]",
-          },
-          {
-            label: "Actividades por calificar",
-            value: "18",
-            type: "activities" as const,
-            box: "bg-[#ffe3a5]",
-            icon: "bg-[#ffd27c] text-[#d89200]",
-            number: "text-[#d89200]",
-          },
-          {
-            label: "Evaluaciones próximas",
-            value: "3",
-            type: "evaluations" as const,
-            box: "bg-[#9fd9ff]",
-            icon: "bg-[#71c3f6] text-[#2677bb]",
-            number: "text-[#2677bb]",
-          },
-        ].map((item) => (
+        {kpis.map((item) => (
           <article
             key={item.label}
             className={`flex min-h-[78px] items-center gap-3 rounded-[14px] px-4 py-3 ${item.box}`}
@@ -235,78 +391,85 @@ export default function TeacherDashboardPage() {
             </div>
           </article>
         ))}
-
       </section>
 
       {/* CONTENIDO PRINCIPAL */}
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr]">
-
         {/* PENDIENTES */}
         <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-[18px] font-semibold text-[#3186d8]">
+              Pendientes de revisión
+            </h2>
 
-          <h2 className="mb-3 text-[18px] font-semibold text-[#3186d8]">
-            Pendientes de revisión
-          </h2>
+            <span className="rounded-full bg-[#eef6ff] px-3 py-1 text-[10px] font-semibold text-[#3186d8]">
+              {datos?.resumen.revisionesPendientes ?? 0} pendientes
+            </span>
+          </div>
 
           <div className="divide-y divide-gray-200">
-            {pendingReviews.map((item, index) => (
-              <Link
-                key={index}
-                href="/docente/calificaciones"
-                className="block py-2.5 transition hover:bg-gray-50"
-              >
-                <span
-                  className={`inline-block rounded-full px-3 py-1 text-[10px] font-medium ${
-                    item.tipo === "Examen"
-                      ? "bg-[#eadcff] text-[#8752bb]"
-                      : "bg-[#f9cbd4] text-[#c84262]"
-                  }`}
+            {pendientesRevision.length === 0 ? (
+              <div className="py-7 text-center text-[12px] text-gray-500">
+                No tienes entregas pendientes de revisión.
+              </div>
+            ) : (
+              pendientesRevision.map((item) => (
+                <Link
+                  key={`${item.tipo}-${item.id}-${item.cursoId}`}
+                  href="/docente/calificaciones"
+                  className="block py-2.5 transition hover:bg-gray-50"
                 >
-                  {item.tipo}
-                </span>
-
-                <div className="mt-1 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-semibold text-[#3186d8]">
-                      {item.titulo}
-                    </p>
-
-                    <p className="text-[11px] text-gray-500">
-                      {item.curso} - {item.detalle}
-                    </p>
-                  </div>
-
-                  <span className="text-xl text-gray-700">
-                    ›
+                  <span
+                    className={`inline-block rounded-full px-3 py-1 text-[10px] font-medium ${
+                      item.tipo === "Examen"
+                        ? "bg-[#eadcff] text-[#8752bb]"
+                        : item.tipo === "Evaluación"
+                          ? "bg-[#e8f4ff] text-[#2b7cc3]"
+                          : "bg-[#f9cbd4] text-[#c84262]"
+                    }`}
+                  >
+                    {item.tipo}
                   </span>
-                </div>
-              </Link>
-            ))}
+
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-semibold text-[#3186d8]">
+                        {item.titulo}
+                      </p>
+
+                      <p className="text-[11px] text-gray-500">
+                        {item.curso} - {item.pendientes} pendientes
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 text-xl text-gray-700">›</span>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </article>
 
         {/* MIS CURSOS */}
         <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-
           <h2 className="mb-3 text-[18px] font-semibold text-[#3186d8]">
             Mis cursos
           </h2>
 
           <div className="divide-y divide-gray-200">
-            {courseStudents.map((course) => {
-              const originalCourse = courses.find(
-                (item) =>
-                  item.codigo === course.codigo
-              );
-
-              return (
+            {cursos.length === 0 ? (
+              <div className="py-7 text-center text-[12px] text-gray-500">
+                No tienes cursos asignados actualmente.
+              </div>
+            ) : (
+              cursos.map((course) => (
                 <Link
                   key={course.codigo}
-                  href={`/docente/cursos/${originalCourse?.id ?? 1}`}
+                  href={`/docente/cursos/${course.id}`}
                   className="flex items-center gap-3 py-2 transition hover:bg-gray-50"
                 >
                   <img
-                    src={originalCourse?.imagen}
+                    src={course.imagen || IMAGEN_POR_DEFECTO}
                     alt={course.nombre}
                     className="h-10 w-14 rounded-md object-cover"
                   />
@@ -325,60 +488,84 @@ export default function TeacherDashboardPage() {
                     </p>
                   </div>
 
-                  <span className="text-xl text-gray-700">
-                    ›
-                  </span>
+                  <span className="text-xl text-gray-700">›</span>
                 </Link>
-              );
-            })}
+              ))
+            )}
           </div>
-
         </article>
-
       </section>
 
       {/* PARTE INFERIOR */}
       <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-
         {/* RESUMEN ALUMNOS */}
         <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-
           <h2 className="mb-3 text-center text-[20px] font-semibold text-[#3186d8]">
             Resumen de alumnos
           </h2>
 
           <div className="flex items-center justify-center gap-4">
-
             <div className="relative flex h-[130px] w-[130px] items-center justify-center">
               <svg
                 viewBox="0 0 140 140"
                 className="absolute inset-0 h-full w-full -rotate-90"
+                aria-hidden="true"
               >
                 <circle
                   cx="70"
                   cy="70"
-                  r="51"
+                  r={CIRCULO_RADIO}
                   fill="none"
                   stroke="#eeeeee"
                   strokeWidth="12"
                 />
 
-                <circle
-                  cx="70"
-                  cy="70"
-                  r="51"
-                  fill="none"
-                  stroke="#c76dff"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  strokeDasharray="320.4"
-                  strokeDashoffset="58"
-                />
+                {arcoAlDia > 0 && (
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={CIRCULO_RADIO}
+                    fill="none"
+                    stroke="#c76dff"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${arcoAlDia} ${Math.max(0, CIRCUNFERENCIA - arcoAlDia)}`}
+                    strokeDashoffset="0"
+                  />
+                )}
+
+                {arcoPendientes > 0 && (
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={CIRCULO_RADIO}
+                    fill="none"
+                    stroke="#55d3d3"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${arcoPendientes} ${Math.max(0, CIRCUNFERENCIA - arcoPendientes)}`}
+                    strokeDashoffset={-arcoAlDia}
+                  />
+                )}
+
+                {arcoBajoRendimiento > 0 && (
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={CIRCULO_RADIO}
+                    fill="none"
+                    stroke="#f3b44f"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${arcoBajoRendimiento} ${Math.max(0, CIRCUNFERENCIA - arcoBajoRendimiento)}`}
+                    strokeDashoffset={-(arcoAlDia + arcoPendientes)}
+                  />
+                )}
               </svg>
 
               <div className="text-center">
                 <p className="text-[30px] font-bold text-[#3186d8]">
-                  126
+                  {totalAlumnos}
                 </p>
 
                 <p className="text-[11px] font-medium text-[#3186d8]">
@@ -387,83 +574,88 @@ export default function TeacherDashboardPage() {
               </div>
             </div>
 
-            <div className="space-y-3 text-[11px] text-gray-600">
-              <p>● Al día</p>
-              <p>● Con pendientes</p>
-              <p>● Bajo rendimiento</p>
+            <div className="space-y-2.5 text-[11px] text-gray-600">
+              <p>
+                <span className="mr-1 text-[#c76dff]">●</span>
+                Al día: {resumenAlumnos.alDia}
+              </p>
+              <p>
+                <span className="mr-1 text-[#55d3d3]">●</span>
+                Con pendientes: {resumenAlumnos.conPendientes}
+              </p>
+              <p>
+                <span className="mr-1 text-[#f3b44f]">●</span>
+                Bajo rendimiento: {resumenAlumnos.bajoRendimiento}
+              </p>
             </div>
-
           </div>
+
+          <p className="mt-3 text-center text-[9px] leading-relaxed text-gray-400">
+            Se considera "al día" a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. "Bajo rendimiento" se marca cuando el promedio registrado es menor a 11.
+          </p>
         </article>
 
         {/* EVALUACIONES */}
         <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-
           <h2 className="mb-3 text-[20px] font-semibold text-[#3186d8]">
             Próximas evaluaciones
           </h2>
 
           <div className="divide-y divide-gray-200">
-            {upcomingEvaluations.map(
-              (evaluation) => (
-                <div
-                  key={evaluation.title}
-                  className="py-2"
-                >
+            {evaluaciones.length === 0 ? (
+              <div className="py-7 text-center text-[11px] text-gray-500">
+                No hay evaluaciones próximas.
+              </div>
+            ) : (
+              evaluaciones.map((evaluation) => (
+                <div key={evaluation.id} className="py-2">
                   <p className="text-[10px] font-semibold text-[#3186d8]">
-                    {evaluation.title}
+                    {evaluation.titulo}
                   </p>
 
                   <div className="flex justify-between gap-2 text-[10px] text-gray-500">
-                    <span>
-                      {evaluation.course}
-                    </span>
+                    <span className="truncate">{evaluation.curso}</span>
 
-                    <span>
-                      {evaluation.date}
+                    <span className="shrink-0">
+                      {formatearFechaCorta(evaluation.fecha)}
                     </span>
                   </div>
-
-                  <p className="mt-1 text-[10px] text-gray-500">
-                    {evaluation.time}
-                  </p>
                 </div>
-              )
+              ))
             )}
           </div>
-
         </article>
 
         {/* ACTIVIDAD RECIENTE */}
         <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-
           <h2 className="mb-3 text-[20px] font-semibold text-[#3186d8]">
             Actividad reciente
           </h2>
 
           <div className="divide-y divide-gray-200">
-            {recentActivity.map(
-              (activity, index) => (
+            {actividadReciente.length === 0 ? (
+              <div className="py-7 text-center text-[11px] text-gray-500">
+                No hay actividad reciente registrada.
+              </div>
+            ) : (
+              actividadReciente.map((activity, index) => (
                 <div
-                  key={index}
+                  key={`${activity.tipo}-${activity.fecha}-${index}`}
                   className="py-2.5"
                 >
                   <p className="text-[10px] text-gray-700">
-                    {activity.text}
+                    {activity.texto}
                   </p>
 
                   <p className="mt-1 text-right text-[10px] text-gray-400">
-                    {activity.date}
+                    {formatearFechaHora(activity.fecha)}
                   </p>
                 </div>
-              )
+              ))
             )}
           </div>
-
         </article>
-
       </section>
-
     </main>
   );
 }
