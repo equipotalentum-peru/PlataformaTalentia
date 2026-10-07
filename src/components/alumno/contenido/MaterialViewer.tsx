@@ -6,6 +6,7 @@ import ContentViewer from "@/components/common/contenido/ContentViewer";
 import SectionNavigation from "@/components/alumno/SectionNavigation";
 import ActivityViewer from "./ActivityViewer";
 import { activities, type ActivityDefinition } from "@/data/activities";
+import { markContentViewed, } from "@/lib/progress";
 
 type Contenido = {
   id: string | number;
@@ -23,7 +24,7 @@ type Props = {
 export default function MaterialViewer({ courseId, contentId }: Props) {
   const [material, setMaterial] = useState<{
     titulo: string;
-    tipo: "pdf" | "ppt" | "activity";
+    tipo: | "pdf" | "ppt" | "word" | "video" | "activity";
     archivo: string;
     previousHref?: string;
     nextHref?: string;
@@ -51,9 +52,23 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
             modulo.contenidos.map((item) => ({ ...item, numeroModulo: modulo.numero }))
         );
         const materiales = contenidos.filter(
-          (item) => (item.rutaArchivo && ["pdf", "pptx"].includes(item.tipo)) ||
-            (data.curso.codigo === "ESP-002" && item.numeroModulo === 1 && item.tipo === "actividad")
-        );
+            (item) =>
+              (
+                item.rutaArchivo &&
+                [
+                  "pdf",
+                  "docx",
+                  "pptx",
+                  "video",
+                ].includes(
+                  item.tipo
+                )
+              ) ||
+              item.tipo ===
+                "actividad" ||
+              item.tipo ===
+                "evaluacion"
+          );
         const indice = materiales.findIndex(
           (item) => Number(item.id) === contentId
         );
@@ -62,6 +77,24 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
         );
         if (!contenido) {
           throw new Error("Material no disponible.");
+        }
+        /*
+        * Los materiales normales se consideran
+        * vistos al abrirlos.
+        *
+        * Actividades y evaluaciones tienen
+        * reglas propias.
+        */
+        if (
+          contenido.tipo !==
+            "actividad" &&
+          contenido.tipo !==
+            "evaluacion"
+        ) {
+          markContentViewed(
+            courseId,
+            contentId
+          );
         }
         const navegacion = {
           previousHref: indice > 0
@@ -101,9 +134,19 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
         const blob = await fichero.blob();
         if (controller.signal.aborted) return;
         archivo = URL.createObjectURL(blob);
+        const tipoMaterial =
+          contenido.tipo === "pdf"
+            ? "pdf"
+            : contenido.tipo === "docx"
+              ? "word"
+              : contenido.tipo === "video"
+                ? "video"
+                : "ppt";
+
         setMaterial({
-          titulo: contenido.titulo,
-          tipo: contenido.tipo === "pdf" ? "pdf" : "ppt",
+          titulo:
+            contenido.titulo,
+          tipo: tipoMaterial,
           archivo,
           ...navegacion,
         });
@@ -132,7 +175,7 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
             previousHref={material.previousHref}
             nextHref={material.nextHref}
             exitHref={`/alumno/cursos/${courseId}`}
-            trackLocalProgress={false}
+            trackLocalProgress={true}
           />
       ) : (
         <ContentViewer

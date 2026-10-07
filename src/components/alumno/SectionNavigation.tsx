@@ -40,7 +40,7 @@ export default function SectionNavigation({
   };
 
   const handlePrevious = () => {
-    if (trackLocalProgress && currentContentType !== "quiz") {
+    if (trackLocalProgress && currentContentType !== "quiz" && currentContentType !== "activity") {
       markContentViewed(
         courseId,
         currentContentId
