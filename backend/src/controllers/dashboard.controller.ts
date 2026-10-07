@@ -50,53 +50,74 @@ export async function obtenerDashboardEstudiante(
        * ==========================================
        */
       pool.query(
-        `SELECT
-           c.id,
-           c.nombre,
-           c.codigo,
-           c.imagen_portada AS imagen,
+  `SELECT
+     c.id,
+     c.nombre,
+     c.codigo,
+     c.imagen_portada AS imagen,
 
-           COALESCE(
-             ROUND(AVG(pc.progreso))::INTEGER,
-             0
-           ) AS progreso
+     COALESCE(
+       ROUND(
+         100.0 * COUNT(DISTINCT cc.id)
+         FILTER (
+           WHERE pc.estado = 'Completado'
+              OR pc.progreso >= 100
+         )
+         /
+         NULLIF(
+           COUNT(DISTINCT cc.id),
+           0
+         )
+       )::INTEGER,
+       0
+     ) AS progreso
 
-         FROM matriculas m
+   FROM matriculas m
 
-         INNER JOIN ofertas_curso oc
-           ON oc.id = m.oferta_curso_id
+   INNER JOIN ofertas_curso oc
+     ON oc.id = m.oferta_curso_id
 
-         INNER JOIN cursos c
-           ON c.id = oc.curso_id
+   INNER JOIN cursos c
+     ON c.id = oc.curso_id
 
-         LEFT JOIN progreso_contenido pc
-           ON pc.matricula_id = m.id
+   LEFT JOIN modulos_curso mc
+     ON mc.curso_id = c.id
+    AND mc.activo = TRUE
 
-         WHERE m.estudiante_id = $1
+   LEFT JOIN contenidos_curso cc
+     ON cc.modulo_id = mc.id
+    AND cc.estado = 'Publicado'
+    AND cc.obligatorio = TRUE
 
-           AND m.estado IN (
-             'Activa',
-             'Completada'
-           )
+   LEFT JOIN progreso_contenido pc
+     ON pc.matricula_id = m.id
+    AND pc.contenido_id = cc.id
 
-           AND oc.estado IN (
-             'Programado',
-             'En curso',
-             'Finalizado'
-           )
+   WHERE m.estudiante_id = $1
 
-           AND oc.publicado = TRUE
-           AND c.estado = 'Activo'
+     AND m.estado IN (
+       'Activa',
+       'Completada'
+     )
 
-         GROUP BY
-           c.id,
-           c.nombre,
-           c.codigo,
-           c.imagen_portada
+     AND oc.estado IN (
+       'Programado',
+       'En curso',
+       'Finalizado'
+     )
 
-         ORDER BY c.id`,
-        [estudianteId]
-      ),
+     AND oc.publicado = TRUE
+     AND c.estado = 'Activo'
+
+   GROUP BY
+     c.id,
+     c.nombre,
+     c.codigo,
+     c.imagen_portada
+
+   ORDER BY c.id`,
+  [estudianteId]
+),
 
       /*
        * ==========================================

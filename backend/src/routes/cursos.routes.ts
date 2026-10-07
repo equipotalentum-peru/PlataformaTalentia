@@ -4,6 +4,7 @@ import {
   obtenerMisCursos,
   obtenerMisCursosDocente,
   obtenerModulosCurso,
+  completarContenidoEstudiante,
 } from "../controllers/cursos.controller";
 
 import { requireAuth } from "../middleware/auth.middleware";
@@ -34,6 +35,12 @@ router.get(
   "/:cursoId/modulos",
   requireAuth,
   obtenerModulosCurso
+);
+
+router.post(
+  "/:cursoId/contenidos/:contenidoId/progreso",
+  requireAuth,
+  completarContenidoEstudiante
 );
 
 router.get(

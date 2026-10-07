@@ -5,7 +5,10 @@ import { useEffect, useState, } from "react";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import type { ContentType, } from "@/data/courseContents";
-import { getViewedContentIds, } from "@/lib/progress";
+import {
+  getViewedContentIds,
+  sincronizarProgresoGuardado,
+} from "@/lib/progress";
 
 const MODULE_COLOR = "#70A9DC";
 
@@ -29,6 +32,7 @@ type CourseModulesProps = {
     id: string;
     nombre: string;
     imagen: string | null;
+    progreso: number;
   }) => void;
 };
 
@@ -40,6 +44,7 @@ type ContenidoCurso = {
   orden: number;
   rutaArchivo: string | null;
   urlEnlace: string | null;
+  completado: boolean;
 };
 
 type ModuloCurso = {
@@ -89,6 +94,10 @@ export default function CourseModules({
       try {
         setCargando(true);
         setError("");
+
+        await sincronizarProgresoGuardado(
+  courseId
+);
 
         const response =
           await fetch(
@@ -263,7 +272,16 @@ export default function CourseModules({
            * sus contenidos están vistos.
            */
           const totalContenidos = contenidos.length;
-          const contenidosCompletados = contenidos.filter((contenido) => contenidosVistos.has(Number(contenido.id))).length;
+          const contenidosCompletados =
+  contenidos.filter(
+    (contenido) =>
+      Boolean(
+        contenido.completado
+      ) ||
+      contenidosVistos.has(
+        Number(contenido.id)
+      )
+  ).length;
           const moduloCompletado = totalContenidos > 0 && contenidosCompletados === totalContenidos;
 
           const progresoModulo = totalContenidos > 0 ? contenidosCompletados / totalContenidos : 0;
@@ -400,9 +418,12 @@ export default function CourseModules({
                       );
 
                     const visto =
-                      contenidosVistos.has(
-                        contenidoId
-                      );
+  Boolean(
+    contenido.completado
+  ) ||
+  contenidosVistos.has(
+    contenidoId
+  );
 
                     /*
                      * Material que puede

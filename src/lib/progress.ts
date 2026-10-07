@@ -1,3 +1,5 @@
+import { API_URL } from "@/lib/api";
+
 const viewedKey = (courseId: number) =>
   `talentia-course-progress-${courseId}`;
 
@@ -41,6 +43,62 @@ export function getViewedContentIds(
   }
 }
 
+
+async function guardarProgresoEnBaseDeDatos(
+  courseId: number,
+  contentId: number
+): Promise<void> {
+  try {
+    const response =
+      await fetch(
+        `${API_URL}/cursos/${courseId}/contenidos/${contentId}/progreso`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+    if (!response.ok) {
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      throw new Error(
+        data.message ??
+          "No se pudo guardar el progreso."
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "No se pudo sincronizar el progreso con PostgreSQL:",
+      error
+    );
+  }
+}
+
+export async function sincronizarProgresoGuardado(
+  courseId: number
+): Promise<void> {
+  const contenidos =
+    Array.from(
+      getViewedContentIds(
+        courseId
+      )
+    );
+
+  await Promise.all(
+    contenidos.map(
+      (contentId) =>
+        guardarProgresoEnBaseDeDatos(
+          courseId,
+          contentId
+        )
+    )
+  );
+}
+
 export function markContentViewed(
   courseId: number,
   contentId: number
@@ -48,6 +106,11 @@ export function markContentViewed(
   if (typeof window === "undefined") {
     return;
   }
+
+  void guardarProgresoEnBaseDeDatos(
+  courseId,
+  contentId
+);
 
   const viewed =
     getViewedContentIds(courseId);
