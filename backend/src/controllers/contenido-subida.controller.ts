@@ -1,117 +1,185 @@
 import type { Response } from "express";
 import multer from "multer";
-import { open, unlink } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 import {
   createCourseContentKey,
   deleteObjectFromR2,
-  uploadFileToR2,
+  uploadStreamToR2,
 } from "../services/r2.service";
 
-const formats: Record<
-  string,
-  {
-    tipo: string;
-    mime: string;
-  }
-> = {
-  ".mp4": {
-    tipo: "video",
-    mime: "video/mp4",
-  },
+const MAX_FILE_BYTES = 200 * 1024 * 1024;
+const FORMAT_MESSAGE = "Formato no permitido. Usa PDF, DOCX, PPTX o MP4.";
+const MISMATCH_MESSAGE = "El archivo no corresponde al formato seleccionado.";
 
-  ".pdf": {
-    tipo: "pdf",
-    mime: "application/pdf",
-  },
-
+const formats: Record<string, { tipo: string; mime: string }> = {
+  ".mp4": { tipo: "video", mime: "video/mp4" },
+  ".pdf": { tipo: "pdf", mime: "application/pdf" },
   ".docx": {
     tipo: "docx",
-    mime:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   },
-
   ".pptx": {
     tipo: "pptx",
-    mime:
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   },
 };
 
-const receive =
-  multer({
-    dest: tmpdir(),
+class UploadValidationError extends Error {}
 
-    limits: {
-      fileSize:
-        200 * 1024 * 1024,
+type R2UploadedFile = Express.Multer.File & { r2Key?: string };
 
-      files: 1,
+function cleanFileName(rawName: string) {
+  return path
+    .basename(rawName.replaceAll("\\", "/"))
+    .replace(/[\x00-\x1f\x7f]/g, "")
+    .slice(0, 255);
+}
 
-      fields: 0,
+function hasValidSignature(extension: string, header: Buffer) {
+  if (extension === ".mp4") {
+    return header.length >= 12 && header.toString("ascii", 4, 8) === "ftyp";
+  }
 
-      parts: 1,
-    },
+  if (extension === ".pdf") {
+    return header.toString("ascii", 0, 5) === "%PDF-";
+  }
 
-    fileFilter:
-      (_req, file, callback) => {
-        if (
-          !formats[
-            path
-              .extname(
-                file.originalname
-              )
-              .toLowerCase()
-          ]
-        ) {
-          return callback(
-            new Error(
-              "Formato no permitido. Usa PDF, DOCX, PPTX o MP4."
-            )
-          );
+  // .docx y .pptx son archivos ZIP
+  return (
+    header.length >= 4 &&
+    header.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]))
+  );
+}
+
+/**
+ * Motor de almacenamiento de multer que envía el archivo directo a Cloudflare R2
+ * mientras llega. No se escribe nada en el disco del servidor.
+ * También valida la firma del archivo (primeros bytes) y el tamaño máximo.
+ */
+const r2Storage: multer.StorageEngine = {
+  _handleFile(req, file, callback) {
+    const courseId = Number(req.params.cursoId);
+    const moduleId = Number(req.params.moduloId);
+    const originalName = cleanFileName(file.originalname);
+    const extension = path.extname(originalName).toLowerCase();
+    const format = formats[extension];
+
+    if (!format) {
+      file.stream.resume();
+      return callback(new UploadValidationError(FORMAT_MESSAGE));
+    }
+
+    const key = createCourseContentKey({ courseId, moduleId, originalName });
+    let totalBytes = 0;
+
+    async function* validatedChunks() {
+      let header = Buffer.alloc(0);
+      let signatureChecked = false;
+
+      for await (const chunk of file.stream as AsyncIterable<Buffer>) {
+        totalBytes += chunk.length;
+
+        if (totalBytes > MAX_FILE_BYTES) {
+          throw new UploadValidationError("El archivo supera los 200 MB.");
         }
 
-        callback(
-          null,
-          true
-        );
-      },
-  }).single("archivo");
+        if (!signatureChecked) {
+          header = Buffer.concat([header, chunk]);
+
+          if (header.length >= 12) {
+            if (!hasValidSignature(extension, header)) {
+              throw new UploadValidationError(MISMATCH_MESSAGE);
+            }
+
+            signatureChecked = true;
+          }
+        }
+
+        yield chunk;
+      }
+
+      // Archivos de menos de 12 bytes
+      if (!signatureChecked && !hasValidSignature(extension, header)) {
+        throw new UploadValidationError(MISMATCH_MESSAGE);
+      }
+    }
+
+    uploadStreamToR2({
+      body: Readable.from(validatedChunks(), { objectMode: false }),
+      key,
+      contentType: format.mime,
+      originalName,
+    })
+      .then(() => {
+        const info: Partial<R2UploadedFile> = {
+          size: totalBytes,
+          r2Key: key,
+          originalname: originalName,
+        };
+
+        callback(null, info);
+      })
+      .catch((error) => {
+        file.stream.resume(); // evita que la petición quede colgada
+        callback(error);
+      });
+  },
+
+  _removeFile(_req, file, callback) {
+    const key = (file as R2UploadedFile).r2Key;
+
+    if (!key) {
+      return callback(null);
+    }
+
+    deleteObjectFromR2(key)
+      .then(() => callback(null))
+      .catch((error) => callback(error));
+  },
+};
+
+const receive = multer({
+  storage: r2Storage,
+  defParamCharset: "utf8", // respeta tildes y ñ en el nombre del archivo
+  limits: {
+    fileSize: MAX_FILE_BYTES,
+    files: 1,
+    fields: 0,
+    parts: 1,
+  },
+  fileFilter: (_req, file, callback) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+
+    if (!formats[extension]) {
+      return callback(new UploadValidationError(FORMAT_MESSAGE));
+    }
+
+    callback(null, true);
+  },
+}).single("archivo");
 
 const accessQuery = `
   SELECT mc.id
   FROM modulos_curso mc
   JOIN cursos c
     ON c.id = mc.curso_id
-
   WHERE mc.id = $1
-
     AND c.id = $2
-
     AND mc.activo = TRUE
-
     AND c.estado = 'Activo'
-
     AND EXISTS (
       SELECT 1
-
       FROM ofertas_curso oc
-
       JOIN usuarios u
         ON u.id = oc.docente_id
-
       WHERE oc.curso_id = c.id
-
         AND u.id = $3
-
         AND u.rol = 'Docente'
-
         AND u.activo = TRUE
-
         AND oc.estado <> 'Cancelado'
     )`;
 
@@ -120,403 +188,153 @@ export async function subirArchivoContenido(
   res: Response
 ) {
   const ids = [
-    Number(
-      req.params.moduloId
-    ),
-
-    Number(
-      req.params.cursoId
-    ),
-
-    Number(
-      req.userId
-    ),
+    Number(req.params.moduloId),
+    Number(req.params.cursoId),
+    Number(req.userId),
   ];
 
-  if (
-    !ids.every(
-      (id) =>
-        Number.isSafeInteger(
-          id
-        ) &&
-        id > 0
-    )
-  ) {
-    return res.status(400).json({
-      message:
-        "Solicitud no válida.",
-    });
+  if (!ids.every((id) => Number.isSafeInteger(id) && id > 0)) {
+    return res.status(400).json({ message: "Solicitud no válida." });
   }
 
-  let temporary:
-    | string
-    | undefined;
-
-  let r2Key:
-    | string
-    | undefined;
-
-  let uploadedToR2 = false;
+  let r2Key: string | undefined;
+  let saved = false;
 
   try {
-    const access =
-      await pool.query(
-        accessQuery,
-        ids
-      );
+    const access = await pool.query(accessQuery, ids);
 
     if (!access.rowCount) {
       return res.status(403).json({
-        message:
-          "No puedes subir archivos a este módulo.",
+        message: "No puedes subir archivos a este módulo.",
       });
     }
 
-    await new Promise<void>(
-      (resolve, reject) =>
-        receive(
-          req,
-          res,
-          (error) =>
-            error
-              ? reject(error)
-              : resolve()
-        )
+    // El archivo viaja directo a Cloudflare R2 durante este paso.
+    await new Promise<void>((resolve, reject) =>
+      receive(req, res, (error) => (error ? reject(error) : resolve()))
     );
 
-    temporary =
-      req.file?.path;
+    const file = req.file as R2UploadedFile | undefined;
+    r2Key = file?.r2Key;
 
-    if (
-      !req.file ||
-      !temporary
-    ) {
-      return res.status(400).json({
-        message:
-          "Selecciona un archivo.",
-      });
+    if (!file || !r2Key) {
+      return res.status(400).json({ message: "Selecciona un archivo." });
     }
 
-    const extension =
-      path
-        .extname(
-          req.file.originalname
-        )
-        .toLowerCase();
-
-    const format =
-      formats[
-        extension
-      ];
-
-    if (!format) {
-      return res.status(400).json({
-        message:
-          "Formato no permitido. Usa PDF, DOCX, PPTX o MP4.",
-      });
-    }
-
-    const handle =
-      await open(
-        temporary,
-        "r"
-      );
-
-    const header =
-      Buffer.alloc(12);
-
-    let bytesRead = 0;
-
-    try {
-      ({
-        bytesRead,
-      } = await handle.read(
-        header,
-        0,
-        header.length,
-        0
-      ));
-    } finally {
-      await handle.close();
-    }
-
-    const valid =
-      extension === ".mp4"
-        ? bytesRead === 12 &&
-          header.toString(
-            "ascii",
-            4,
-            8
-          ) === "ftyp" &&
-          header.readUInt32BE(
-            0
-          ) >= 16 &&
-          header.readUInt32BE(
-            0
-          ) <=
-            req.file.size
-
-        : extension === ".pdf"
-          ? header.toString(
-              "ascii",
-              0,
-              5
-            ) === "%PDF-"
-
-          : header
-              .subarray(
-                0,
-                4
-              )
-              .equals(
-                Buffer.from([
-                  0x50,
-                  0x4b,
-                  0x03,
-                  0x04,
-                ])
-              );
-
-    if (!valid) {
-      return res.status(400).json({
-        message:
-          "El archivo no corresponde al formato seleccionado.",
-      });
-    }
-
-    const originalName =
-      path
-        .basename(
-          req.file.originalname.replaceAll(
-            "\\",
-            "/"
-          )
-        )
-        .replace(
-          /[\x00-\x1f\x7f]/g,
-          ""
-        )
-        .slice(
-          0,
-          255
-        );
+    const originalName = file.originalname;
+    const extension = path.extname(originalName).toLowerCase();
+    const format = formats[extension];
 
     const title =
-      originalName
-        .slice(
-          0,
-          -extension.length
-        )
-        .trim()
-        .slice(
-          0,
-          200
-        ) ||
+      originalName.slice(0, -extension.length).trim().slice(0, 200) ||
       "Archivo";
 
-    r2Key =
-      createCourseContentKey({
-        courseId:
-          ids[1],
-
-        moduleId:
-          ids[0],
-
-        originalName,
-      });
-
-    await uploadFileToR2({
-      filePath:
-        temporary,
-
-      key:
-        r2Key,
-
-      contentType:
-        format.mime,
-
-      contentLength:
-        req.file.size,
-    });
-
-    uploadedToR2 =
-      true;
-
-    await unlink(
-      temporary
-    );
-
-    temporary =
-      undefined;
-
-    const client =
-      await pool.connect();
+    const client = await pool.connect();
 
     try {
-      await client.query(
-        "BEGIN"
+      await client.query("BEGIN");
+
+      const lockedAccess = await client.query(
+        `${accessQuery} FOR UPDATE OF mc`,
+        ids
       );
 
-      const access =
-        await client.query(
-          `${accessQuery} FOR UPDATE OF mc`,
-          ids
-        );
-
-      if (!access.rowCount) {
-        await client.query(
-          "ROLLBACK"
-        );
+      if (!lockedAccess.rowCount) {
+        await client.query("ROLLBACK");
 
         return res.status(403).json({
-          message:
-            "No puedes subir archivos a este módulo.",
+          message: "No puedes subir archivos a este módulo.",
         });
       }
 
-      const result =
-        await client.query(
-          `
-            INSERT INTO contenidos_curso (
-              modulo_id,
-              titulo,
-              tipo,
-              nombre_archivo,
-              ruta_archivo,
-              mime_type,
-              tamano_bytes,
-              orden,
-              estado,
-              creado_por
-            )
-
-            SELECT
-              $1,
-              $2,
-              $3,
-              $4,
-              $5,
-              $6,
-              $7,
-
-              COALESCE(
-                MAX(orden),
-                0
-              ) + 1,
-
-              'Borrador',
-
-              $8
-
-            FROM contenidos_curso
-
-            WHERE modulo_id = $1
-
-            RETURNING
-              id,
-              modulo_id,
-              titulo,
-              tipo,
-              orden,
-              estado,
-              ruta_archivo,
-              nombre_archivo,
-              mime_type,
-              tamano_bytes
-          `,
-          [
-            ids[0],
-
-            title,
-
-            format.tipo,
-
-            originalName,
-
-            `r2://${r2Key}`,
-
-            format.mime,
-
-            req.file.size,
-
-            ids[2],
-          ]
-        );
-
-      await client.query(
-        "COMMIT"
+      const result = await client.query(
+        `
+          INSERT INTO contenidos_curso (
+            modulo_id,
+            titulo,
+            tipo,
+            nombre_archivo,
+            ruta_archivo,
+            mime_type,
+            tamano_bytes,
+            orden,
+            estado,
+            creado_por
+          )
+          SELECT
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            $6,
+            $7,
+            COALESCE(MAX(orden), 0) + 1,
+            'Borrador',
+            $8
+          FROM contenidos_curso
+          WHERE modulo_id = $1
+          RETURNING
+            id,
+            modulo_id,
+            titulo,
+            tipo,
+            orden,
+            estado,
+            ruta_archivo,
+            nombre_archivo,
+            mime_type,
+            tamano_bytes
+        `,
+        [
+          ids[0],
+          title,
+          format.tipo,
+          originalName,
+          `r2://${r2Key}`,
+          format.mime,
+          file.size,
+          ids[2],
+        ]
       );
 
-      uploadedToR2 =
-        false;
+      await client.query("COMMIT");
+      saved = true;
 
-      return res.status(
-        201
-      ).json({
-        contenido:
-          result.rows[0],
-      });
-    } catch (
-      error
-    ) {
-      await client.query(
-        "ROLLBACK"
-      );
-
+      return res.status(201).json({ contenido: result.rows[0] });
+    } catch (error) {
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
     }
   } catch (error) {
-    if (
-      error instanceof
-        multer.MulterError ||
-      (
-        error instanceof Error &&
-        error.message.startsWith(
-          "Formato no permitido"
-        )
-      )
-    ) {
+    if (error instanceof UploadValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof multer.MulterError) {
       return res.status(400).json({
-        message:
-          "Sube un solo archivo PDF, DOCX, PPTX o MP4 de hasta 200 MB.",
+        message: "Sube un solo archivo PDF, DOCX, PPTX o MP4 de hasta 200 MB.",
       });
     }
 
-    console.error(
-      "Error subiendo contenido a Cloudflare R2:",
-      error
-    );
+    console.error("Error subiendo contenido a Cloudflare R2:", error);
 
     return res.status(500).json({
       message:
         "No se pudo guardar el archivo en Cloudflare R2. Inténtalo nuevamente.",
     });
   } finally {
-    if (temporary) {
-      await unlink(
-        temporary
-      ).catch(
-        () =>
-          undefined
-      );
-    }
-
-    if (
-      uploadedToR2 &&
-      r2Key
-    ) {
-      await deleteObjectFromR2(
-        r2Key
-      ).catch(
-        (cleanupError) => {
-          console.error(
-            "No se pudo eliminar de R2 el archivo huérfano:",
-            cleanupError
-          );
-        }
-      );
+    // Si el archivo llegó a R2 pero no se pudo registrar en PostgreSQL,
+    // se elimina para no dejar archivos huérfanos.
+    if (r2Key && !saved) {
+      await deleteObjectFromR2(r2Key).catch((cleanupError) => {
+        console.error(
+          "No se pudo eliminar de R2 el archivo huérfano:",
+          cleanupError
+        );
+      });
     }
   }
 }
