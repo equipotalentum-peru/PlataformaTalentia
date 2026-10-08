@@ -1,28 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-
-import { chatCourses } from "@/data/chat";
+import { useEffect, useMemo, useState, } from "react";
+import type { ChatCourse, } from "@/data/chat";
+import { API_URL } from "@/lib/api";
 
 type Props = {
-  basePath: "alumno" | "docente";
+  basePath:
+    | "alumno"
+    | "docente";
 };
 
 export default function ChatCourseList({
   basePath,
 }: Props) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
-  const filteredCourses = useMemo(() => {
-    const term = search.trim().toLowerCase();
+  const [courses, setCourses] =
+    useState<ChatCourse[]>([]);
 
-    return chatCourses.filter((course) =>
-      `${course.nombre} ${course.codigo}`
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [search]);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function cargar() {
+      try {
+        const response =
+          await fetch(
+            `${API_URL}/chat/cursos`,
+            {
+              credentials:
+                "include",
+              cache: "no-store",
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ??
+              "No se pudieron cargar los cursos."
+          );
+        }
+
+        if (!cancelled) {
+          setCourses(
+            Array.isArray(
+              data.cursos
+            )
+              ? data.cursos
+              : []
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setError(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar los cursos."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void cargar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredCourses =
+    useMemo(() => {
+      const term =
+        search
+          .trim()
+          .toLowerCase();
+
+      return courses.filter(
+        (course) =>
+          `${course.nombre} ${course.codigo}`
+            .toLowerCase()
+            .includes(term)
+      );
+    }, [courses, search]);
 
   return (
     <main className="min-h-screen bg-[#eef2f8] px-2 py-2 lg:px-3">
@@ -45,7 +118,9 @@ export default function ChatCourseList({
             <input
               value={search}
               onChange={(event) =>
-                setSearch(event.target.value)
+                setSearch(
+                  event.target.value
+                )
               }
               placeholder="Buscar cursos"
               className="w-full bg-transparent text-[12px] outline-none"
@@ -53,41 +128,55 @@ export default function ChatCourseList({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {filteredCourses.map((course) => (
-            <Link
-              key={course.id}
-              href={`/${basePath}/chat/${course.id}`}
-              className="flex min-h-[78px] items-center justify-between border-b border-gray-300 px-6 hover:bg-[#f5f8fc]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2f80d8] text-[13px] font-semibold text-white">
-                  {course.initials}
-                </div>
+        {loading ? (
+          <div className="flex flex-1 items-center justify-center text-[12px] text-gray-500">
+            Cargando cursos...
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-[12px] text-red-600">
+            {error}
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
 
-                <div>
-                  <h2 className="text-[14px] font-bold">
-                    {course.nombre}
-                  </h2>
+            {filteredCourses.map(
+              (course) => (
+                <Link
+                  key={course.id}
+                  href={`/${basePath}/chat/${course.id}`}
+                  className="flex min-h-[78px] items-center justify-between border-b border-gray-300 px-6 hover:bg-[#f5f8fc]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2f80d8] text-[13px] font-semibold text-white">
+                      {course.initials}
+                    </div>
 
-                  <p className="mt-1 text-[11px] text-gray-600">
-                    {course.codigo}
-                  </p>
-                </div>
-              </div>
+                    <div>
+                      <h2 className="text-[14px] font-bold">
+                        {course.nombre}
+                      </h2>
 
-              <span className="text-[11px]">
-                {course.miembros} miembros
-              </span>
-            </Link>
-          ))}
+                      <p className="mt-1 text-[11px] text-gray-600">
+                        {course.codigo}
+                      </p>
+                    </div>
+                  </div>
 
-          {!filteredCourses.length && (
-            <p className="p-10 text-center text-[12px] text-gray-500">
-              No se encontraron cursos.
-            </p>
-          )}
-        </div>
+                  <span className="text-[11px]">
+                    {course.miembros} miembros
+                  </span>
+                </Link>
+              )
+            )}
+
+            {!filteredCourses.length && (
+              <p className="p-10 text-center text-[12px] text-gray-500">
+                No se encontraron cursos.
+              </p>
+            )}
+
+          </div>
+        )}
       </div>
     </main>
   );

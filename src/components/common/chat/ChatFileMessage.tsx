@@ -1,4 +1,12 @@
-import type { ChatMessage as ChatMessageType } from "@/data/chat";
+import type {
+  ChatMessage as ChatMessageType,
+} from "@/data/chat";
+
+import { API_URL } from "@/lib/api";
+
+import {
+  formatearHoraChat,
+} from "@/lib/chat-time";
 
 type Props = {
   message: ChatMessageType;
@@ -11,8 +19,29 @@ export default function ChatFileMessage({
     return null;
   }
 
+  const isMine =
+    message.sender === "me";
+
+  const descargar = () => {
+    if (!message.file) {
+      return;
+    }
+
+    window.open(
+      `${API_URL}/chat/adjuntos/${message.file.id}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
   return (
-    <div className="flex justify-end">
+    <div
+      className={`flex ${
+        isMine
+          ? "justify-end"
+          : "justify-start"
+      }`}
+    >
       <div className="w-[280px] rounded-xl border border-gray-300 bg-white p-3 shadow-sm">
 
         <div className="flex items-center gap-3">
@@ -43,6 +72,7 @@ export default function ChatFileMessage({
 
           <button
             type="button"
+            onClick={descargar}
             className="text-[18px] text-[#3186d8]"
             aria-label="Descargar archivo"
           >
@@ -52,7 +82,9 @@ export default function ChatFileMessage({
         </div>
 
         <p className="mt-2 text-right text-[9px] text-gray-400">
-          {message.time}
+          {formatearHoraChat(
+            message.time
+          )}
         </p>
 
       </div>

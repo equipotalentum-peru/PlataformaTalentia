@@ -104,6 +104,24 @@ export function createCourseContentKey({
   return `courses/${courseId}/modules/${moduleId}/contents/${readableName}-${uniqueSuffix}${extension}`;
 }
 
+export function createChatFileKey({
+  courseId,
+  conversationId,
+  originalName,
+}: {
+  courseId: number;
+  conversationId: number;
+  originalName: string;
+}) {
+  const extension = path.extname(originalName).toLowerCase();
+
+  const baseName = path.basename(originalName, path.extname(originalName));
+
+  const safeBaseName = slugifyFileName(baseName);
+
+  return `chat/courses/${courseId}/conversations/${conversationId}/${safeBaseName}${extension}`;
+}
+
 /** Sube un archivo del disco (se usa solo en el script de migración). */
 export async function uploadFileToR2({
   filePath,
@@ -252,4 +270,38 @@ export function streamBodyToResponse(
   throw new Error(
     "No se pudo convertir la respuesta de Cloudflare R2 en un flujo de lectura."
   );
+}
+
+export async function uploadBufferToR2({
+  buffer,
+  key,
+  contentType,
+  contentLength,
+}: {
+  buffer: Buffer;
+  key: string;
+  contentType: string;
+  contentLength?: number;
+}) {
+  const client =
+    getClient();
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket:
+        getBucketName(),
+
+      Key: key,
+
+      Body: buffer,
+
+      ContentType:
+        contentType,
+
+      ContentLength:
+        contentLength,
+    })
+  );
+
+  return toR2Path(key);
 }

@@ -1,4 +1,5 @@
 import type { ChatMessage as ChatMessageType } from "@/data/chat";
+import { formatearHoraChat, } from "@/lib/chat-time";
 
 type Props = {
   message: ChatMessageType;
@@ -33,7 +34,9 @@ export default function ChatMessage({
         </p>
 
         <p className="mt-1 text-right text-[9px] text-gray-400">
-          {message.time}
+          {formatearHoraChat(
+            message.time
+          )}
         </p>
       </div>
     </div>

@@ -9,6 +9,7 @@ import ChatFilters from "./ChatFilters";
 type Filter = "Todos" | "Sin leer" | "Leídos";
 
 type Props = {
+  courseName: string;
   contacts: ChatContact[];
   selectedContact: number;
   search: string;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function ChatContactList({
+  courseName,
   contacts,
   selectedContact,
   search,
@@ -53,7 +55,7 @@ export default function ChatContactList({
       <div className="border-b border-gray-300 px-4 py-4">
 
         <h1 className="text-[25px] font-semibold text-[#18407c]">
-          Herramientas TIC
+          {courseName}
         </h1>
 
         <p className="mt-1 text-[11px] text-gray-700">
