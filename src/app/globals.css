@@ -8,6 +8,12 @@
   --mobile-header-height: 64px;
   --sidebar-width: 247px;
   --admin-sidebar-width: 260px;
+
+  /* Tamaño único del contenido (alumno y docente) */
+  --page-max: 1100px;
+  --page-px: 24px;
+  --page-py: 20px;
+  --course-banner-height: 150px;
 }
 
 * {
@@ -24,6 +30,7 @@ body {
 
 html {
   overflow-x: clip;
+  scrollbar-gutter: stable;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -468,6 +475,52 @@ a {
 }
 
 /* =========================================================
+   CONTENEDOR ÚNICO DE PÁGINA (ALUMNO Y DOCENTE)
+   Todas las vistas comparten el mismo ancho máximo, el mismo
+   padding y la misma altura de banner. Para cambiar el tamaño
+   global, modifica --page-max, --page-px y --page-py en :root.
+   ========================================================= */
+
+.app-page {
+  width: 100%;
+  max-width: calc(var(--page-max) + (var(--page-px) * 2));
+  margin-inline: auto;
+  padding: var(--page-py) var(--page-px);
+}
+
+/* Se anula el padding / alto propio de cada vista */
+.app-page > [class*="min-h-screen"] {
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+/* Se anulan los anchos máximos propios (1000, 1050, 1080, 1100) */
+.app-page [class*="max-w-[1000px]"],
+.app-page [class*="max-w-[1050px]"],
+.app-page [class*="max-w-[1080px]"],
+.app-page [class*="max-w-[1100px]"] {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+/* Banner de curso con la misma altura en todas las vistas */
+.app-page [class*="rounded-t-xl"][class*="overflow-hidden"] {
+  height: var(--course-banner-height) !important;
+  min-height: var(--course-banner-height) !important;
+}
+
+/* Título del banner y pestañas del curso con el mismo tamaño */
+.app-page [class*="rounded-t-xl"][class*="overflow-hidden"] h1 {
+  font-size: clamp(24px, 3vw, 32px) !important;
+  line-height: 1.15 !important;
+}
+
+.app-page [class*="border-b"][class*="bg-[#eef2f8]"] > :is(a, button) {
+  font-size: 12px !important;
+}
+
+/* =========================================================
    ≤ 1100px
    TABLET HORIZONTAL / LAPTOP PEQUEÑA
    ========================================================= */
@@ -612,6 +665,10 @@ a {
     padding-right: 24px;
     padding-left: 24px;
   }
+
+  :root {
+    --page-px: 20px;
+  }
 }
 
 /* =========================================================
@@ -649,6 +706,11 @@ a {
   .app-footer {
     padding: 14px 20px;
     font-size: 11px;
+  }
+
+  :root {
+    --page-px: 16px;
+    --page-py: 16px;
   }
 }
 
@@ -792,6 +854,12 @@ a {
     gap: 4px;
     padding: 12px 16px;
     font-size: 10px;
+  }
+
+  :root {
+    --page-px: 12px;
+    --page-py: 12px;
+    --course-banner-height: 130px;
   }
 }
 

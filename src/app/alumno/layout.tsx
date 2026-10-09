@@ -10,7 +10,9 @@ export default function StudentLayout({
     <div className="app-shell app-shell--student">
       <StudentSidebar />
       <div className="app-main-column">
-        <main className="app-layout-main">{children}</main>
+        <main className="app-layout-main">
+          <div className="app-page">{children}</div>
+        </main>
         <ResponsiveFooter />
       </div>
     </div>
