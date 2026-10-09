@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ResponsiveSidebar from "@/components/common/layout/ResponsiveSidebar";
 import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount";
 import SidebarAvatar from "@/components/common/layout/SidebarAvatar";
 
 export default function StudentSidebar() {
   const pathname = usePathname();
-  const { nombre, fotoPerfil, cerrarSesion, cerrandoSesion, errorSalida } = useSidebarAccount();
+  const {
+    nombre,
+    fotoPerfil,
+    cerrarSesion,
+    cerrandoSesion,
+    errorSalida,
+  } = useSidebarAccount();
 
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`);
-  };
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(`${path}/`);
 
   const menuItems = [
     {
@@ -115,94 +121,68 @@ export default function StudentSidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-[247px] flex-col border-r border-white/60 bg-[#d8e0ee]">
-      {/* LOGO */}
-      <div className="flex h-[82px] items-center border-b border-white/70 px-5">
-        <img
-          src="/images/Talentia_grande_sin_fondo.png"
-          alt="Talentia - Escuela de Especialización Profesional"
-          className="h-auto w-[210px] object-contain"
-        />
-      </div>
-
-      {/* NAVEGACIÓN */}
-      <nav className="flex-1 px-4 py-7">
-        {menuItems.map((item) => {
-          const active = isActive(item.href);
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`mb-2 flex h-[58px] items-center gap-4 rounded-lg px-7 text-[18px] font-medium transition ${
-                active
-                  ? "bg-[#0fb4b7] text-black shadow-sm"
-                  : "text-gray-800 hover:bg-white/40"
-              }`}
+    <ResponsiveSidebar
+      variant="alumno"
+      roleLabel="Panel del estudiante"
+      items={menuItems.map((item) => ({
+        ...item,
+        active: isActive(item.href),
+      }))}
+    >
+      <Link
+        href="/alumno/perfil"
+        className={`app-sidebar-account-link ${
+          isActive("/alumno/perfil") ? "is-active" : ""
+        }`}
+      >
+        <div className="app-sidebar-account-avatar app-sidebar-account-avatar--student">
+          <SidebarAvatar fotoPerfil={fotoPerfil} nombre={nombre}>
+            <svg
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              aria-hidden="true"
             >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5 20c.8-3.4 3.2-5.3 7-5.3s6.2 1.9 7 5.3" />
+            </svg>
+          </SidebarAvatar>
+        </div>
+        <span className="app-sidebar-account-name" title={nombre}>
+          {nombre}
+        </span>
+      </Link>
 
-      {/* PERFIL */}
-      <div>
-        <Link
-          href="/alumno/perfil"
-          className="group flex h-[52px] w-full items-center gap-3 border-t border-white/70 px-5 text-left transition duration-200 hover:bg-white/30"
+      <button
+        type="button"
+        onClick={cerrarSesion}
+        disabled={cerrandoSesion}
+        className="app-sidebar-logout"
+      >
+        <svg
+          className="h-6 w-6 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e8f1ff] transition group-hover:bg-white">
-            <SidebarAvatar fotoPerfil={fotoPerfil} nombre={nombre}>
-              <svg
-                className="h-6 w-6 text-[#516987] transition group-hover:text-[#0b315f]"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <circle cx="12" cy="8" r="3.5" />
-                <path d="M5 20c.8-3.4 3.2-5.3 7-5.3s6.2 1.9 7 5.3" />
-              </svg>
-            </SidebarAvatar>
-          </div>
+          <path d="M10 17l5-5-5-5" />
+          <path d="M15 12H3" />
+          <path d="M21 19V5a2 2 0 0 0-2-2h-6" />
+        </svg>
+        <span>
+          {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
+        </span>
+      </button>
 
-          <span
-            className="min-w-0 truncate text-[17px] font-medium uppercase transition group-hover:text-[#0b315f]"
-            title={nombre}
-          >
-            {nombre}
-          </span>
-        </Link>
-
-        {/* CERRAR SESIÓN */}
-        <button
-          type="button"
-          onClick={cerrarSesion}
-          disabled={cerrandoSesion}
-          className="flex h-[57px] w-full items-center gap-4 border-t border-white/70 px-7 text-left text-[17px] font-medium text-gray-800 transition hover:bg-white/30 disabled:cursor-wait disabled:opacity-60"
-        >
-          <svg
-            className="h-7 w-7"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M10 17l5-5-5-5" />
-            <path d="M15 12H3" />
-            <path d="M21 19V5a2 2 0 0 0-2-2h-6" />
-          </svg>
-
-          <span>Cerrar sesión</span>
-        </button>
-        {errorSalida && (
-          <p role="alert" className="px-5 pb-2 text-sm text-red-700">
-            No se pudo cerrar sesión. Inténtalo de nuevo.
-          </p>
-        )}
-      </div>
-    </aside>
+      {errorSalida && (
+        <p role="alert" className="app-sidebar-error">
+          No se pudo cerrar sesión. Inténtalo de nuevo.
+        </p>
+      )}
+    </ResponsiveSidebar>
   );
 }

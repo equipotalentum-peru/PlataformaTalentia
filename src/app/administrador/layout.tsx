@@ -1,4 +1,5 @@
 import SidebarAdmin from "@/components/administrador/sidebar-admin";
+import ResponsiveFooter from "@/components/common/layout/ResponsiveFooter";
 
 export default function AdministradorLayout({
   children,
@@ -6,12 +7,12 @@ export default function AdministradorLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#EEF2F8] font-sans">
-      {/* El Sidebar se mantiene persistente en todas las vistas de administrador */}
+    <div className="app-shell app-shell--admin">
       <SidebarAdmin />
-
-      {/* Aquí se renderizan las páginas (/dashboard, /usuarios, /cursos, etc.) */}
-      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+      <div className="app-main-column">
+        <main className="app-layout-main app-layout-main--admin">{children}</main>
+        <ResponsiveFooter />
+      </div>
     </div>
   );
 }

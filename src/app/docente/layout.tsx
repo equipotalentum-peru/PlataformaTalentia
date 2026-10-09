@@ -1,4 +1,5 @@
 import TeacherSidebar from "@/components/docente/TeacherSidebar";
+import ResponsiveFooter from "@/components/common/layout/ResponsiveFooter";
 
 export default function TeacherLayout({
   children,
@@ -6,12 +7,12 @@ export default function TeacherLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#eef2f8]">
+    <div className="app-shell app-shell--teacher">
       <TeacherSidebar />
-
-      <main className="ml-[247px] min-h-screen">
-        {children}
-      </main>
+      <div className="app-main-column">
+        <main className="app-layout-main">{children}</main>
+        <ResponsiveFooter />
+      </div>
     </div>
   );
 }
