@@ -3,14 +3,16 @@
 type CreateModuleModalProps = {
   open: boolean;
   value: string;
+  saving?: boolean;
   onChange: (value: string) => void;
   onClose: () => void;
-  onSave: (status: "Borrador" | "Publicado") => void;
+  onSave: () => void;
 };
 
 export default function CreateModuleModal({
   open,
   value,
+  saving = false,
   onChange,
   onClose,
   onSave,
@@ -32,6 +34,8 @@ export default function CreateModuleModal({
         </label>
         <input
           id="module-title"
+          maxLength={200}
+          disabled={saving}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           autoFocus
@@ -39,17 +43,16 @@ export default function CreateModuleModal({
         />
 
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <button type="button" onClick={() => onSave("Borrador")} className="h-9 rounded-md bg-[#dceef9] text-[12px] font-semibold text-[#3186d8] transition hover:bg-[#cce5f5]">
-            Borrador
+          <button
+          type="button"
+          disabled={saving}
+          onClick={() => onSave()}
+          className="h-9 rounded-md bg-[#08489d] text-[12px] font-semibold text-white transition hover:bg-[#063e89]">Publicar
           </button>
-          <button type="button" onClick={() => onSave("Publicado")} className="h-9 rounded-md bg-[#08489d] text-[12px] font-semibold text-white transition hover:bg-[#063e89]">
-            Publicar
-          </button>
-        </div>
-
-        <button type="button" onClick={onClose} className="mx-auto mt-3 flex h-9 w-[102px] items-center justify-center rounded-md bg-[#efe6fa] text-[12px] font-semibold text-[#4b5fa7] transition hover:bg-[#e8ddf4]">
+        <button type="button" onClick={onClose} className="flex h-9 items-center justify-center rounded-md bg-[#efe6fa] text-[12px] font-semibold text-[#4b5fa7] transition hover:bg-[#e8ddf4]">
           Cancelar
         </button>
+        </div>
       </div>
     </div>
   );

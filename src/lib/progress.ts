@@ -81,12 +81,52 @@ async function guardarProgresoEnBaseDeDatos(
 export async function sincronizarProgresoGuardado(
   courseId: number
 ): Promise<void> {
-  const contenidos =
+  const guardados =
     Array.from(
       getViewedContentIds(
         courseId
       )
     );
+
+  if (guardados.length === 0) {
+    return;
+  }
+
+  const response = await fetch(
+    `${API_URL}/cursos/${courseId}/modulos`,
+    { credentials: "include" }
+  );
+
+  if (!response.ok) {
+    return;
+  }
+
+  const data = await response.json();
+  if (
+    !Array.isArray(data.modulos) ||
+    !data.modulos.every(
+      (modulo: { contenidos?: unknown }) =>
+        Array.isArray(modulo.contenidos)
+    )
+  ) {
+    return;
+  }
+
+  const disponibles = new Set<number>(
+    data.modulos.flatMap(
+      (modulo: { contenidos: { id: string | number }[] }) =>
+        modulo.contenidos.map((contenido) => Number(contenido.id))
+    )
+  );
+  const contenidos = guardados.filter((id) => disponibles.has(id));
+
+  if (contenidos.length !== guardados.length) {
+    localStorage.setItem(
+      viewedKey(courseId),
+      JSON.stringify(contenidos)
+    );
+    window.dispatchEvent(new CustomEvent("talentia-progress-updated"));
+  }
 
   await Promise.all(
     contenidos.map(

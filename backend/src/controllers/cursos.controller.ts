@@ -354,6 +354,7 @@ const modulosResult = await pool.query(
 
    WHERE mc.curso_id = $1
      AND mc.activo = TRUE
+     
 
    ORDER BY
      mc.orden,

@@ -9,9 +9,9 @@ import type { ContentType } from "@/data/courseContents";
 type Material = {
   id: string; titulo: string; tipo: string; orden: number;
   rutaArchivo: string | null; urlEnlace: string | null;
-  numeroModulo: number; tituloModulo: string;
+  numeroModulo: number; tituloModulo: string; numeroContenido: number;
 };
-type Module = { numero: number; titulo: string; contenidos: Omit<Material, "numeroModulo" | "tituloModulo">[] };
+type Module = { numero: number; titulo: string; contenidos: Omit<Material, "numeroModulo" | "tituloModulo" | "numeroContenido">[] };
 const types: Record<string, ContentType> = { pdf: "pdf", pptx: "ppt", docx: "word", video: "video" };
 
 function href(courseId: number, item: Material) {
@@ -31,8 +31,8 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
         const response = await fetch(`${API_URL}/cursos/${courseId}/modulos`, options);
         const result = await response.json();
         if (!response.ok) throw new Error(result.message ?? "No se pudo cargar el contenido.");
-        const materials: Material[] = (result.modulos as Module[]).flatMap(module => module.contenidos.map(item => ({
-          ...item, numeroModulo: module.numero, tituloModulo: module.titulo,
+        const materials: Material[] = (result.modulos as Module[]).flatMap(module => [...module.contenidos].sort((a, b) => a.orden - b.orden).map((item, index) => ({
+          ...item, numeroModulo: module.numero, tituloModulo: module.titulo, numeroContenido: index + 1,
         })));
         const content = materials.find(item => Number(item.id) === contentId);
         if (!content) throw new Error("Este contenido no pertenece al curso o no está disponible.");
@@ -62,7 +62,7 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
         Volver a cursos
       </Link>
-      {data && <span className="min-w-0 truncate text-[11px] text-gray-700">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.orden} {data.content.titulo}</span>}
+      {data && <span className="min-w-0 truncate text-[11px] text-gray-700">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.numeroContenido} {data.content.titulo}</span>}
     </div>
     {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : !data ? <p role="status">Cargando contenido...</p> : <>
       {data.content.tipo === "enlace" && data.content.urlEnlace ? <a href={data.content.urlEnlace} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3186d8] underline">{data.content.titulo}</a> :

@@ -118,6 +118,8 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
   const [openModules, setOpenModules] = useState<number[]>([]);
   const [createModuleOpen, setCreateModuleOpen] = useState(false);
   const [createModuleTitle, setCreateModuleTitle] = useState("");
+  const [savingModule, setSavingModule] = useState(false);
+  const [deletingModuleId, setDeletingModuleId] = useState<number | null>(null);
   const [addContentOpen, setAddContentOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -177,20 +179,72 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
     window.setTimeout(() => setNotice(""), 2600);
   };
 
-  const saveModule = (status: "Borrador" | "Publicado") => {
+  const saveModule = async () => {
+    if (savingModule) return;
     const title = createModuleTitle.trim();
     if (!title) {
       showNotice("Escribe un título para el módulo.");
       return;
     }
 
-    const nextId = Math.max(0, ...modules.map((module) => module.id)) + 1;
-    setModules((current) => [...current, { id: nextId, number: Math.max(0, ...current.map(module => module.number)) + 1, title }]);
-    setOpenModules((current) => [...current, nextId]);
-    setSelectedModuleId(nextId);
-    setCreateModuleTitle("");
-    setCreateModuleOpen(false);
-    showNotice(status === "Publicado" ? "Módulo publicado." : "Módulo guardado como borrador.");
+    setSavingModule(true);
+    try {
+      const response = await fetch(`${API_URL}/cursos/${courseId}/modulos`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: title }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "No se pudo guardar el módulo.");
+      const module = data.modulo;
+      const id = Number(module.id);
+      setModules(current => [...current, { id, number: module.numero, title: module.titulo }]);
+      setOpenModules(current => [...current, id]);
+      setSelectedModuleId(id);
+      setCreateModuleTitle("");
+      setCreateModuleOpen(false);
+      showNotice("Módulo publicado.");
+    } catch (error) {
+      showNotice(error instanceof Error ? error.message : "No se pudo guardar el módulo.");
+    } finally {
+      setSavingModule(false);
+    }
+  };
+
+  const deleteModule = async (module: LocalModule) => {
+    if (deletingModuleId !== null) return;
+    if (!window.confirm(
+      `¿Eliminar definitivamente el módulo "${module.title}" y todos sus contenidos?\n\n` +
+      "Se eliminarán sus documentos, videos, actividades y evaluaciones, " +
+      "incluidos los archivos asociados y los datos académicos vinculados que correspondan.\n\n" +
+      "Esta acción no se puede deshacer."
+)) return;
+    setDeletingModuleId(module.id);
+    try {
+      const response = await fetch(`${API_URL}/cursos/${courseId}/modulos/${module.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "No se pudo eliminar el módulo.");
+      setModules(current => current.filter(item => item.id !== module.id));
+      setContents(current => current.filter(item => item.moduleId !== module.id));
+      setOpenModules(current => current.filter(id => id !== module.id));
+      setSelectedModuleId(current => current === module.id ? null : current);
+      showNotice(data.message ?? "Módulo y contenidos eliminados.");
+      if (data.archivosPendientes?.length) {
+        window.alert(
+          data.message +
+          "\n\nArchivos pendientes:\n" +
+          data.archivosPendientes.join("\n")
+  );
+}
+    } catch (error) {
+      showNotice(error instanceof Error ? error.message : "No se pudo eliminar el módulo.");
+    } finally {
+      setDeletingModuleId(null);
+    }
   };
 
   const selectContentType = (type: "file" | "activity" | "quiz" | "link") => {
@@ -359,14 +413,19 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
 
                   return (
                     <div key={module.id} className="rounded-lg">
-                      <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[31px] w-full items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" style={{ backgroundColor: color }}>
+                      <div className="flex items-center" style={{ backgroundColor: color }}>
+                      <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[31px] min-w-0 flex-1 items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" aria-expanded={open}>
                         <span className="flex-1 text-[10px] font-semibold text-[#173f63]">Modulo {module.number}: {module.title}</span>
                         <ChevronIcon open={open} />
                       </button>
+                      <button type="button" disabled={deletingModuleId !== null} onClick={() => void deleteModule(module)} aria-label={`Eliminar módulo ${module.title}`} className="shrink-0 px-3 py-2 text-[10px] font-semibold text-[#173f63] hover:bg-white/20 disabled:opacity-50">
+                        Eliminar
+                      </button>
+                      </div>
 
                       {open && (
                         <div className="bg-white">
-                          {module.contents.map((content) => {
+                          {module.contents.map((content, contentIndex) => {
                             const contentType = (content.type as string)?.toLowerCase();
                             const externalUrl = content.file;
 
@@ -390,7 +449,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                                   className="h-4 w-4 shrink-0 text-[#667482]"
                                 />
                                 <span className="min-w-0 flex-1 truncate text-[10px] text-gray-800">
-                                  {module.number}.{content.order} {content.title}
+                                  {module.number}.{contentIndex + 1} {content.title}
                                 </span>
                               </>
                             );
@@ -478,7 +537,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
         </form>
       </div>}
 
-      <CreateModuleModal open={createModuleOpen} value={createModuleTitle} onChange={setCreateModuleTitle} onClose={() => setCreateModuleOpen(false)} onSave={saveModule} />
+      <CreateModuleModal open={createModuleOpen} value={createModuleTitle} saving={savingModule} onChange={setCreateModuleTitle} onClose={() => setCreateModuleOpen(false)} onSave={saveModule} />
       <AddContentModal open={addContentOpen} onClose={() => setAddContentOpen(false)} onSelect={selectContentType} />
       <UploadFileModal open={uploadOpen} onClose={() => setUploadOpen(false)} onSubmit={handleFileSubmit} />
       <AddLinkModal open={linkOpen} onClose={() => setLinkOpen(false)} onSubmit={handleLinkSubmit} />

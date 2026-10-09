@@ -11,8 +11,11 @@ import { requireAuth } from "../middleware/auth.middleware";
 import { obtenerArchivoContenido } from "../controllers/contenido-archivo.controller";
 import { subirArchivoContenido } from "../controllers/contenido-subida.controller";
 import { gestionarContenido } from "../controllers/contenido-gestion.controller";
+import { crearModulo, eliminarModulo } from "../controllers/modulos.controller";
 
 const router = Router();
+router.post("/:cursoId/modulos", requireAuth, crearModulo);
+router.delete("/:cursoId/modulos/:moduloId", requireAuth, eliminarModulo);
 router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 
