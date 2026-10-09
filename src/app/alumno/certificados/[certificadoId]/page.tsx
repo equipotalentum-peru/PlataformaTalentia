@@ -1,4 +1,14 @@
 import Link from "next/link";
+import {
+  cookies,
+} from "next/headers";
+
+import {
+  API_URL,
+} from "@/lib/api";
+
+import CertificateDownloadButton
+  from "@/components/alumno/certificados/CertificateDownloadButton";
 
 type CertificadoDetallePageProps = {
   params: Promise<{
@@ -6,58 +16,20 @@ type CertificadoDetallePageProps = {
   }>;
 };
 
-const certificados = [
-  {
-    id: 1,
-    curso: "Herramientas TIC",
-    codigo: "HER001",
-    estudiante: "GRAY PADILLA",
-    fecha: "15 de septiembre de 2026",
-    duracion: "40 horas",
-    certificado: "TAL-HER-2026-001",
-    estado: "Completado",
-  },
-  {
-    id: 2,
-    curso: "Psicología",
-    codigo: "HER003",
-    estudiante: "GRAY PADILLA",
-    fecha: "20 de septiembre de 2026",
-    duracion: "36 horas",
-    certificado: "TAL-PSI-2026-002",
-    estado: "Completado",
-  },
-  {
-    id: 3,
-    curso: "Matemática",
-    codigo: "HER005",
-    estudiante: "GRAY PADILLA",
-    fecha: "25 de septiembre de 2026",
-    duracion: "45 horas",
-    certificado: "TAL-MAT-2026-003",
-    estado: "Completado",
-  },
-  {
-    id: 4,
-    curso: "Programación",
-    codigo: "HER002",
-    estudiante: "GRAY PADILLA",
-    fecha: "27 de septiembre de 2026",
-    duracion: "50 horas",
-    certificado: "TAL-PRO-2026-004",
-    estado: "Completado",
-  },
-  {
-    id: 5,
-    curso: "Algoritmos",
-    codigo: "HER004",
-    estudiante: "GRAY PADILLA",
-    fecha: "29 de septiembre de 2026",
-    duracion: "42 horas",
-    certificado: "TAL-ALG-2026-005",
-    estado: "Completado",
-  },
-];
+type CertificadoDetalle = {
+  id: number;
+  curso: string;
+  codigoCurso: string;
+  descripcion:
+    | string
+    | null;
+  estudiante: string;
+  numeroCertificado: string;
+  codigoVerificacion: string;
+  emitidoEn: string;
+  duracion: string;
+  estado: "Completado";
+};
 
 export default async function CertificadoDetallePage({
   params,
@@ -66,9 +38,85 @@ export default async function CertificadoDetallePage({
 
   const id = Number(certificadoId);
 
-  const certificado = certificados.find(
-    (item) => item.id === id
+ const cookieStore =
+  await cookies();
+
+const cookieHeader =
+  cookieStore
+    .getAll()
+    .map(
+      (cookie) =>
+        `${cookie.name}=${cookie.value}`
+    )
+    .join("; ");
+
+const response =
+  await fetch(
+    `${API_URL}/certificados/${id}`,
+    {
+      headers: {
+        cookie:
+          cookieHeader,
+      },
+
+      cache:
+        "no-store",
+    }
   );
+
+if (
+  !response.ok
+) {
+  return (
+    <div className="min-h-screen px-[30px] py-[32px] lg:px-[45px]">
+
+      <h1 className="text-[30px] font-semibold text-gray-900">
+        Certificado no encontrado
+      </h1>
+
+      <Link
+        href="/alumno/certificados"
+        className="mt-5 inline-block text-[#2d97e8] hover:underline"
+      >
+        ← Volver a certificados
+      </Link>
+
+    </div>
+  );
+}
+
+const data = (await response.json()) as {
+  certificado: CertificadoDetalle;
+};
+
+const certificado = {
+  ...data.certificado,
+
+  fecha:
+    new Intl.DateTimeFormat(
+      "es-PE",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone:
+          "America/Lima",
+      }
+    ).format(
+      new Date(
+        data.certificado
+          .emitidoEn
+      )
+    ),
+
+  /*
+   * Mantiene tu JSX existente
+   * sin tener que cambiarlo.
+   */
+  certificado:
+    data.certificado
+      .numeroCertificado,
+};
 
   if (!certificado) {
     return (
@@ -393,24 +441,19 @@ export default async function CertificadoDetallePage({
           </div>
 
           {/* BOTÓN DESCARGAR */}
-          <button
-            type="button"
-            className="mt-8 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-[#2d97e8] text-[14px] font-semibold text-white transition hover:bg-[#2188d6]"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-5 w-5"
-            >
-              <path d="M12 3v12" />
-              <path d="m7 10 5 5 5-5" />
-              <path d="M5 21h14" />
-            </svg>
+       <CertificateDownloadButton
+  certificadoId={
+    certificado.id
+  }
 
-            Descargar PDF
-          </button>
+  fileName={
+    `certificado-${certificado.codigoCurso}.pdf`
+  }
+
+  label="Descargar PDF"
+
+  className="mt-8 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-[#2d97e8] text-[14px] font-semibold text-white transition hover:bg-[#2188d6] disabled:cursor-not-allowed disabled:opacity-60"
+/>
 
         </aside>
 

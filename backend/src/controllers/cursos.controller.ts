@@ -3,6 +3,10 @@ import type { Response } from "express";
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 
+import {
+  emitirCertificadoCurso,
+} from "../services/certificados.service";
+
 export async function obtenerMisCursos(
   req: AuthenticatedRequest,
   res: Response
@@ -577,6 +581,17 @@ export async function completarContenidoEstudiante(
          WHERE id = $1`,
         [matriculaId]
       );
+
+      try {
+    await emitirCertificadoCurso(
+      matriculaId
+    );
+  } catch (error) {
+    console.error(
+      "El curso llegó al 100%, pero no se pudo emitir el certificado:",
+      error
+    );
+  }
     }
 
     return res

@@ -5,10 +5,7 @@ import { useEffect, useState, } from "react";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import type { ContentType, } from "@/data/courseContents";
-import {
-  getViewedContentIds,
-  sincronizarProgresoGuardado,
-} from "@/lib/progress";
+
 
 const MODULE_COLOR = "#70A9DC";
 
@@ -70,15 +67,7 @@ export default function CourseModules({
     useState("");
 
 
-  /*
-   * IDs de contenidos que el alumno
-   * ya completó.
-   */
-  const [contenidosVistos, setContenidosVistos] =
-    useState<Set<number>>(
-      () =>
-        getViewedContentIds(courseId)
-    );
+
 
   /*
    * ======================================================
@@ -95,9 +84,6 @@ export default function CourseModules({
         setCargando(true);
         setError("");
 
-        await sincronizarProgresoGuardado(
-  courseId
-);
 
         const response =
           await fetch(
@@ -180,36 +166,6 @@ export default function CourseModules({
    * inmediatamente.
    */
 
-  useEffect(() => {
-    const actualizarProgreso =
-      () => {
-        setContenidosVistos(
-          new Set(
-            getViewedContentIds(
-              courseId
-            )
-          )
-        );
-      };
-
-    window.addEventListener(
-      "talentia-progress-updated",
-      actualizarProgreso
-    );
-
-    /*
-     * También recuperamos el progreso
-     * al montar el componente.
-     */
-    actualizarProgreso();
-
-    return () => {
-      window.removeEventListener(
-        "talentia-progress-updated",
-        actualizarProgreso
-      );
-    };
-  }, [courseId]);
 
   /*
    * ======================================================
@@ -272,14 +228,11 @@ export default function CourseModules({
            * sus contenidos están vistos.
            */
           const totalContenidos = contenidos.length;
-          const contenidosCompletados =
+      const contenidosCompletados =
   contenidos.filter(
     (contenido) =>
       Boolean(
         contenido.completado
-      ) ||
-      contenidosVistos.has(
-        Number(contenido.id)
       )
   ).length;
           const moduloCompletado = totalContenidos > 0 && contenidosCompletados === totalContenidos;
@@ -416,13 +369,9 @@ export default function CourseModules({
                       Number(
                         contenido.id
                       );
-
-                    const visto =
+const visto =
   Boolean(
     contenido.completado
-  ) ||
-  contenidosVistos.has(
-    contenidoId
   );
 
                     /*

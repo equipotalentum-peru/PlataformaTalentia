@@ -1,7 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import CertificateDownloadButton
+  from "@/components/alumno/certificados/CertificateDownloadButton";
+
+import {
+  API_URL,
+} from "@/lib/api";
+
+
 
 type Certificado = {
   id: number;
@@ -12,57 +25,162 @@ type Certificado = {
   imagen: string;
 };
 
-const certificados: Certificado[] = [
-  {
-    id: 1,
-    curso: "Herramientas TIC",
-    codigo: "HER001",
-    fecha: "15/09/2026",
-    estado: "Completado",
-    imagen:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    id: 2,
-    curso: "Psicología",
-    codigo: "HER003",
-    fecha: "20/09/2026",
-    estado: "Completado",
-    imagen:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    id: 3,
-    curso: "Matemática",
-    codigo: "HER005",
-    fecha: "25/09/2026",
-    estado: "Completado",
-    imagen:
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    id: 4,
-    curso: "Programación",
-    codigo: "HER002",
-    fecha: "27/09/2026",
-    estado: "Completado",
-    imagen:
-      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    id: 5,
-    curso: "Algoritmos",
-    codigo: "HER004",
-    fecha: "29/09/2026",
-    estado: "Completado",
-    imagen:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
-  },
-];
+const IMAGEN_POR_DEFECTO =
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
+
+function formatearFecha(
+  fecha: string
+) {
+  return new Intl.DateTimeFormat(
+    "es-PE",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone:
+        "America/Lima",
+    }
+  ).format(
+    new Date(fecha)
+  );
+}
 
 export default function CertificadosPage() {
+const [
+  certificados,
+  setCertificados,
+] =
+  useState<
+    Certificado[]
+  >([]);
+
+const [
+  cargando,
+  setCargando,
+] =
+  useState(true);
+
+const [
+  error,
+  setError,
+] =
+  useState("");
+
   const [busqueda, setBusqueda] = useState("");
   const [orden, setOrden] = useState("todos");
+
+  useEffect(() => {
+  const controller =
+    new AbortController();
+
+  async function cargarCertificados() {
+    try {
+      setCargando(true);
+      setError("");
+
+      const response =
+        await fetch(
+          `${API_URL}/certificados`,
+          {
+            credentials:
+              "include",
+
+            signal:
+              controller.signal,
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (
+        !response.ok
+      ) {
+        throw new Error(
+          data.message ??
+            "No se pudieron cargar los certificados."
+        );
+      }
+
+      const resultado:
+        Certificado[] =
+        Array.isArray(
+          data.certificados
+        )
+          ? data.certificados.map(
+              (
+                item: {
+                  id: number;
+                  curso: string;
+                  codigoCurso: string;
+                  emitidoEn: string;
+                  imagen:
+                    | string
+                    | null;
+                }
+              ) => ({
+                id:
+                  Number(
+                    item.id
+                  ),
+
+                curso:
+                  item.curso,
+
+                codigo:
+                  item.codigoCurso,
+
+                fecha:
+                  formatearFecha(
+                    item.emitidoEn
+                  ),
+
+                estado:
+                  "Completado",
+
+                imagen:
+                  item.imagen ||
+                  IMAGEN_POR_DEFECTO,
+              })
+            )
+          : [];
+
+      setCertificados(
+        resultado
+      );
+
+    } catch (error) {
+
+      if (
+        controller.signal
+          .aborted
+      ) {
+        return;
+      }
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los certificados."
+      );
+
+    } finally {
+
+      if (
+        !controller.signal
+          .aborted
+      ) {
+        setCargando(false);
+      }
+    }
+  }
+
+  void cargarCertificados();
+
+  return () =>
+    controller.abort();
+
+}, []);
 
   const certificadosFiltrados = useMemo(() => {
     let resultado = certificados.filter((certificado) =>
@@ -78,7 +196,7 @@ export default function CertificadosPage() {
     }
 
     return resultado;
-  }, [busqueda, orden]);
+  }, [certificados, busqueda, orden]);
 
   return (
     <div className="min-h-screen w-full px-[30px] py-[32px] lg:px-[45px]">
@@ -179,24 +297,17 @@ export default function CertificadosPage() {
                   Ver
                 </Link>
 
-                <button
-                  type="button"
-                  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] bg-[#2d97e8] text-[13px] font-semibold text-white transition hover:bg-[#2188d6]"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    className="h-4 w-4"
-                  >
-                    <path d="M12 3v12" />
-                    <path d="m7 10 5 5 5-5" />
-                    <path d="M5 21h14" />
-                  </svg>
+               <CertificateDownloadButton
+  certificadoId={
+    certificado.id
+  }
 
-                  Descargar
-                </button>
+  fileName={
+    `certificado-${certificado.codigo}.pdf`
+  }
+
+  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] bg-[#2d97e8] text-[13px] font-semibold text-white transition hover:bg-[#2188d6] disabled:cursor-not-allowed disabled:opacity-60"
+/>
               </div>
             </div>
           </article>
