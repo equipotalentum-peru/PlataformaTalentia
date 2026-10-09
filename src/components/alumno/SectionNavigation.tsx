@@ -15,7 +15,8 @@ type SectionNavigationProps = {
     | "word"
     | "activity"
     | "quiz"
-    | "link";
+    | "link"
+    | "image";
 
   previousHref?: string;
   nextHref?: string;

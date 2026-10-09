@@ -8,6 +8,8 @@ import {
   enviarAdjuntoChat,
   marcarChatLeido,
   descargarAdjuntoChat,
+  editarMensajeChat,
+  eliminarMensajeChat,
 } from "../controllers/chat.controller";
 
 import { requireAuth } from "../middleware/auth.middleware";
@@ -61,6 +63,18 @@ router.get(
   "/adjuntos/:adjuntoId",
   requireAuth,
   descargarAdjuntoChat
+);
+
+router.patch(
+  "/cursos/:cursoId/contactos/:contactoId/mensajes/:mensajeId",
+  requireAuth,
+  editarMensajeChat
+);
+
+router.delete(
+  "/cursos/:cursoId/contactos/:contactoId/mensajes/:mensajeId",
+  requireAuth,
+  eliminarMensajeChat
 );
 
 export default router;

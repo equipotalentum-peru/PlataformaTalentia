@@ -11,7 +11,7 @@ import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 import type { Express } from "express";
 import type { Server, } from "socket.io";
-import { construirSalaChat, } from "../realtime/chat-room";
+import { construirSalaChat, construirSalaUsuario, } from "../realtime/chat-room";
 
 function validarId(value: unknown) {
   const id = Number(value);
@@ -64,13 +64,11 @@ function emitirMensajeChat(
     ofertaCursoId: number;
     remitenteId: number;
     destinatarioId: number;
-
     mensaje: {
       id: number;
       tipo: string;
       contenido: string | null;
       enviadoEn: string;
-
       file?: {
         id: number;
         name: string;
@@ -80,26 +78,31 @@ function emitirMensajeChat(
     };
   }
 ) {
-  const io =
-    req.app.get(
-      "io"
-    ) as Server | undefined;
+  const io = req.app.get("io") as Server | undefined;
 
-  if (!io) {
-    return;
-  }
+  if (!io) return;
 
-  const room =
-    construirSalaChat(
-      datos.ofertaCursoId,
-      datos.remitenteId,
-      datos.destinatarioId
-    );
+  const salaConversacion = construirSalaChat(
+    datos.ofertaCursoId,
+    datos.remitenteId,
+    datos.destinatarioId
+  );
 
-  io.to(room).emit(
+  // Envía el mensaje a los participantes de la conversación abierta.
+  io.to(salaConversacion).emit(
     "chat:mensaje:nuevo",
     datos
   );
+
+  // Notifica al destinatario aunque esté viendo otro contacto.
+  io.to(
+    construirSalaUsuario(datos.destinatarioId)
+  ).emit("chat:mensaje:notificacion", {
+    cursoId: datos.cursoId,
+    remitenteId: datos.remitenteId,
+    destinatarioId: datos.destinatarioId,
+    mensajeId: datos.mensaje.id,
+  });
 }
 
 /*
@@ -646,18 +649,15 @@ export async function obtenerContactosChat(
 
                 AND mx.eliminado_en IS NULL
 
-                AND mx.enviado_en >
+                AND mx.id >
                   COALESCE(
                     (
-                      SELECT lc.leido_en
+                      SELECT lc.ultimo_mensaje_leido_id
                       FROM lecturas_chat lc
-                      WHERE lc.conversacion_id =
-                        conv.id
-
-                        AND lc.usuario_id =
-                          $3
+                      WHERE lc.conversacion_id = conv.id
+                        AND lc.usuario_id = $3
                     ),
-                    TO_TIMESTAMP(0)
+                    0
                   )
             ) AS no_leido
 
@@ -856,35 +856,18 @@ export async function obtenerMensajesChat(
   res: Response
 ) {
   try {
-    const usuarioId =
-      validarId(req.userId);
+    const usuarioId = validarId(req.userId);
+    const cursoId = validarId(req.params.cursoId);
+    const contactoId = validarId(req.params.contactoId);
 
-    const cursoId =
-      validarId(
-        req.params.cursoId
-      );
-
-    const contactoId =
-      validarId(
-        req.params.contactoId
-      );
-
-    if (
-      !usuarioId ||
-      !cursoId ||
-      !contactoId
-    ) {
+    if (!usuarioId || !cursoId || !contactoId) {
       return res.status(400).json({
         message:
           "Solicitud no válida.",
       });
     }
 
-    const acceso =
-      await obtenerAccesoCurso(
-        usuarioId,
-        cursoId
-      );
+    const acceso = await obtenerAccesoCurso(usuarioId, cursoId);
 
     if (!acceso) {
       return res.status(403).json({
@@ -893,13 +876,7 @@ export async function obtenerMensajesChat(
       });
     }
 
-    const contactoValido =
-      await verificarContacto(
-        acceso.oferta_curso_id,
-        usuarioId,
-        contactoId,
-        acceso.rol
-      );
+    const contactoValido = await verificarContacto(acceso.oferta_curso_id, usuarioId, contactoId, acceso.rol);
 
     if (!contactoValido) {
       return res.status(403).json({
@@ -964,6 +941,8 @@ export async function obtenerMensajesChat(
             m.tipo,
             m.contenido,
             m.enviado_en,
+            m.editado_en,
+            m.eliminado_en,
 
             a.id AS adjunto_id,
             a.nombre_archivo,
@@ -978,8 +957,6 @@ export async function obtenerMensajesChat(
 
           WHERE m.conversacion_id =
             $1
-
-            AND m.eliminado_en IS NULL
 
           ORDER BY m.id DESC
 
@@ -1036,58 +1013,45 @@ export async function obtenerMensajesChat(
     }
 
     return res.status(200).json({
-      mensajes:
-        result.rows.map(
-          (row) => ({
-            id:
-              Number(row.id),
+      mensajes: result.rows.map((row) => {
+        const eliminado = Boolean(row.eliminado_en);
 
-            sender:
-              Number(
-                row.remitente_id
-              ) === usuarioId
-                ? "me"
-                : "other",
+        return {
+          id: Number(row.id),
 
-            text:
-              row.tipo === "Texto"
-                ? row.contenido
-                : undefined,
+          sender:
+            Number(row.remitente_id) === usuarioId
+              ? "me"
+              : "other",
 
-            file:
-              row.adjunto_id
-                ? {
-                    id:
-                      Number(
-                        row.adjunto_id
-                      ),
+          deleted: eliminado,
 
-                    name:
-                      row.nombre_archivo,
+          text:
+            !eliminado && row.tipo === "Texto"
+              ? row.contenido
+              : undefined,
 
-                    size:
-                      row.tamano_bytes
-                        ? `${(
-                            Number(
-                              row.tamano_bytes
-                            ) /
-                            (1024 * 1024)
-                          ).toFixed(1)} MB`
-                        : "",
+          edited:
+            !eliminado && Boolean(row.editado_en),
 
-                    downloadUrl:
-                      `/api/chat/adjuntos/${Number(
-                        row.adjunto_id
-                      )}`,
-                  }
-                : undefined,
+          file:
+            !eliminado && row.adjunto_id
+              ? {
+                  id: Number(row.adjunto_id),
+                  name: row.nombre_archivo,
+                  size: row.tamano_bytes
+                    ? `${(
+                        Number(row.tamano_bytes) /
+                        (1024 * 1024)
+                      ).toFixed(1)} MB`
+                    : "",
+                  downloadUrl: `/api/chat/adjuntos/${Number(row.adjunto_id)}`,
+                }
+              : undefined,
 
-            time:
-              new Date(
-                row.enviado_en
-              ).toISOString(),
-          })
-        ),
+          time: new Date(row.enviado_en).toISOString(),
+        };
+      }),
     });
   } catch (error) {
     console.error(
@@ -1272,6 +1236,302 @@ export async function enviarMensajeChat(
     return res.status(500).json({
       message:
         "No se pudo enviar el mensaje.",
+    });
+  }
+}
+
+export async function editarMensajeChat(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const usuarioId = validarId(req.userId);
+    const cursoId = validarId(req.params.cursoId);
+    const contactoId = validarId(req.params.contactoId);
+    const mensajeId = validarId(req.params.mensajeId);
+
+    const contenido =
+      typeof req.body?.contenido === "string"
+        ? req.body.contenido.trim()
+        : "";
+
+    if (!usuarioId || !cursoId || !contactoId || !mensajeId) {
+      return res.status(400).json({
+        message: "Solicitud no válida.",
+      });
+    }
+
+    if (!contenido || contenido.length > 10000) {
+      return res.status(400).json({
+        message: "El mensaje debe tener entre 1 y 10000 caracteres.",
+      });
+    }
+
+    const acceso = await obtenerAccesoCurso(usuarioId, cursoId);
+
+    if (!acceso) {
+      return res.status(403).json({
+        message: "No tienes acceso a este curso.",
+      });
+    }
+
+    const contactoValido = await verificarContacto(
+      acceso.oferta_curso_id,
+      usuarioId,
+      contactoId,
+      acceso.rol
+    );
+
+    if (!contactoValido) {
+      return res.status(403).json({
+        message: "No puedes conversar con este usuario.",
+      });
+    }
+
+    const existente = await pool.query(
+      `
+      SELECT
+        m.id,
+        m.remitente_id,
+        m.tipo,
+        cc.id AS conversacion_id
+      FROM mensajes_chat m
+      INNER JOIN conversaciones_chat cc
+        ON cc.id = m.conversacion_id
+      WHERE m.id = $1
+        AND cc.oferta_curso_id = $2
+        AND cc.usuario_1_id =
+          LEAST($3::bigint, $4::bigint)
+        AND cc.usuario_2_id =
+          GREATEST($3::bigint, $4::bigint)
+        AND m.eliminado_en IS NULL
+      LIMIT 1
+      `,
+      [
+        mensajeId,
+        acceso.oferta_curso_id,
+        usuarioId,
+        contactoId,
+      ]
+    );
+
+    if (!existente.rowCount) {
+      return res.status(404).json({
+        message: "El mensaje no existe en esta conversación.",
+      });
+    }
+
+    const mensajeOriginal = existente.rows[0];
+
+    if (Number(mensajeOriginal.remitente_id) !== usuarioId) {
+      return res.status(403).json({
+        message: "Solo puedes editar tus propios mensajes.",
+      });
+    }
+
+    if (mensajeOriginal.tipo !== "Texto") {
+      return res.status(400).json({
+        message: "Solo se pueden editar mensajes de texto.",
+      });
+    }
+
+    const actualizado = await pool.query(
+      `
+      UPDATE mensajes_chat
+      SET
+        contenido = $2,
+        editado_en = CURRENT_TIMESTAMP
+      WHERE id = $1
+        AND remitente_id = $3
+        AND eliminado_en IS NULL
+      RETURNING id, contenido, editado_en
+      `,
+      [
+        mensajeId,
+        contenido,
+        usuarioId,
+      ]
+    );
+
+    const row = actualizado.rows[0];
+
+    const editadoEn = new Date(row.editado_en).toISOString();
+
+    const io = req.app.get("io") as Server | undefined;
+
+    if (io) {
+      const sala = construirSalaChat(
+        Number(acceso.oferta_curso_id),
+        usuarioId,
+        contactoId
+      );
+
+      io.to(sala).emit("chat:mensaje:editado", {
+        cursoId,
+        mensajeId,
+        contenido: row.contenido,
+        editadoEn,
+      });
+    }
+
+    return res.status(200).json({
+      mensaje: {
+        id: Number(row.id),
+        text: row.contenido,
+        edited: true,
+        editedAt: editadoEn,
+      },
+    });
+  } catch (error) {
+    console.error("Error editando mensaje:", error);
+
+    return res.status(500).json({
+      message: "No se pudo editar el mensaje.",
+    });
+  }
+}
+
+export async function eliminarMensajeChat(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const usuarioId = validarId(req.userId);
+    const cursoId = validarId(req.params.cursoId);
+    const contactoId = validarId(req.params.contactoId);
+    const mensajeId = validarId(req.params.mensajeId);
+
+    if (!usuarioId || !cursoId || !contactoId || !mensajeId) {
+      return res.status(400).json({
+        message: "Solicitud no válida.",
+      });
+    }
+
+    const acceso = await obtenerAccesoCurso(usuarioId, cursoId);
+
+    if (!acceso) {
+      return res.status(403).json({
+        message: "No tienes acceso a este curso.",
+      });
+    }
+
+    const contactoValido = await verificarContacto(
+      acceso.oferta_curso_id,
+      usuarioId,
+      contactoId,
+      acceso.rol
+    );
+
+    if (!contactoValido) {
+      return res.status(403).json({
+        message: "No puedes conversar con este usuario.",
+      });
+    }
+
+    const existente = await pool.query(
+      `
+      SELECT
+        m.id,
+        m.remitente_id,
+        cc.id AS conversacion_id,
+        a.ruta_archivo
+      FROM mensajes_chat m
+      INNER JOIN conversaciones_chat cc
+        ON cc.id = m.conversacion_id
+      LEFT JOIN adjuntos_chat a
+        ON a.mensaje_id = m.id
+      WHERE m.id = $1
+        AND cc.oferta_curso_id = $2
+        AND cc.usuario_1_id =
+          LEAST($3::bigint, $4::bigint)
+        AND cc.usuario_2_id =
+          GREATEST($3::bigint, $4::bigint)
+        AND m.eliminado_en IS NULL
+      LIMIT 1
+      `,
+      [
+        mensajeId,
+        acceso.oferta_curso_id,
+        usuarioId,
+        contactoId,
+      ]
+    );
+
+    if (!existente.rowCount) {
+      return res.status(404).json({
+        message: "El mensaje ya no existe.",
+      });
+    }
+
+    const mensajeOriginal = existente.rows[0];
+
+    if (Number(mensajeOriginal.remitente_id) !== usuarioId) {
+      return res.status(403).json({
+        message: "Solo puedes eliminar tus propios mensajes.",
+      });
+    }
+
+    await pool.query(
+      `
+      UPDATE mensajes_chat
+      SET eliminado_en = CURRENT_TIMESTAMP
+      WHERE id = $1
+        AND remitente_id = $2
+        AND eliminado_en IS NULL
+      `,
+      [
+        mensajeId,
+        usuarioId,
+      ]
+    );
+
+    // Si es un archivo en R2, intentamos retirar también el objeto.
+    // La eliminación lógica del mensaje no depende de que R2 responda.
+    const ruta = mensajeOriginal.ruta_archivo;
+
+    if (typeof ruta === "string" && ruta.startsWith("r2://")) {
+      try {
+        await deleteObjectFromR2(stripR2Prefix(ruta));
+      } catch (error) {
+        console.error(
+          "El mensaje se eliminó, pero no se pudo retirar el objeto de R2:",
+          error
+        );
+      }
+    }
+
+    const io = req.app.get("io") as Server | undefined;
+
+    if (io) {
+      const sala = construirSalaChat(
+        Number(acceso.oferta_curso_id),
+        usuarioId,
+        contactoId
+      );
+
+      io.to(sala).emit("chat:mensaje:eliminado", {
+        cursoId,
+        mensajeId,
+      });
+
+      // Actualiza los indicadores de lectura de ambos participantes.
+      io.to(construirSalaUsuario(usuarioId)).emit(
+        "chat:contactos:actualizar",
+        { cursoId }
+      );
+
+      io.to(construirSalaUsuario(contactoId)).emit(
+        "chat:contactos:actualizar",
+        { cursoId }
+      );
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error("Error eliminando mensaje:", error);
+
+    return res.status(500).json({
+      message: "No se pudo eliminar el mensaje.",
     });
   }
 }
@@ -1490,17 +1750,12 @@ export async function descargarAdjuntoChat(
 
         WHERE a.id = $1
 
-          AND (
-            cc.usuario_1_id = $2
-            OR cc.usuario_2_id = $2
-          )
+          AND (cc.usuario_1_id = $2 OR cc.usuario_2_id = $2)
+          AND m.eliminado_en IS NULL
 
         LIMIT 1
         `,
-        [
-          adjuntoId,
-          usuarioId,
-        ]
+        [adjuntoId, usuarioId,]
       );
 
     if (!result.rowCount) {
@@ -1510,13 +1765,9 @@ export async function descargarAdjuntoChat(
       });
     }
 
-    const row =
-      result.rows[0];
+    const row = result.rows[0];
 
-    const ruta =
-      typeof row.ruta_archivo === "string"
-        ? row.ruta_archivo.trim()
-        : "";
+    const ruta = typeof row.ruta_archivo === "string" ? row.ruta_archivo.trim() : "";
 
     if (!ruta) {
       return res.status(404).json({
@@ -1533,13 +1784,11 @@ export async function descargarAdjuntoChat(
 
     if (!ruta.startsWith("r2://")) {
       return res.status(404).json({
-        message:
-          "El archivo no está almacenado en Cloudflare R2.",
+        message: "El archivo no está almacenado en Cloudflare R2.",
       });
     }
 
-    const key =
-      stripR2Prefix(ruta);
+    const key = stripR2Prefix(ruta);
 
     if (!key) {
       return res.status(404).json({
@@ -1548,8 +1797,7 @@ export async function descargarAdjuntoChat(
       });
     }
 
-    const object =
-      await getObjectFromR2(key);
+    const object = await getObjectFromR2(key);
 
     if (!object.Body) {
       return res.status(404).json({
@@ -1610,57 +1858,32 @@ export async function enviarAdjuntoChat(
   req: AuthenticatedRequest,
   res: Response
 ) {
-  let objetoR2: string | null =
-    null;
+  let objetoR2: string | null = null;
 
   try {
-    const usuarioId =
-      validarId(req.userId);
+    const usuarioId = validarId(req.userId);
+    const cursoId = validarId(req.params.cursoId);
+    const contactoId = validarId(req.params.contactoId);
+    const file = (req as AuthenticatedRequest & {
+        file?: Express.Multer.File;
+      }
+    ).file;
 
-    const cursoId =
-      validarId(
-        req.params.cursoId
-      );
-
-    const contactoId =
-      validarId(
-        req.params.contactoId
-      );
-
-    const file =
-      (
-        req as AuthenticatedRequest & {
-          file?: Express.Multer.File;
-        }
-      ).file;
-
-    if (
-      !usuarioId ||
-      !cursoId ||
-      !contactoId ||
-      !file
-    ) {
+    if (!usuarioId || !cursoId || !contactoId || !file) {
       return res.status(400).json({
         message:
           "Solicitud de archivo no válida.",
       });
     }
 
-    if (
-      !file.buffer ||
-      !file.buffer.length
-    ) {
+    if ( !file.buffer || !file.buffer.length ) {
       return res.status(400).json({
         message:
           "No se recibió el contenido del archivo.",
       });
     }
 
-    const acceso =
-      await obtenerAccesoCurso(
-        usuarioId,
-        cursoId
-      );
+    const acceso = await obtenerAccesoCurso(usuarioId, cursoId);
 
     if (!acceso) {
       return res.status(403).json({
@@ -1669,13 +1892,7 @@ export async function enviarAdjuntoChat(
       });
     }
 
-    const contactoValido =
-      await verificarContacto(
-        acceso.oferta_curso_id,
-        usuarioId,
-        contactoId,
-        acceso.rol
-      );
+    const contactoValido = await verificarContacto(acceso.oferta_curso_id, usuarioId, contactoId,acceso.rol);
 
     if (!contactoValido) {
       return res.status(403).json({
@@ -1684,12 +1901,7 @@ export async function enviarAdjuntoChat(
       });
     }
 
-    const conversacionId =
-      await obtenerOCrearConversacion(
-        acceso.oferta_curso_id,
-        usuarioId,
-        contactoId
-      );
+    const conversacionId = await obtenerOCrearConversacion(acceso.oferta_curso_id, usuarioId, contactoId);
 
     /*
      * ==========================================

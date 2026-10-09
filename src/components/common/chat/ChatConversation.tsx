@@ -263,143 +263,223 @@ export default function ChatConversation({
   ]);
 
   useEffect(() => {
-    const socket =
-      crearChatSocket();
+    const socket = crearChatSocket();
+    socketRef.current = socket;
 
-    socketRef.current =
-      socket;
+    const manejarMensajeNuevo = (payload: ChatMensajeNuevo) => {
+      if (Number(payload.cursoId) !== courseId) {
+        return;
+      }
 
-    const manejarMensajeNuevo = (
-      payload: ChatMensajeNuevo
-    ) => {
-        if (
-          Number(
-            payload.cursoId
-          ) !== courseId
-        ) {
-          return;
-        }
+      const remitenteId = Number(payload.remitenteId);
+      const contactoActual = selectedContactRef.current;
+      const nuevoMensaje: ChatMessage = {
+        id: Number(payload.mensaje.id),
 
-        const remitenteId =
-          Number(
-            payload.remitenteId
-          );
-
-        const contactoActual =
-          selectedContactRef.current;
-
-        const nuevoMensaje:
-          ChatMessage = {
-          id:
-            Number(
-              payload.mensaje.id
-            ),
-
-          sender:
-            remitenteId ===
-            contactoActual
-              ? "other"
-              : "me",
-
-          text:
-            payload.mensaje
-              .tipo === "Texto"
-              ? payload.mensaje
-                  .contenido ??
-                undefined
-              : undefined,
-
-          file:
-            payload.mensaje
-              .file,
-
-          time:
-            payload.mensaje
-              .enviadoEn,
-        };
-
-        /*
-        * Si el mensaje pertenece a la
-        * conversación que estoy viendo,
-        * lo agregamos inmediatamente.
-        */
-        if (
+        sender:
           remitenteId ===
           contactoActual
-        ) {
-          setMessages(
-            (actual) => {
-              const yaExiste =
-                actual.some(
-                  (item) =>
-                    item.id === nuevoMensaje.id
-                );
+            ? "other"
+            : "me",
 
-              if (yaExiste) {
-                return actual;
-              }
+        text:
+          payload.mensaje
+            .tipo === "Texto"
+            ? payload.mensaje
+                .contenido ??
+              undefined
+            : undefined,
 
-              return [
-                ...actual,
-                nuevoMensaje,
-              ];
+        file:
+          payload.mensaje
+            .file,
+
+        time:
+          payload.mensaje
+            .enviadoEn,
+      };
+
+      /*
+      * Si el mensaje pertenece a la
+      * conversación que estoy viendo,
+      * lo agregamos inmediatamente.
+      */
+      if (
+        remitenteId ===
+        contactoActual
+      ) {
+        setMessages(
+          (actual) => {
+            const yaExiste =
+              actual.some(
+                (item) =>
+                  item.id === nuevoMensaje.id
+              );
+
+            if (yaExiste) {
+              return actual;
             }
-          );
 
-          /*
-          * Como el usuario está viendo
-          * la conversación, queda leída.
-          */
-          void fetch(
-            `${API_URL}/chat/cursos/${courseId}/contactos/${contactoActual}/leido`,
-            {
-              method: "POST",
-              credentials:
-                "include",
-            }
-          );
-
-          setContacts(
-            (actual) =>
-              actual.map(
-                (contacto) =>
-                  contacto.id ===
-                  contactoActual
-                    ? {
-                        ...contacto,
-                        unread:
-                          false,
-                      }
-                    : contacto
-              )
-          );
-
-          return;
-        }
+            return [
+              ...actual,
+              nuevoMensaje,
+            ];
+          }
+        );
 
         /*
-        * Si llega de otra conversación,
-        * activamos el indicador "sin leer".
+        * Como el usuario está viendo
+        * la conversación, queda leída.
         */
+        void fetch(
+          `${API_URL}/chat/cursos/${courseId}/contactos/${contactoActual}/leido`,
+          {
+            method: "POST",
+            credentials:
+              "include",
+          }
+        );
+
         setContacts(
           (actual) =>
             actual.map(
               (contacto) =>
                 contacto.id ===
-                remitenteId
+                contactoActual
                   ? {
                       ...contacto,
                       unread:
-                        true,
+                        false,
                     }
                   : contacto
             )
         );
-      };
+
+        return;
+      }
+
+      /*
+      * Si llega de otra conversación,
+      * activamos el indicador "sin leer".
+      */
+      setContacts(
+        (actual) =>
+          actual.map(
+            (contacto) =>
+              contacto.id ===
+              remitenteId
+                ? {
+                    ...contacto,
+                    unread:
+                      true,
+                  }
+                : contacto
+          )
+      );
+    };
+
+    const manejarMensajeEditado = (payload: {
+      cursoId: number;
+      mensajeId: number;
+      contenido: string;
+      editadoEn: string;
+    }) => {
+      if (Number(payload.cursoId) !== courseId) return;
+
+      setMessages((actual) =>
+        actual.map((mensaje) =>
+          mensaje.id === Number(payload.mensajeId)
+            ? {
+                ...mensaje,
+                text: payload.contenido,
+                edited: true,
+              }
+            : mensaje
+        )
+      );
+    };
+
+    const manejarMensajeEliminado = (payload: {
+      cursoId: number;
+      mensajeId: number;
+    }) => {
+      if (Number(payload.cursoId) !== courseId) return;
+
+      setMessages((actual) =>
+        actual.map((mensaje) =>
+          mensaje.id === Number(payload.mensajeId)
+            ? {
+                ...mensaje,
+                text: undefined,
+                file: undefined,
+                edited: false,
+                deleted: true,
+              }
+            : mensaje
+        )
+      );
+    };
+
+    const manejarActualizacionContactos = (payload: {
+      cursoId: number;
+    }) => {
+      if (Number(payload.cursoId) !== courseId) return;
+
+      void cargarContactos();
+    };
+
+    const manejarNotificacion = (payload: {
+      cursoId: number;
+      remitenteId: number;
+      destinatarioId: number;
+      mensajeId: number;
+    }) => {
+      if (Number(payload.cursoId) !== courseId) {
+        return;
+      }
+
+      const remitenteId = Number(payload.remitenteId);
+
+      // Si estamos viendo a quien escribió, no debe quedar sin leer.
+      if (remitenteId === selectedContactRef.current) {
+        return;
+      }
+
+      setContacts((actual) =>
+        actual.map((contacto) =>
+          contacto.id === remitenteId
+            ? {
+                ...contacto,
+                unread: true,
+              }
+            : contacto
+        )
+      );
+    };
+
+    socket.on(
+      "chat:mensaje:notificacion",
+      manejarNotificacion
+    );
 
     socket.on(
       "chat:mensaje:nuevo",
       manejarMensajeNuevo
+    );
+
+    socket.on(
+      "chat:mensaje:editado",
+      manejarMensajeEditado
+    );
+
+    socket.on(
+      "chat:mensaje:eliminado",
+      manejarMensajeEliminado
+    );
+
+    socket.on(
+      "chat:contactos:actualizar",
+      manejarActualizacionContactos
     );
 
     socket.on(
@@ -454,12 +534,32 @@ export default function ChatConversation({
         manejarMensajeNuevo
       );
 
+      socket.off(
+        "chat:mensaje:notificacion",
+        manejarNotificacion
+      );
+
+      socket.off(
+        "chat:mensaje:editado",
+        manejarMensajeEditado
+      );
+
+      socket.off(
+        "chat:mensaje:eliminado",
+        manejarMensajeEliminado
+      );
+
+      socket.off(
+        "chat:contactos:actualizar",
+        manejarActualizacionContactos
+      );
+
       socket.disconnect();
 
       socketRef.current =
         null;
     };
-  }, [courseId]);
+  }, [courseId, cargarContactos]);
 
   const sendMessage =
     async () => {
@@ -523,70 +623,129 @@ export default function ChatConversation({
       }
     };
 
-  const sendFile =
-    async (
-      file: File
-    ) => {
-      if (
-        !selectedContact ||
-        sending
-      ) {
-        return;
+  const sendFile = async (file: File) => {
+    if (!selectedContact || sending) {
+      return;
+    }
+
+    try {
+      setSending(true);
+
+      const formData = new FormData();
+
+      formData.append("archivo", file);
+
+      const response = await fetch(`${API_URL}/chat/cursos/${courseId}/contactos/${selectedContact}/adjuntos`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ??
+            "No se pudo enviar el archivo."
+        );
       }
 
-      try {
-        setSending(true);
+      setMessages((actual) => [
+          ...actual,
+          data.mensaje,
+        ]
+      );
+    } catch (error) {
+      console.error(
+        error
+      );
+    } finally {
+      setSending(false);
+    }
+  };
 
-        const formData =
-          new FormData();
+  const selectedUser = contacts.find((item) => item.id === selectedContact);
 
-        formData.append(
-          "archivo",
-          file
-        );
+  const editarMensaje = async (
+    mensajeId: number,
+    contenido: string
+  ) => {
+    if (!selectedContact) return;
 
-        const response =
-          await fetch(
-            `${API_URL}/chat/cursos/${courseId}/contactos/${selectedContact}/adjuntos`,
-            {
-              method: "POST",
-              credentials:
-                "include",
-              body: formData,
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.message ??
-              "No se pudo enviar el archivo."
-          );
-        }
-
-        setMessages(
-          (actual) => [
-            ...actual,
-            data.mensaje,
-          ]
-        );
-      } catch (error) {
-        console.error(
-          error
-        );
-      } finally {
-        setSending(false);
+    const response = await fetch(
+      `${API_URL}/chat/cursos/${courseId}/contactos/${selectedContact}/mensajes/${mensajeId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ contenido }),
       }
-    };
-
-  const selectedUser =
-    contacts.find(
-      (item) =>
-        item.id ===
-        selectedContact
     );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message ?? "No se pudo editar el mensaje."
+      );
+    }
+
+    setMessages((actual) =>
+      actual.map((mensaje) =>
+        mensaje.id === mensajeId
+          ? {
+              ...mensaje,
+              text: data.mensaje.text,
+              edited: true,
+            }
+          : mensaje
+      )
+    );
+  };
+
+  const eliminarMensaje = async (
+    mensajeId: number
+  ) => {
+    if (!selectedContact) return;
+
+    const confirmado = window.confirm(
+      "¿Seguro que deseas eliminar este mensaje?"
+    );
+
+    if (!confirmado) return;
+
+    const response = await fetch(
+      `${API_URL}/chat/cursos/${courseId}/contactos/${selectedContact}/mensajes/${mensajeId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      throw new Error(
+        data.message ?? "No se pudo eliminar el mensaje."
+      );
+    }
+
+    setMessages((actual) =>
+      actual.map((mensaje) =>
+        mensaje.id === mensajeId
+          ? {
+              ...mensaje,
+              text: undefined,
+              file: undefined,
+              edited: false,
+              deleted: true,
+            }
+          : mensaje
+      )
+    );
+  };
 
   return (
     <main className="min-h-screen bg-[#eef2f8] p-2 lg:p-3">
@@ -656,21 +815,16 @@ export default function ChatConversation({
                       (item) =>
                         item.file ? (
                           <ChatFileMessage
-                            key={
-                              item.id
-                            }
-                            message={
-                              item
-                            }
+                            key={item.id}
+                            message={item}
+                            onDelete={eliminarMensaje}
                           />
                         ) : (
                           <ChatMessageComponent
-                            key={
-                              item.id
-                            }
-                            message={
-                              item
-                            }
+                            key={item.id}
+                            message={item}
+                            onEdit={editarMensaje}
+                            onDelete={eliminarMensaje}
                           />
                         )
                     )}

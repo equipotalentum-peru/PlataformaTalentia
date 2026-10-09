@@ -38,3 +38,21 @@ FROM ofertas_curso oc
 INNER JOIN cursos c ON c.id = oc.curso_id
 LEFT JOIN usuarios d ON d.id = oc.docente_id
 ORDER BY c.id;
+
+SELECT
+    c.id AS curso_id,
+    c.codigo,
+    oc.id AS oferta_id,
+    oc.docente_id,
+    oc.publicado
+FROM ofertas_curso oc
+INNER JOIN cursos c
+    ON c.id = oc.curso_id
+WHERE c.codigo IN (
+    'ESP-001',
+    'ESP-002',
+    'ESP-003',
+    'ESP-004',
+    'ESP-005'
+)
+ORDER BY c.id;

@@ -395,3 +395,5 @@ WHERE cc.id = archivos.id
 RETURNING cc.id, cc.titulo, cc.tipo, cc.ruta_archivo;
 
 COMMIT;
+
+select * from contenidos_curso;

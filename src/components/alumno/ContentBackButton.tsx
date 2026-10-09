@@ -19,7 +19,8 @@ type ContentBackButtonProps = {
     | "word"
     | "activity"
     | "quiz"
-    | "link";
+    | "link"
+    | "image";
 };
 
 export default function ContentBackButton({

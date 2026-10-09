@@ -5,7 +5,8 @@ export type ContentType =
   | "word"
   | "activity"
   | "quiz"
-  | "link";
+  | "link"
+  | "image";
 
 export type CourseContent = {
   id: number;

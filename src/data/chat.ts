@@ -21,8 +21,9 @@ export type ChatContact = {
 export type ChatMessage = {
   id: number;
   sender: "me" | "other";
-
   text?: string;
+  edited?: boolean;
+  deleted?: boolean;
 
   file?: {
     id: number;

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import type { Server, } from "socket.io";
 import pool from "../config/database";
 import { obtenerAccesoCurso, verificarContacto, } from "../controllers/chat.controller";
-import { construirSalaChat, } from "./chat-room";
+import { construirSalaChat, construirSalaUsuario, } from "./chat-room";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 
@@ -57,6 +57,29 @@ type ChatServerToClientEvents = {
             downloadUrl: string;
         };
         };
+    }) => void;
+
+    "chat:mensaje:notificacion": (payload: {
+        cursoId: number;
+        remitenteId: number;
+        destinatarioId: number;
+        mensajeId: number;
+    }) => void;
+
+    "chat:mensaje:editado": (payload: {
+        cursoId: number;
+        mensajeId: number;
+        contenido: string;
+        editadoEn: string;
+    }) => void;
+
+    "chat:mensaje:eliminado": (payload: {
+        cursoId: number;
+        mensajeId: number;
+    }) => void;
+
+    "chat:contactos:actualizar": (payload: {
+        cursoId: number;
     }) => void;
 
     "chat:error": (payload: {
@@ -188,6 +211,7 @@ export function configurarChatSocket(
         * ======================================================
         */
     io.on("connection", (socket) => {
+        socket.join(construirSalaUsuario(socket.data.userId));
         console.log(`Socket conectado: usuario ${socket.data.userId}`);
 
         /*

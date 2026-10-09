@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { ContentType } from "@/data/courseContents";
 
 type ContentTypeIconProps = {
-  type: ContentType;
+  type: ContentType | "file";
   className?: string;
 };
 
@@ -31,9 +31,7 @@ export default function ContentTypeIcon({
         />
       </svg>
     );
-  }
-
-  if (type === "video") {
+  } else if (type === "video") {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -53,9 +51,7 @@ export default function ContentTypeIcon({
         <path fill="none" d="M0 0h36v36H0z" />
       </svg>
     );
-  }
-
-  if (type === "word") {
+  } else if (type === "word") {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -90,9 +86,7 @@ export default function ContentTypeIcon({
         />
       </svg>
     );
-  }
-
-  if (type === "ppt") {
+  } else if (type === "ppt") {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +122,60 @@ export default function ContentTypeIcon({
         />
       </svg>
     );
-  }
+  } else if (type === "image") {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        className={className}
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M0 0h24v24H0z"
+          fill="none"
+        />
+
+        <g
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+        >
+          <path d="M2 6a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z" />
+
+          <circle
+            cx="8.5"
+            cy="8.5"
+            r="2.5"
+          />
+
+          <path d="M14.526 12.621L6 22h12.133A3.867 3.867 0 0 0 22 18.133V18c0-.466-.175-.645-.49-.99l-4.03-4.395a2 2 0 0 0-2.954.006" />
+        </g>
+      </svg>
+    );
+  } else if (type === "file"){
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 3h8l4 4v14H6z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h6" />
+    </svg>
+  } 
 
   return null;
 }

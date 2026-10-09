@@ -27,6 +27,29 @@ export type ChatServerToClientEvents = {
     payload: ChatMensajeNuevo
   ) => void;
 
+  "chat:mensaje:notificacion": (payload: {
+      cursoId: number;
+      remitenteId: number;
+      destinatarioId: number;
+      mensajeId: number;
+  }) => void;
+
+  "chat:mensaje:editado": (payload: {
+      cursoId: number;
+      mensajeId: number;
+      contenido: string;
+      editadoEn: string;
+  }) => void;
+
+  "chat:mensaje:eliminado": (payload: {
+      cursoId: number;
+      mensajeId: number;
+  }) => void;
+
+  "chat:contactos:actualizar": (payload: {
+      cursoId: number;
+  }) => void;
+
   "chat:error": (
     payload: {
       message: string;
