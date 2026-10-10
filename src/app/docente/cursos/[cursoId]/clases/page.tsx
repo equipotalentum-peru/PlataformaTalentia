@@ -5,13 +5,14 @@ import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { obtenerClasesDocente, crearClase, editarClase, cancelarClase, } from "@/lib/clases-api";
 import type { ClassSession, } from "@/data/classes";
-import { courses } from "@/data/courses";
 import ClassHeader from "@/components/common/clases/ClassHeader";
 import ClassList from "@/components/common/clases/ClassList";
 
 import CreateClassModal from "@/components/docente/clases/CreateClassModal";
 import EditClassModal from "@/components/docente/clases/EditClassModal";
 
+import CourseHeader from "@/components/common/curso/CourseHeader";
+import CourseTabs from "@/components/common/curso/CourseTabs";
 type PageProps = {
   params: Promise<{
     cursoId: string;
@@ -64,15 +65,10 @@ export default function TeacherClassesPage({
             });
         }, [params]);
 
-    const course = courses.find(
-        (item) => item.id === courseId
-    );
 
     const nextClass =
         classes.find((item) => item.estado === "Próxima") ??
         classes.find((item) => item.estado === "Programada");
-
-    const visibleCourse = course ?? courses[0];
 
     const showNotice = (message: string) => {
         setNotice(message);
@@ -335,57 +331,10 @@ export default function TeacherClassesPage({
             </Link>
 
             {/* BANNER */}
-            <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-            <img
-                src={visibleCourse.imagen}
-                alt={visibleCourse.nombre}
-                className="h-full w-full object-cover"
-            />
-
-            <div className="absolute inset-0 bg-black/20" />
-
-            <h1 className="absolute bottom-7 left-4 text-[31px] font-bold tracking-[-0.8px] text-white">
-                {visibleCourse.nombre}
-            </h1>
-            </div>
+            <CourseHeader courseId={courseId} />
 
             {/* TABS */}
-            <div className="flex flex-wrap border-b border-[#9ca3ad] bg-[#eef2f8]">
-            <Link
-                href={`/docente/cursos/${courseId}`}
-                className="px-3 py-2 text-[10px] text-gray-700 hover:text-black"
-            >
-                Contenido de curso
-            </Link>
-
-            <Link
-                href={`/docente/cursos/${courseId}/clases`}
-                className="border-b-[3px] border-black px-3 py-2 text-[10px] font-medium text-gray-900"
-            >
-                Clases
-            </Link>
-
-            <Link
-                href={`/docente/cursos/${courseId}/foro`}
-                className="px-3 py-2 text-[10px] text-gray-700 hover:text-black"
-            >
-                Foro
-            </Link>
-
-            <Link
-                href={`/docente/cursos/${courseId}/anuncios`}
-                className="px-3 py-2 text-[10px] text-gray-700 hover:text-black"
-            >
-                Anuncios
-            </Link>
-
-            <Link
-                href={`/docente/cursos/${courseId}/asistencia`}
-                className="px-3 py-2 text-[10px] text-gray-700 hover:text-black"
-            >
-                Asistencia
-            </Link>
-            </div>
+            <CourseTabs role="docente" courseId={courseId} active="clases" />
 
             <div className="py-4">
 

@@ -7,6 +7,8 @@ import type { Announcement } from "@/data/announcements";
 import { API_URL } from "@/lib/api";
 import { formatearFechaAnuncio, peticionAnuncios } from "@/lib/anuncios-api";
 
+import CourseHeader from "@/components/common/curso/CourseHeader";
+import CourseTabs from "@/components/common/curso/CourseTabs";
 type AnnouncementsPageProps = {
   params: Promise<{
     cursoId: string;
@@ -129,50 +131,15 @@ export default function AnnouncementsPage({
           </Link>
 
           {/* BANNER */}
-          <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-            <img
-              src={course.imagen || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"}
-              alt={course.nombre || "Curso"}
-              className="h-full w-full object-cover"
-            />
-
-            <div className="absolute inset-0 bg-black/20" />
-
-            <h1 className="absolute bottom-7 left-5 text-[32px] font-bold text-white">
-              {course.nombre || "Anuncios del curso"}
-            </h1>
-          </div>
+          <CourseHeader
+            courseId={courseId}
+            nombre={course.nombre}
+            imagen={course.imagen}
+            fetchIfMissing={false}
+          />
 
           {/* TABS */}
-          <div className="flex overflow-x-auto border-b border-gray-500 bg-[#eef2f8]">
-            <Link
-              href={`/alumno/cursos/${courseId}`}
-              className="whitespace-nowrap px-3 py-2 text-[12px] text-gray-700 hover:text-black"
-            >
-              Contenido de curso
-            </Link>
-
-            <Link
-              href={`/alumno/cursos/${courseId}/clases`}
-              className="whitespace-nowrap px-3 py-2 text-[12px] text-gray-700 hover:text-black"
-            >
-              Clases
-            </Link>
-
-            <Link
-              href={`/alumno/cursos/${courseId}/foro`}
-              className="whitespace-nowrap px-3 py-2 text-[12px] text-gray-700 hover:text-black"
-            >
-              Foro
-            </Link>
-
-            <Link
-              href={`/alumno/cursos/${courseId}/anuncios`}
-              className="whitespace-nowrap border-b-[3px] border-black px-3 py-2 text-[12px] font-medium"
-            >
-              Anuncios
-            </Link>
-          </div>
+          <CourseTabs role="alumno" courseId={courseId} active="anuncios" />
 
           {/* CABECERA */}
           <section className="mt-2 rounded-xl bg-white px-5 py-4 shadow-sm">

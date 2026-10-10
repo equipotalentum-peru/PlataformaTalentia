@@ -14,6 +14,13 @@
   --page-px: 24px;
   --page-py: 20px;
   --course-banner-height: 150px;
+  --course-title-size: 32px;
+  --course-title-lines: 2;
+  --course-banner-px: 24px;
+  --course-banner-pb: 20px;
+  --course-tab-size: 12px;
+  --course-tab-px: 12px;
+  --course-tab-py: 10px;
 }
 
 * {
@@ -504,20 +511,113 @@ a {
   max-width: 100% !important;
 }
 
-/* Banner de curso con la misma altura en todas las vistas */
-.app-page [class*="rounded-t-xl"][class*="overflow-hidden"] {
-  height: var(--course-banner-height) !important;
-  min-height: var(--course-banner-height) !important;
+/* =========================================================
+   BANNER Y PESTAÑAS ÚNICOS DEL CURSO (alumno y docente)
+   Usados por CourseHeader.tsx y CourseTabs.tsx en todas las vistas
+   del curso: módulos, clases, foro, anuncios, asistencia, etc.
+   El título es siempre el nombre del curso y su disposición
+   (alto, tamaño, márgenes) cambia SOLO aquí, en los 5 breakpoints.
+   ========================================================= */
+
+.course-banner {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: var(--course-banner-height);
+  min-height: var(--course-banner-height);
+  padding: 0 var(--course-banner-px) var(--course-banner-pb);
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: #12395b;
 }
 
-/* Título del banner y pestañas del curso con el mismo tamaño */
-.app-page [class*="rounded-t-xl"][class*="overflow-hidden"] h1 {
-  font-size: clamp(24px, 3vw, 32px) !important;
+.course-banner__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.course-banner__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 48%) 0%,
+    rgb(0 0 0 / 22%) 60%,
+    rgb(0 0 0 / 12%) 100%
+  );
+}
+
+/* Mayor especificidad para ganar a ".app-layout-main h1" de los breakpoints */
+.app-layout-main .course-banner .course-banner__title {
+  position: relative;
+  z-index: 1;
+  display: -webkit-box;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: var(--course-title-size) !important;
+  font-weight: 700;
   line-height: 1.15 !important;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 35%);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--course-title-lines);
+  line-clamp: var(--course-title-lines);
 }
 
-.app-page [class*="border-b"][class*="bg-[#eef2f8]"] > :is(a, button) {
-  font-size: 12px !important;
+.course-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 1px solid #6b7280;
+  background: #eef2f8;
+}
+
+.course-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.course-tabs__item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: var(--course-tab-py) var(--course-tab-px);
+  border-bottom: 3px solid transparent;
+  color: #374151;
+  font-size: var(--course-tab-size);
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+
+.course-tabs__item:hover {
+  color: #000;
+}
+
+.course-tabs__item.is-active {
+  border-bottom-color: #000;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Chat: altura exacta de la ventana descontando padding de página */
+.app-layout-main [class*="h-[calc(100vh-24px)]"] {
+  height: calc(100dvh - (var(--page-py) * 2)) !important;
+  min-height: 420px;
 }
 
 /* =========================================================
@@ -652,8 +752,12 @@ a {
     padding: 24px !important;
   }
 
-  .app-layout-main [class*="grid-cols-4"],
-  .app-layout-main [class*="grid-cols-5"] {
+  .app-shell--admin .app-layout-main [class*="grid-cols-4"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-5"],
+  .app-shell--student .app-layout-main [class~="grid-cols-4"],
+  .app-shell--student .app-layout-main [class~="grid-cols-5"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-4"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-5"] {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
@@ -668,6 +772,16 @@ a {
 
   :root {
     --page-px: 20px;
+    --course-banner-height: 150px;
+    --course-title-size: 30px;
+    --course-banner-px: 20px;
+    --course-banner-pb: 18px;
+  }
+
+  .app-layout-main [class*="h-[calc(100vh-24px)]"] {
+    height: calc(
+      100dvh - var(--mobile-header-height) - (var(--page-py) * 2)
+    ) !important;
   }
 }
 
@@ -693,9 +807,15 @@ a {
     font-size: 15px;
   }
 
-  .app-layout-main [class*="grid-cols-3"],
-  .app-layout-main [class*="grid-cols-4"],
-  .app-layout-main [class*="grid-cols-5"] {
+  .app-shell--admin .app-layout-main [class*="grid-cols-3"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-4"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-5"],
+  .app-shell--student .app-layout-main [class~="grid-cols-3"],
+  .app-shell--student .app-layout-main [class~="grid-cols-4"],
+  .app-shell--student .app-layout-main [class~="grid-cols-5"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-3"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-4"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-5"] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
@@ -708,9 +828,20 @@ a {
     font-size: 11px;
   }
 
+  .course-tabs__item {
+    min-height: 42px;
+  }
+
   :root {
     --page-px: 16px;
     --page-py: 16px;
+    --course-banner-height: 140px;
+    --course-title-size: 28px;
+    --course-banner-px: 18px;
+    --course-banner-pb: 16px;
+    --course-tab-size: 12px;
+    --course-tab-px: 12px;
+    --course-tab-py: 11px;
   }
 }
 
@@ -816,10 +947,18 @@ a {
     padding: 16px !important;
   }
 
-  .app-layout-main [class*="grid-cols-2"],
-  .app-layout-main [class*="grid-cols-3"],
-  .app-layout-main [class*="grid-cols-4"],
-  .app-layout-main [class*="grid-cols-5"] {
+  .app-shell--admin .app-layout-main [class*="grid-cols-2"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-3"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-4"],
+  .app-shell--admin .app-layout-main [class*="grid-cols-5"],
+  .app-shell--student .app-layout-main [class~="grid-cols-2"],
+  .app-shell--student .app-layout-main [class~="grid-cols-3"],
+  .app-shell--student .app-layout-main [class~="grid-cols-4"],
+  .app-shell--student .app-layout-main [class~="grid-cols-5"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-2"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-3"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-4"],
+  .app-shell--teacher .app-layout-main [class~="grid-cols-5"] {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
@@ -860,6 +999,12 @@ a {
     --page-px: 12px;
     --page-py: 12px;
     --course-banner-height: 130px;
+    --course-title-size: 24px;
+    --course-title-lines: 3;
+    --course-banner-px: 14px;
+    --course-banner-pb: 14px;
+    --course-tab-size: 12px;
+    --course-tab-px: 10px;
   }
 }
 
@@ -914,6 +1059,15 @@ a {
     padding-right: 12px;
     padding-left: 12px;
   }
+
+  :root {
+    --course-banner-height: 120px;
+    --course-title-size: 22px;
+    --course-banner-px: 12px;
+    --course-banner-pb: 12px;
+    --course-tab-size: 11px;
+    --course-tab-px: 9px;
+  }
 }
 
 /* =========================================================
@@ -923,6 +1077,12 @@ a {
 @media (max-width: 380px) {
   :root {
     --mobile-header-height: 56px;
+    --course-banner-height: 110px;
+    --course-title-size: 20px;
+    --course-banner-px: 10px;
+    --course-banner-pb: 10px;
+    --course-tab-size: 11px;
+    --course-tab-px: 8px;
   }
 
   .app-mobile-header {

@@ -13,6 +13,8 @@ import AnnouncementList from "@/components/common/anuncios/AnnouncementList";
 import CreateAnnouncementModal from "@/components/docente/anuncios/CreateAnnouncementModal";
 import EditAnnouncementModal from "@/components/docente/anuncios/EditAnnouncementModal";
 
+import CourseHeader from "@/components/common/curso/CourseHeader";
+import CourseTabs from "@/components/common/curso/CourseTabs";
 type PageProps = {
   params: Promise<{
     cursoId: string;
@@ -174,58 +176,15 @@ export default function TeacherAnnouncementsPage({
         </Link>
 
         {/* BANNER */}
-        <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-          <img
-            src={course.imagen || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"}
-            alt={course.nombre || "Curso"}
-            className="h-full w-full object-cover"
-          />
-
-          <div className="absolute inset-0 bg-black/20" />
-
-          <h1 className="absolute bottom-7 left-5 text-[32px] font-bold text-white">
-            {course.nombre || "Anuncios del curso"}
-          </h1>
-        </div>
+        <CourseHeader
+          courseId={courseId}
+          nombre={course.nombre}
+          imagen={course.imagen}
+          fetchIfMissing={false}
+        />
 
         {/* TABS */}
-        <div className="flex flex-wrap border-b border-gray-500 bg-[#eef2f8]">
-
-          <Link
-            href={`/docente/cursos/${courseId}`}
-            className="px-3 py-2 text-[11px] text-gray-700 hover:text-black"
-          >
-            Contenido de curso
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${courseId}/clases`}
-            className="px-3 py-2 text-[11px] text-gray-700 hover:text-black"
-          >
-            Clases
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${courseId}/foro`}
-            className="px-3 py-2 text-[11px] text-gray-700 hover:text-black"
-          >
-            Foro
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${courseId}/anuncios`}
-            className="border-b-[3px] border-black px-3 py-2 text-[11px] font-medium"
-          >
-            Anuncios
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${courseId}/asistencia`}
-            className="px-3 py-2 text-[11px] text-gray-700 hover:text-black"
-          >
-            Asistencia
-          </Link>
-        </div>
+        <CourseTabs role="docente" courseId={courseId} active="anuncios" />
 
         <div className="mt-2 space-y-2">
           {loadError && (

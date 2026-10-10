@@ -16,13 +16,13 @@ export default function ForumCard({
   actions,
 }: ForumCardProps) {
   return (
-    <article className="flex items-center gap-4 rounded-lg bg-white px-5 py-3 shadow-sm">
+    <article className="flex items-center gap-3 rounded-lg bg-white px-3 py-3 shadow-sm sm:gap-4 sm:px-5">
 
       <Link
         href={href}
-        className="flex min-w-0 flex-1 items-center gap-4"
+        className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
       >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#00b8b3] text-[13px] font-semibold text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00b8b3] text-[12px] font-semibold text-white sm:h-12 sm:w-12 sm:text-[13px]">
           {forum.initials}
         </div>
 
@@ -37,7 +37,7 @@ export default function ForumCard({
         </div>
       </Link>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         {meta}
 
         {actions}

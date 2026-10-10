@@ -13,6 +13,8 @@ import AddContentModal from "./modals/AddContentModal";
 import UploadFileModal from "./modals/UploadFileModal";
 import AddLinkModal from "./modals/AddLinkModal";
 
+import CourseHeader from "@/components/common/curso/CourseHeader";
+import CourseTabs from "@/components/common/curso/CourseTabs";
 type TeacherCourseDetailProps = {
   courseId: number;
 };
@@ -352,51 +354,16 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
           Volver a cursos
         </Link>
 
-        <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-          {course.imagen && <img src={course.imagen} alt={course.nombre} className="h-full w-full object-cover" />}
-          <div className="absolute inset-0 bg-black/20" />
-          <h1 className="absolute bottom-7 left-4 right-4 break-words text-[31px] font-bold leading-tight text-white">{course.nombre}</h1>
-        </div>
+        <CourseHeader
+          courseId={courseId}
+          nombre={course.nombre}
+          imagen={course.imagen}
+          fetchIfMissing={false}
+        />
 
-        <div className="flex flex-wrap border-b border-[#9ca3ad] bg-[#eef2f8]">
-          <button
-            type="button"
-            onClick={() => {}}
-            className="border-b-[3px] border-black px-3 py-2 text-[10px] font-medium text-gray-900"
-          >
-            Contenido de curso
-          </button>
+        <CourseTabs role="docente" courseId={courseId} active="contenido" />
 
-          <Link
-            href={`/docente/cursos/${course.id}/clases`}
-            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-          >
-            Clases
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${course.id}/foro`}
-            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-          >
-            Foro
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${course.id}/anuncios`}
-            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-          >
-            Anuncios
-          </Link>
-
-          <Link
-            href={`/docente/cursos/${course.id}/asistencia`}
-            className="px-3 py-2 text-[10px] text-gray-700 transition hover:text-black"
-          >
-            Asistencia
-          </Link>
-        </div>
-
-        <div className="flex flex-col gap-5 py-4 lg:flex-row">
+        <div className="flex flex-col gap-5 py-4 xl:flex-row">
           <section className="min-w-0 flex-1">
             <div className="rounded-xl bg-white p-2 shadow-[0_1px_5px_rgba(15,36,61,0.08)] sm:p-3">
               <div className="flex justify-end pb-2">

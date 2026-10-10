@@ -5,6 +5,8 @@ import { useState } from "react";
 import type { Course } from "@/data/courses";
 
 
+import CourseHeader from "@/components/common/curso/CourseHeader";
+import CourseTabs from "@/components/common/curso/CourseTabs";
 type CreateActivityProps = {
   course: Course;
   moduleId?: string;
@@ -81,24 +83,9 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
           Volver a cursos
         </Link>
 
-        <div className="relative h-[150px] overflow-hidden rounded-t-xl">
-          <img src={course.imagen} alt={course.nombre} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-black/25" />
-          <h1 className="absolute bottom-7 left-4 text-[29px] font-bold tracking-[-0.8px] text-white sm:text-[31px]">
-            {course.nombre} - Crear Actividad
-          </h1>
-        </div>
+        <CourseHeader courseId={course.id} nombre={course.nombre} imagen={course.imagen} fetchIfMissing={false} />
 
-        <div className="flex flex-wrap border-b border-[#a7adb7] bg-[#eef2f8]">
-          {['Contenido de curso', 'Clases', 'Foro', 'Anuncios', 'Asistencia'].map((tab, index) => (
-            <span
-              key={tab}
-              className={index === 0 ? "border-b-[3px] border-black px-3 py-2 text-[10px] font-medium text-gray-900" : "px-3 py-2 text-[10px] text-gray-700"}
-            >
-              {tab}
-            </span>
-          ))}
-        </div>
+        <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
 
         <div className="grid grid-cols-1 gap-3 py-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.95fr)]">
           <section className="rounded-md bg-white p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
