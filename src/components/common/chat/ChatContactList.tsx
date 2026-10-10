@@ -17,6 +17,7 @@ type Props = {
   onSearchChange: (value: string) => void;
   onFilterChange: (value: Filter) => void;
   onSelect: (id: number) => void;
+  className?: string;
 };
 
 export default function ChatContactList({
@@ -28,6 +29,7 @@ export default function ChatContactList({
   onSearchChange,
   onFilterChange,
   onSelect,
+  className = "flex",
 }: Props) {
   const filteredContacts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -51,10 +53,12 @@ export default function ChatContactList({
   }, [contacts, search, filter]);
 
   return (
-    <aside className="flex w-[255px] shrink-0 flex-col border-r border-gray-300 bg-white">
+    <aside
+      className={`${className} w-full shrink-0 flex-col bg-white min-[861px]:w-[255px] min-[861px]:border-r min-[861px]:border-gray-300`}
+    >
       <div className="border-b border-gray-300 px-4 py-4">
 
-        <h1 className="text-[25px] font-semibold text-[#18407c]">
+        <h1 className="break-words text-[22px] font-semibold text-[#18407c] sm:text-[25px]">
           {courseName}
         </h1>
 

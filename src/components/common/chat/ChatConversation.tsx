@@ -32,6 +32,9 @@ export default function ChatConversation({
     setSelectedContact,
   ] = useState<number>(0);
 
+  /* Solo móvil/tablet: alterna entre la lista de contactos y la conversación */
+  const [showChat, setShowChat] = useState(false);
+
   const [messages, setMessages] =
     useState<ChatMessage[]>([]);
 
@@ -773,21 +776,53 @@ export default function ChatConversation({
               onFilterChange={
                 setFilter
               }
-              onSelect={
-                setSelectedContact
+              onSelect={(id) => {
+                setSelectedContact(id);
+                setShowChat(true);
+              }}
+              className={
+                showChat
+                  ? "hidden min-[861px]:flex"
+                  : "flex"
               }
             />
 
-            <section className="flex min-w-0 flex-1 flex-col">
+            <section
+              className={`${
+                showChat
+                  ? "flex"
+                  : "hidden min-[861px]:flex"
+              } min-w-0 flex-1 flex-col`}
+            >
 
-              <header className="flex items-center gap-4 border-b border-gray-300 px-5 py-3">
+              <header className="flex items-center gap-3 border-b border-gray-300 px-3 py-3 sm:gap-4 sm:px-5">
 
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#11b7b8] text-[13px] font-semibold text-white">
+                <button
+                  type="button"
+                  onClick={() => setShowChat(false)}
+                  aria-label="Volver a contactos"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#18407c] hover:bg-gray-100 min-[861px]:hidden"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#11b7b8] text-[13px] font-semibold text-white sm:h-14 sm:w-14">
                   {selectedUser?.initials}
                 </div>
 
-                <div>
-                  <h2 className="text-[14px] font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h2 className="truncate text-[14px] font-bold text-gray-900">
                     {
                       selectedUser?.name
                     }
@@ -802,7 +837,7 @@ export default function ChatConversation({
 
               </header>
 
-              <div className="flex-1 overflow-y-auto bg-white px-6 py-6">
+              <div className="flex-1 overflow-y-auto bg-white px-3 py-4 sm:px-6 sm:py-6">
 
                 {loadingMessages ? (
                   <p className="text-[11px] text-gray-400">

@@ -101,8 +101,8 @@ export default function ChatCourseList({
     <main className="min-h-screen bg-[#eef2f8] px-2 py-2 lg:px-3">
       <div className="flex min-h-[calc(100vh-16px)] w-full flex-col overflow-hidden rounded-lg border border-[#d4d9e2] bg-white">
 
-        <div className="border-b border-gray-300 px-5 py-5">
-          <h1 className="text-[28px] font-semibold text-[#18407c]">
+        <div className="border-b border-gray-300 px-3 py-4 sm:px-5 sm:py-5">
+          <h1 className="text-[24px] font-semibold text-[#18407c] sm:text-[28px]">
             Chat
           </h1>
 
@@ -110,7 +110,7 @@ export default function ChatCourseList({
             Comunícate con tus compañeros y docentes.
           </p>
 
-          <div className="mt-3 flex h-9 w-[250px] items-center rounded-md border border-gray-300 px-3">
+          <div className="mt-3 flex h-9 w-full items-center sm:w-[250px] rounded-md border border-gray-300 px-3">
             <span className="mr-2 text-[#1f61b4]">
               ⌕
             </span>
@@ -144,15 +144,15 @@ export default function ChatCourseList({
                 <Link
                   key={course.id}
                   href={`/${basePath}/chat/${course.id}`}
-                  className="flex min-h-[78px] items-center justify-between border-b border-gray-300 px-6 hover:bg-[#f5f8fc]"
+                  className="flex min-h-[78px] items-center justify-between gap-3 border-b border-gray-300 px-3 py-2 hover:bg-[#f5f8fc] sm:px-6"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2f80d8] text-[13px] font-semibold text-white">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 bg-[#2f80d8] text-[13px] font-semibold text-white">
                       {course.initials}
                     </div>
 
-                    <div>
-                      <h2 className="text-[14px] font-bold">
+                    <div className="min-w-0">
+                      <h2 className="break-words text-[14px] font-bold">
                         {course.nombre}
                       </h2>
 
@@ -162,7 +162,7 @@ export default function ChatCourseList({
                     </div>
                   </div>
 
-                  <span className="text-[11px]">
+                  <span className="shrink-0 text-right text-[11px]">
                     {course.miembros} miembros
                   </span>
                 </Link>

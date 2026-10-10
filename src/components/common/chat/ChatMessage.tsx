@@ -37,7 +37,7 @@ export default function ChatMessage({
         }`}
       >
         <div
-          className={`max-w-[70%] rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm ${
+          className={`max-w-[88%] sm:max-w-[70%] rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm ${
             esMio ? "rounded-br-sm" : "rounded-bl-sm"
           }`}
         >
@@ -104,14 +104,14 @@ export default function ChatMessage({
         esMio ? "justify-end" : "justify-start"
       }`}
     >
-      <div className="max-w-[70%]">
+      <div className="max-w-[88%] sm:max-w-[70%]">
         <div
           className={`rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm ${
             esMio ? "rounded-br-sm" : "rounded-bl-sm"
           }`}
         >
           {editando ? (
-            <div className="min-w-[220px] space-y-2">
+            <div className="min-w-[min(220px,100%)] space-y-2">
               <textarea
                 value={borrador}
                 onChange={(event) =>

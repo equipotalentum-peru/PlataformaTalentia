@@ -6,7 +6,7 @@ export default function CourseInfo({
   progress,
 }: CourseInfoProps) {
   return (
-    <aside className="w-full xl:w-[220px]">
+    <aside className="order-first w-full xl:order-last xl:w-[220px] xl:shrink-0">
       <div className="mb-3">
         <h3 className="text-[13px] font-semibold text-[#3c8edc]">
           Información del curso

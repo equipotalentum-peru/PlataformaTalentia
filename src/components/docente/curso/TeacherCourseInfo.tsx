@@ -85,7 +85,7 @@ export default function TeacherCourseInfo({ course }: TeacherCourseInfoProps) {
   const published = Math.min(Math.max(course.progreso - 15, 0), 100);
 
   return (
-    <aside className="w-full shrink-0 lg:w-[215px] xl:w-[225px]">
+    <aside className="order-first w-full shrink-0 xl:order-last xl:w-[225px]">
       <h2 className="mb-2 text-[12px] font-semibold text-[#3f91dc]">Información del curso</h2>
 
       <div className="space-y-3">
