@@ -1209,3 +1209,188 @@ a {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* =========================================================
+   TALENTIA - MONITORES GRANDES
+   Aplica SOLO al sistema interno:
+   Alumno / Docente / Administrador
+
+   No afecta:
+   - celular
+   - tablet
+   - laptop común
+   - login
+   - registro
+   - landing page
+========================================================= */
+
+
+/* =========================================================
+   MONITOR GRANDE
+   Ej: 1600x900, 1680x1050
+========================================================= */
+
+@media (min-width: 1600px) {
+
+  :root {
+    /*
+      Permitimos que Alumno y Docente utilicen
+      mucho más espacio horizontal.
+    */
+    --page-max: 1250px;
+    --page-px: 28px;
+    --page-py: 22px;
+  }
+
+
+  /*
+    Escalamos TODO el sistema:
+    sidebar, textos, botones, tarjetas,
+    tablas, dashboard, cursos, etc.
+  */
+  .app-shell {
+    zoom: 1.10;
+
+    /*
+      Compensación del zoom.
+      100 / 1.10 = 90.9091
+    */
+    width: 90.9091vw;
+
+    min-height: 90.9091vh;
+    min-height: 90.9091dvh;
+  }
+
+
+  /*
+    El sidebar es fixed.
+    Compensamos también su altura
+    para que "Cerrar sesión" no quede
+    debajo del monitor.
+  */
+  .app-shell .app-sidebar {
+    bottom: auto;
+
+    height: 90.9091vh;
+    height: 90.9091dvh;
+  }
+
+
+  .app-shell .app-main-column {
+    min-height: 90.9091vh;
+    min-height: 90.9091dvh;
+  }
+
+
+  /*
+    Algunas vistas de Admin utilizan
+    directamente min-h-screen.
+    Evitamos que el zoom cree altura extra.
+  */
+  .app-shell
+    .app-layout-main
+    > [class*="min-h-screen"] {
+    min-height: 90.9091vh !important;
+    min-height: 90.9091dvh !important;
+  }
+}
+
+
+/* =========================================================
+   MONITOR FULL HD GRANDE
+   Ej: 1920x1080
+========================================================= */
+
+@media (min-width: 1900px) {
+
+  :root {
+    --page-max: 1400px;
+    --page-px: 32px;
+    --page-py: 25px;
+  }
+
+
+  .app-shell {
+    zoom: 1.14;
+
+    /*
+      100 / 1.14 = 87.7193
+    */
+    width: 87.7193vw;
+
+    min-height: 87.7193vh;
+    min-height: 87.7193dvh;
+  }
+
+
+  .app-shell .app-sidebar {
+    bottom: auto;
+
+    height: 87.7193vh;
+    height: 87.7193dvh;
+  }
+
+
+  .app-shell .app-main-column {
+    min-height: 87.7193vh;
+    min-height: 87.7193dvh;
+  }
+
+
+  .app-shell
+    .app-layout-main
+    > [class*="min-h-screen"] {
+    min-height: 87.7193vh !important;
+    min-height: 87.7193dvh !important;
+  }
+}
+
+
+/* =========================================================
+   MONITORES 2K / MUY GRANDES
+   Ej: 2560x1440
+========================================================= */
+
+@media (min-width: 2400px) {
+
+  :root {
+    --page-max: 1550px;
+    --page-px: 36px;
+    --page-py: 28px;
+  }
+
+
+  .app-shell {
+    zoom: 1.18;
+
+    /*
+      100 / 1.18 = 84.7458
+    */
+    width: 84.7458vw;
+
+    min-height: 84.7458vh;
+    min-height: 84.7458dvh;
+  }
+
+
+  .app-shell .app-sidebar {
+    bottom: auto;
+
+    height: 84.7458vh;
+    height: 84.7458dvh;
+  }
+
+
+  .app-shell .app-main-column {
+    min-height: 84.7458vh;
+    min-height: 84.7458dvh;
+  }
+
+
+  .app-shell
+    .app-layout-main
+    > [class*="min-h-screen"] {
+    min-height: 84.7458vh !important;
+    min-height: 84.7458dvh !important;
+  }
+}
