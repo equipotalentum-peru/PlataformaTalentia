@@ -2,8 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { ContentType } from "@/data/courseContents";
-
-import ContentTypeIcon from "./ContentTypeIcon";
+import ViewerToolbar from "./ViewerToolbar";
 
 const PdfViewer = dynamic(
   () => import("./PdfViewer"),
@@ -87,46 +86,26 @@ export default function ContentViewer({
     );
   }
 
+  
   if (type === "video") {
     return (
       <div className="w-full">
-
-        <div className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 bg-black px-4 text-white">
-
-          <div className="flex min-w-0 items-center gap-3">
-            <ContentTypeIcon
-              type="video"
-              className="h-9 w-9 shrink-0 text-white"
-            />
-
-            <span className="truncate text-sm font-semibold">
-              {title}
-            </span>
-          </div>
-
-          <div />
-
-          <a
-            href={file}
-            download
-            className="flex h-10 w-10 items-center justify-center justify-self-end rounded-full bg-white text-black shadow-md transition hover:scale-105"
-            title="Descargar video"
-          >
-            ↓
-          </a>
-
-        </div>
+        <ViewerToolbar
+          title={title}
+          type="video"
+          file={file}
+        />
 
         <div className="bg-[#666666] p-7">
           <video
             controls
+            preload="metadata"
             className="mx-auto max-h-[560px] w-full max-w-[900px] bg-black"
           >
             <source src={file} />
             Tu navegador no soporta la reproducción de video.
           </video>
         </div>
-
       </div>
     );
   }

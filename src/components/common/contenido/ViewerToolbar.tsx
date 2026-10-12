@@ -18,6 +18,26 @@ type ViewerToolbarProps = {
   onZoomIn?: () => void;
 };
 
+
+function obtenerNombreDescarga(
+  title: string,
+  type: "pdf" | "video" | "ppt" | "word"
+) {
+  const nombre = title
+    .replace(/\.(pdf|pptx|docx|mp4|webm|mov)$/i, "")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .trim();
+
+  const extension = {
+    pdf: "pdf",
+    video: "mp4",
+    ppt: "pptx",
+    word: "docx",
+  }[type];
+
+  return `${nombre || "contenido"}.${extension}`;
+}
+
 export default function ViewerToolbar({
   title,
   type,
@@ -178,7 +198,7 @@ export default function ViewerToolbar({
       <div className="group relative justify-self-end">
         <a
           href={file}
-          download={type === "video" ? true : `${title.replace(/[\\/:*?"<>|]/g, "-").trim() || "contenido"}.${{ pdf: "pdf", ppt: "pptx", word: "docx" }[type]}`}
+          download={obtenerNombreDescarga(title, type)}
           aria-label="Descargar archivo"
           title="Descargar archivo"
           className="
