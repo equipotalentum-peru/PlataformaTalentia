@@ -16,6 +16,7 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import forosRoutes from "./routes/foros.routes";
 import chatRoutes from "./routes/chat.routes";
 import certificadosRoutes from "./routes/certificados.routes";
+import actividadesRoutes from "./routes/actividades.routes";
 
 import {
   sincronizarEstadosClases,
@@ -75,6 +76,7 @@ app.use(
   "/api/certificados",
   certificadosRoutes
 );
+app.use("/api/actividades", actividadesRoutes);
 
 /*
  * Sincronización automática

@@ -81,6 +81,7 @@ export default function ContentViewer({
       <ActivityViewer
         activityId={contentId}
         courseId={courseId}
+        title={title}
         previousHref={previousHref}
         nextHref={nextHref}
         exitHref={exitHref}
