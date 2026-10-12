@@ -16,7 +16,11 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import forosRoutes from "./routes/foros.routes";
 import chatRoutes from "./routes/chat.routes";
 import certificadosRoutes from "./routes/certificados.routes";
+
 import actividadesRoutes from "./routes/actividades.routes";
+import asistenciasRoutes
+  from "./routes/asistencias.routes";
+
 
 import {
   sincronizarEstadosClases,
@@ -59,6 +63,8 @@ app.use(
   })
 );
 
+
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -77,6 +83,11 @@ app.use(
   certificadosRoutes
 );
 app.use("/api/actividades", actividadesRoutes);
+
+app.use(
+  "/api/asistencias",
+  asistenciasRoutes
+);
 
 /*
  * Sincronización automática

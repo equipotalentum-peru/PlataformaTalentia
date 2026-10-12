@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import TeacherAttendance from "@/components/docente/asistencia/TeacherAttendance";
-import { courses } from "@/data/courses";
+
 
 import CourseHeader from "@/components/common/curso/CourseHeader";
 import CourseTabs from "@/components/common/curso/CourseTabs";
@@ -19,13 +19,14 @@ export default async function TeacherAttendancePage({
 
   const courseId = Number(cursoId);
 
-  const course = courses.find(
-    (item) => item.id === courseId
-  );
-
-  if (!course) {
-    notFound();
-  }
+  if (
+  !Number.isSafeInteger(
+    courseId
+  ) ||
+  courseId <= 0
+) {
+  notFound();
+}
 
   return (
     <div className="min-h-screen px-3 py-4 lg:px-4">
