@@ -1,0 +1,9 @@
+BEGIN;
+
+ALTER TABLE rubricas
+  ADD COLUMN IF NOT EXISTS ruta_archivo TEXT,
+  ADD COLUMN IF NOT EXISTS nombre_archivo VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS mime_type VARCHAR(120),
+  ADD COLUMN IF NOT EXISTS tamano_bytes BIGINT CHECK (tamano_bytes IS NULL OR tamano_bytes > 0);
+
+COMMIT;

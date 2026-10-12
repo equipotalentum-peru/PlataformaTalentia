@@ -81,13 +81,18 @@ export async function gestionarContenido(req: AuthenticatedRequest, res: Respons
       }
     }
     const result = await pool.query(
-      `UPDATE contenidos_curso cc SET titulo = COALESCE($4, cc.titulo), estado = COALESCE($5, cc.estado), actualizado_en = CURRENT_TIMESTAMP
+      `WITH actualizado AS (
+       UPDATE contenidos_curso cc SET titulo = COALESCE($4, cc.titulo), estado = COALESCE($5, cc.estado), actualizado_en = CURRENT_TIMESTAMP
        FROM modulos_curso mc, cursos c
        WHERE cc.id = $1 AND cc.modulo_id = mc.id AND mc.curso_id = c.id AND c.id = $2
          AND mc.activo = TRUE AND c.estado = 'Activo' AND cc.estado <> 'Oculto'
          AND EXISTS (SELECT 1 FROM ofertas_curso oc JOIN usuarios u ON u.id = oc.docente_id
            WHERE oc.curso_id = c.id AND u.id = $3 AND u.rol = 'Docente' AND u.activo = TRUE AND oc.estado <> 'Cancelado')
-       RETURNING cc.id, cc.titulo, cc.estado`,
+       RETURNING cc.id, cc.titulo, cc.estado
+       ), actividad_actualizada AS (
+         UPDATE actividades a SET estado = CASE WHEN actualizado.estado = 'Publicado' THEN 'Publicada' ELSE 'Oculta' END,
+           actualizado_en = CURRENT_TIMESTAMP FROM actualizado WHERE a.contenido_id = actualizado.id RETURNING a.id
+       ) SELECT id, titulo, estado FROM actualizado`,
       [contentId, courseId, req.userId, title === undefined ? null : title.trim(), state ?? null]
     );
     if (!result.rowCount) return res.status(404).json({ message: "Contenido no disponible o sin permiso para modificarlo." });

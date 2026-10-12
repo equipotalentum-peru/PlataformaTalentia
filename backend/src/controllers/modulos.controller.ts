@@ -88,6 +88,9 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
            JOIN entregas_actividades ea ON ea.id = ae.entrega_id
            JOIN actividades a ON a.id = ea.actividad_id
            JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $1
+           UNION SELECT BTRIM(r.ruta_archivo) FROM rubricas r
+           JOIN actividades a ON a.id = r.actividad_id
+           JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $1
          ) SELECT ruta AS ruta_archivo, (
            EXISTS (SELECT 1 FROM contenidos_curso WHERE modulo_id <> $1 AND BTRIM(ruta_archivo) = ruta)
            OR EXISTS (SELECT 1 FROM archivos_entrega_actividad ae
@@ -96,6 +99,9 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
              JOIN contenidos_curso cc ON cc.id = a.contenido_id
              WHERE cc.modulo_id <> $1 AND BTRIM(ae.ruta_archivo) = ruta)
            OR EXISTS (SELECT 1 FROM adjuntos_chat WHERE BTRIM(ruta_archivo) = ruta)
+           OR EXISTS (SELECT 1 FROM rubricas r JOIN actividades a ON a.id = r.actividad_id
+             JOIN contenidos_curso cc ON cc.id = a.contenido_id
+             WHERE cc.modulo_id <> $1 AND BTRIM(r.ruta_archivo) = ruta)
            OR EXISTS (SELECT 1 FROM certificados WHERE BTRIM(ruta_archivo) = ruta)
            OR EXISTS (SELECT 1 FROM sesiones_clase WHERE BTRIM(ruta_grabacion) = ruta)
          ) AS compartido FROM archivos WHERE ruta IS NOT NULL AND ruta <> ''`, [moduleId]

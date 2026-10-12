@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { API_URL } from "@/lib/api";
 import { activities, type ActivityDefinition } from "@/data/activities";
 import { markContentViewed } from "@/lib/progress";
+import RubricDetails, { type RubricInfo } from "@/components/common/curso/RubricDetails";
 
 type Submission = {
   id: number;
@@ -29,6 +30,12 @@ type ActivityApi = {
   puntaje_maximo?: number | string | null;
   tamano_maximo_mb?: number | string | null;
   matricula_id?: number;
+  permitir_archivo: boolean;
+  permitir_enlace: boolean;
+  permitir_imagen: boolean;
+  permitir_video: boolean;
+  formatos_permitidos: string;
+  calificada: boolean;
 };
 
 type Props = {
@@ -42,7 +49,6 @@ type Props = {
   trackLocalProgress?: boolean;
 };
 
-const ACCEPTED_FILES = ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar";
 const FALLBACK_MAX_FILE_SIZE_MB = 20;
 
 function formatDate(value?: string | null) {
@@ -71,6 +77,8 @@ export default function ActivityViewer({
     activityDefinition ?? activities.find((item) => item.id === activityId) ?? activities[0];
 
   const [activityInfo, setActivityInfo] = useState<ActivityApi | null>(null);
+  const [rubrica, setRubrica] = useState<RubricInfo | null>(null);
+  const [link, setLink] = useState("");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [comment, setComment] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -79,53 +87,69 @@ export default function ActivityViewer({
   const [maxGrade, setMaxGrade] = useState(activity?.maxGrade ?? 20);
   const [maxFileSizeMB, setMaxFileSizeMB] = useState(FALLBACK_MAX_FILE_SIZE_MB);
   const [loading, setLoading] = useState(true);
+  const [expired, setExpired] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [reload, setReload] = useState(0);
 
-  const loadSubmission = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
+  useEffect(() => {
+    let active = true;
+    async function loadSubmission() {
     try {
       const response = await fetch(
         `${API_URL}/actividades/${courseId}/${activityId}/mi-entrega`,
         { credentials: "include", cache: "no-store" },
       );
       const data = await response.json();
+      if (!active) return;
       if (!response.ok) {
         throw new Error(data.message || "No se pudo cargar la actividad.");
       }
 
       const apiActivity = data.actividad as ActivityApi;
       setActivityInfo(apiActivity);
+      setError("");
+      setExpired(Boolean(apiActivity.fecha_limite && Date.parse(apiActivity.fecha_limite) <= Date.now()));
+      setRubrica(data.rubrica ?? null);
       setSubmissions((data.entregas ?? []) as Submission[]);
       setMaxAttempts(Number(apiActivity.intentos_permitidos ?? activity?.maxAttempts ?? 3));
       setMaxGrade(Number(apiActivity.puntaje_maximo ?? activity?.maxGrade ?? 20));
       setMaxFileSizeMB(Number(apiActivity.tamano_maximo_mb ?? FALLBACK_MAX_FILE_SIZE_MB));
     } catch (e) {
+      if (!active) return;
+      setActivityInfo(null);
+      setRubrica(null);
+      setSubmissions([]);
       setError(e instanceof Error ? e.message : "Error cargando la entrega.");
     } finally {
-      setLoading(false);
+      if (active) setLoading(false);
     }
-  }, [activity, activityId, courseId]);
-
-  useEffect(() => {
+    }
     void loadSubmission();
-  }, [loadSubmission]);
+    return () => { active = false; };
+  }, [activity, activityId, courseId, reload]);
 
-  const latest = submissions[0] ?? null;
   const remaining = Math.max(maxAttempts - submissions.length, 0);
+  const allowedFormats = (activityInfo?.formatos_permitidos ?? "").toLowerCase().split(",").map(format => format.trim()).filter(format => {
+    if (["png", "jpg", "jpeg"].includes(format)) return activityInfo?.permitir_imagen;
+    if (format === "mp4") return activityInfo?.permitir_video;
+    return ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "zip", "rar"].includes(format) && activityInfo?.permitir_archivo;
+  });
   const displayTitle = activityInfo?.titulo || title || activity?.title || "Actividad";
   const displayDescription =
-    activityInfo?.descripcion || activityInfo?.instrucciones || activity?.description || "";
-  const displayDueDate = activityInfo?.fecha_limite
-    ? formatDate(activityInfo.fecha_limite)
-    : activity?.dueDate || "Por definir";
+    activityInfo ? activityInfo.descripcion ?? activityInfo.instrucciones ?? "" : activity?.description || "";
+  const displayDueDate = formatDate(activityInfo?.fecha_limite);
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     setError("");
+    if (selected && (!allowedFormats.includes(selected.name.split(".").pop()?.toLowerCase() ?? "") || selected.size === 0)) {
+      setError("Selecciona un archivo válido en uno de los formatos permitidos.");
+      event.target.value = "";
+      setFile(null);
+      return;
+    }
     if (selected && selected.size > maxFileSizeMB * 1024 * 1024) {
       setError(`El archivo no puede superar ${maxFileSizeMB} MB.`);
       event.target.value = "";
@@ -136,13 +160,22 @@ export default function ActivityViewer({
   }
 
   async function submit() {
+    if (sending || !activityInfo) return;
+    if (activityInfo.fecha_limite && Date.parse(activityInfo.fecha_limite) <= Date.now()) {
+      setExpired(true); setError("La fecha de entrega ya venció."); return;
+    }
     if (remaining <= 0) {
       setError("Ya alcanzaste el máximo de intentos permitidos.");
       return;
     }
-    if (!file && !comment.trim()) {
-      setError("Adjunta un documento o escribe un comentario.");
+    if (!file && !link.trim()) {
+      setError("Adjunta un archivo o un enlace permitido.");
       return;
+    }
+    if (link.trim()) {
+      try {
+        if (!["http:", "https:"].includes(new URL(link.trim()).protocol)) throw new Error();
+      } catch { setError("Escribe un enlace válido que comience con https:// o http://."); return; }
     }
 
     setSending(true);
@@ -153,6 +186,7 @@ export default function ActivityViewer({
       const form = new FormData();
       if (file) form.append("archivo", file);
       if (comment.trim()) form.append("comentario", comment.trim());
+      if (link.trim()) form.append("enlace", link.trim());
 
       const response = await fetch(
         `${API_URL}/actividades/${courseId}/${activityId}/entregar`,
@@ -169,10 +203,11 @@ export default function ActivityViewer({
 
       setMessage("¡Tu entrega se guardó correctamente!");
       setComment("");
+      setLink("");
       setFile(null);
       setFileInputKey((current) => current + 1);
       if (trackLocalProgress) markContentViewed(courseId, activityId);
-      await loadSubmission();
+      setReload(current => current + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo enviar la entrega.");
     } finally {
@@ -188,15 +223,16 @@ export default function ActivityViewer({
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_265px]">
       <section className="rounded-xl bg-white p-6">
         <h1 className="text-2xl font-bold text-[#3186d8]">{displayTitle}</h1>
-        {displayDescription && <p className="mt-2 text-sm text-gray-700">{displayDescription}</p>}
+        {displayDescription && <p className="mt-2 whitespace-pre-wrap break-words text-sm text-gray-700">{displayDescription}</p>}
+        <RubricDetails rubrica={rubrica} courseId={courseId} contentId={activityId} />
         <div className="my-5 border-b border-gray-200" />
 
         <h2 className="mb-3 text-lg font-bold text-[#3186d8]">Tu entrega</h2>
         {message && <p role="status" className="mb-3 rounded-lg bg-green-100 p-3 text-sm text-green-800">{message}</p>}
         {error && <p role="alert" className="mb-3 rounded-lg bg-red-100 p-3 text-sm text-red-800">{error}</p>}
 
-        {remaining > 0 ? (
-          <>
+        {activityInfo && remaining > 0 && !expired ? (
+          <fieldset disabled={sending} className="min-w-0">
             <label htmlFor="comentario-entrega" className="mb-2 block text-sm font-medium text-gray-700">
               Comentario (opcional)
             </label>
@@ -210,23 +246,28 @@ export default function ActivityViewer({
               className="w-full rounded-lg border border-gray-300 p-3 text-sm text-gray-800 outline-none focus:border-[#3186d8]"
             />
 
-            <div className="mt-4 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-5">
+            {activityInfo.permitir_enlace && <div className="mt-4">
+              <label htmlFor="enlace-entrega" className="block text-sm font-medium text-gray-700">Enlace</label>
+              <input id="enlace-entrega" type="url" maxLength={2000} value={link} onChange={event => setLink(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-gray-300 p-3 text-sm text-gray-800" />
+            </div>}
+            {allowedFormats.length > 0 && <div className="mt-4 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-5">
               <label htmlFor="archivo-entrega" className="block text-sm font-semibold text-gray-800">
-                Documento adjunto (opcional)
+                Archivo adjunto{activityInfo.permitir_enlace ? " (o enlace)" : ""}
               </label>
               <p className="mt-1 text-xs text-gray-500">
-                Máximo {maxFileSizeMB} MB. PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, PNG/JPG, ZIP o RAR.
+                Máximo {maxFileSizeMB} MB. {allowedFormats.join(", ").toUpperCase()}.
               </p>
               <input
                 key={fileInputKey}
                 id="archivo-entrega"
                 type="file"
-                accept={ACCEPTED_FILES}
+                accept={allowedFormats.map(format => `.${format}`).join(",")}
                 onChange={chooseFile}
                 className="mt-3 block w-full text-sm text-gray-700"
               />
               {file && <p className="mt-2 break-all text-sm text-gray-700">Seleccionado: {file.name}</p>}
-            </div>
+            </div>}
 
             <button
               type="button"
@@ -236,12 +277,12 @@ export default function ActivityViewer({
             >
               {sending ? "Enviando..." : "Enviar entrega"}
             </button>
-          </>
-        ) : (
+          </fieldset>
+        ) : activityInfo ? (
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-            Ya alcanzaste el máximo de intentos permitidos.
+            {expired ? "La fecha de entrega ya venció." : "Ya alcanzaste el máximo de intentos permitidos."}
           </p>
-        )}
+        ) : null}
 
         <h2 className="mb-3 mt-7 text-lg font-bold text-[#3186d8]">Historial de entregas</h2>
         {submissions.length === 0 ? (
@@ -271,7 +312,7 @@ export default function ActivityViewer({
                     {submission.comentario}
                   </p>
                 )}
-                {submission.nota !== null && submission.nota !== undefined && (
+                {activityInfo?.calificada && submission.nota !== null && submission.nota !== undefined && (
                   <p className="mt-3 font-semibold text-green-700">Nota: {submission.nota} / {maxGrade}</p>
                 )}
                 {submission.retroalimentacion && (
@@ -293,7 +334,7 @@ export default function ActivityViewer({
       <aside className="rounded-xl bg-white p-5">
         <h2 className="mb-4 font-bold text-[#3186d8]">Detalles de la actividad</h2>
         <p className="mb-3 text-sm text-gray-600">Intentos restantes: <strong>{remaining}</strong></p>
-        <p className="mb-3 text-sm text-gray-600">Puntuación máxima: <strong>{maxGrade} puntos</strong></p>
+        {activityInfo && <p className="mb-3 text-sm text-gray-600">{activityInfo.calificada ? <>Puntuación máxima: <strong>{maxGrade} puntos</strong></> : "Actividad sin calificación"}</p>}
         <p className="text-sm text-gray-600">Fecha límite: <strong>{displayDueDate}</strong></p>
       </aside>
     </div>
