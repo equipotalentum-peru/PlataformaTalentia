@@ -77,20 +77,50 @@ async function studentContext(courseId: number, contentId: number, studentId: nu
     [courseId, contentId, studentId]
   );
 }
-async function teacherContext(courseId: number, contentId: number, teacherId: number) {
+async function teacherContext(
+  courseId: number,
+  contentId: number,
+  teacherId: number
+) {
   return pool.query(
-    `SELECT a.id AS actividad_id, a.puntaje_maximo, a.intentos_permitidos, a.calificada,
-            oc.id AS oferta_curso_id,
-            cc.titulo, COALESCE(cc.descripcion, a.instrucciones, '') AS descripcion
-       FROM actividades a
-       JOIN contenidos_curso cc ON cc.id = a.contenido_id
-       JOIN modulos_curso mc ON mc.id = cc.modulo_id
-       JOIN cursos c ON c.id = mc.curso_id
-       JOIN ofertas_curso oc ON oc.curso_id = c.id
-      WHERE c.id = $1 AND cc.id = $2 AND oc.docente_id = $3
-        AND oc.estado <> 'Cancelado' AND cc.tipo = 'actividad' AND mc.activo = TRUE AND c.estado = 'Activo'
-      ORDER BY oc.actualizado_en DESC, oc.id DESC LIMIT 1`,
-    [courseId, contentId, teacherId]
+    `
+      SELECT
+        a.id AS actividad_id,
+        a.puntaje_maximo,
+        a.intentos_permitidos,
+        a.calificada,
+        a.fecha_limite,
+        oc.id AS oferta_curso_id,
+        cc.titulo,
+        COALESCE(
+          cc.descripcion,
+          a.instrucciones,
+          ''
+        ) AS descripcion
+      FROM actividades a
+      JOIN contenidos_curso cc
+        ON cc.id = a.contenido_id
+      JOIN modulos_curso mc
+        ON mc.id = cc.modulo_id
+      JOIN cursos c
+        ON c.id = mc.curso_id
+      JOIN ofertas_curso oc
+        ON oc.curso_id = c.id
+      WHERE c.id = $1
+        AND cc.id = $2
+        AND oc.docente_id = $3
+        AND oc.estado <> 'Cancelado'
+        AND cc.tipo = 'Actividad'
+        AND mc.activo = TRUE
+        AND c.estado = 'Activo'
+      ORDER BY oc.actualizado_en DESC, oc.id DESC
+      LIMIT 1
+    `,
+    [
+      courseId,
+      contentId,
+      teacherId,
+    ]
   );
 }
 async function role(userId: number, expected: string) {

@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import { API_URL } from "@/lib/api";
+
 
 type Student = {
   alumno_id: number;
@@ -32,6 +39,7 @@ type StudentAttempt = {
   tamano_bytes?: number | null;
 };
 
+
 type ActivityInfo = {
   actividad_id?: number;
   titulo?: string;
@@ -41,12 +49,36 @@ type ActivityInfo = {
   fecha_limite?: string | null;
 };
 
+
+/* =========================================================
+   RÚBRICA
+========================================================= */
+
+type RubricCriterion = {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  puntaje_maximo: number | string;
+  orden?: number;
+};
+
+
+type RubricInfo = {
+  id?: number;
+  tipo?: "pdf" | "criterios" | string;
+  ruta_archivo?: string | null;
+  nombre_archivo?: string | null;
+  criterios: RubricCriterion[];
+};
+
+
 type Props = {
   courseId: number;
   activityId: number;
   previousSectionHref?: string;
   nextSectionHref?: string;
 };
+
 
 const AVATAR_COLORS = [
   "bg-[#a8d4ff] text-[#2878ca]",
@@ -60,97 +92,818 @@ const AVATAR_COLORS = [
   "bg-[#aaf0ad] text-[#1c8b36]",
 ];
 
-function initials(name: string) {
-  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toLocaleUpperCase("es-PE") ?? "").join("");
+
+function initials(
+  name: string
+) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(
+      (part) =>
+        part[0]?.toLocaleUpperCase(
+          "es-PE"
+        ) ?? ""
+    )
+    .join("");
 }
 
-function formattedDate(value?: string | null) {
-  if (!value) return "Por definir";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("es-PE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "America/Lima",
-  }).replace(" de 20", " del 20");
+
+function formattedDate(
+  value?: string | null
+) {
+  if (!value) {
+    return "Por definir";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return date
+    .toLocaleDateString(
+      "es-PE",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone:
+          "America/Lima",
+      }
+    )
+    .replace(
+      " de 20",
+      " del 20"
+    );
 }
 
-function formattedDateTime(value?: string | null) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short", timeZone: "America/Lima" });
+
+/* =========================================================
+   NUEVO:
+   hora real de fecha_limite
+========================================================= */
+
+function formattedTime(
+  value?: string | null
+) {
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return `${date.toLocaleTimeString(
+    "es-PE",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone:
+        "America/Lima",
+    }
+  )} (UTC-5)`;
 }
 
-function Icon({ type, size = 18 }: { type: "calendar" | "check" | "star" | "book" | "info" | "chat" | "arrow" }) {
+
+function formattedDateTime(
+  value?: string | null
+) {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return date.toLocaleString(
+    "es-PE",
+    {
+      dateStyle:
+        "short",
+
+      timeStyle:
+        "short",
+
+      timeZone:
+        "America/Lima",
+    }
+  );
+}
+
+
+function Icon({
+  type,
+  size = 18,
+}: {
+  type:
+    | "calendar"
+    | "check"
+    | "star"
+    | "book"
+    | "info"
+    | "chat"
+    | "arrow";
+
+  size?: number;
+}) {
   const props = {
     width: size,
     height: size,
-    viewBox: "0 0 24 24",
+    viewBox:
+      "0 0 24 24",
     fill: "none",
-    stroke: "currentColor",
+    stroke:
+      "currentColor",
     strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true as const,
+    strokeLinecap:
+      "round" as const,
+    strokeLinejoin:
+      "round" as const,
+    "aria-hidden":
+      true as const,
   };
+
+
   switch (type) {
-    case "calendar": return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>;
-    case "check": return <svg {...props}><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m7 12 3 3 7-7"/></svg>;
-    case "star": return <svg {...props}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>;
-    case "book": return <svg {...props}><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z"/><path d="M4 6v15M8 7h8M8 11h8"/></svg>;
-    case "info": return <svg {...props}><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7h.01"/></svg>;
-    case "chat": return <svg {...props}><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>;
-    case "arrow": return <svg {...props}><path d="M5 12h14m-6-6 6 6-6 6"/></svg>;
+    case "calendar":
+      return (
+        <svg {...props}>
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="16"
+            rx="2"
+          />
+
+          <path d="M16 3v4M8 3v4M3 10h18" />
+        </svg>
+      );
+
+
+    case "check":
+      return (
+        <svg {...props}>
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="4"
+          />
+
+          <path d="m7 12 3 3 7-7" />
+        </svg>
+      );
+
+
+    case "star":
+      return (
+        <svg {...props}>
+          <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+        </svg>
+      );
+
+
+    case "book":
+      return (
+        <svg {...props}>
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" />
+
+          <path d="M4 6v15M8 7h8M8 11h8" />
+        </svg>
+      );
+
+
+    case "info":
+      return (
+        <svg {...props}>
+          <circle
+            cx="12"
+            cy="12"
+            r="9"
+          />
+
+          <path d="M12 11v5M12 7h.01" />
+        </svg>
+      );
+
+
+    case "chat":
+      return (
+        <svg {...props}>
+          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+        </svg>
+      );
+
+
+    case "arrow":
+      return (
+        <svg {...props}>
+          <path d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      );
   }
 }
 
-function DetailRow({ icon, label, children }: { icon: "calendar" | "check" | "star" | "book"; label: string; children: React.ReactNode }) {
-  return <div className="activity-side-item"><span className="activity-icon-circle"><Icon type={icon} size={19}/></span><div className="min-w-0 flex-1"><p className="text-[#1e66c5]">{label}</p><div className="text-[10px] leading-[1.35] text-[#252b33]">{children}</div></div></div>;
+
+function DetailRow({
+  icon,
+  label,
+  children,
+}: {
+  icon:
+    | "calendar"
+    | "check"
+    | "star"
+    | "book";
+
+  label: string;
+
+  children:
+    React.ReactNode;
+}) {
+  return (
+    <div className="activity-side-item">
+      <span className="activity-icon-circle">
+        <Icon
+          type={icon}
+          size={19}
+        />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-[#1e66c5]">
+          {label}
+        </p>
+
+        <div className="text-[10px] leading-[1.35] text-[#252b33]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default function TeacherActivityDetail({ courseId, activityId }: Props) {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedAttempts, setSelectedAttempts] = useState<StudentAttempt[]>([]);
-  const [loadingAttempts, setLoadingAttempts] = useState(false);
-  const [attemptsError, setAttemptsError] = useState("");
-  const [activity, setActivity] = useState<ActivityInfo>({});
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-  const [teacherComment, setTeacherComment] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [savingComment, setSavingComment] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+
+/* =========================================================
+   NUEVO:
+   MODAL DE RÚBRICA PARA DOCENTE
+
+   Se abre únicamente para una rúbrica creada con criterios.
+   Si la rúbrica es PDF, NO se usa este modal.
+========================================================= */
+
+function TeacherRubricModal({
+  rubrica,
+  maxGrade,
+  onClose,
+}: {
+  rubrica:
+    RubricInfo;
+
+  maxGrade:
+    number;
+
+  onClose:
+    () => void;
+}) {
+  const dialogRef =
+    useRef<HTMLDialogElement>(
+      null
+    );
+
+
+  useEffect(() => {
+    const dialog =
+      dialogRef.current;
+
+    dialog?.showModal();
+
+    return () => {
+      dialog?.close();
+    };
+  }, []);
+
+
+  const total =
+    rubrica.criterios.reduce(
+      (
+        acumulado,
+        criterio
+      ) =>
+        acumulado +
+        Number(
+          criterio.puntaje_maximo
+        ),
+      0
+    );
+
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="teacher-rubric-title"
+      onCancel={(
+        event
+      ) => {
+        event.preventDefault();
+
+        onClose();
+      }}
+      className="
+        m-auto
+        max-h-[88dvh]
+        w-[92vw]
+        max-w-[900px]
+        overflow-hidden
+        rounded-[12px]
+        border-0
+        bg-white
+        p-0
+        text-gray-800
+        shadow-2xl
+        backdrop:bg-black/55
+      "
+    >
+      <div className="flex max-h-[88dvh] flex-col">
+        {/* CABECERA */}
+
+        <div className="flex shrink-0 items-center justify-between px-7 pb-3 pt-6">
+          <h2
+            id="teacher-rubric-title"
+            className="text-[24px] font-bold text-[#103763]"
+          >
+            Rúbrica de evaluación
+          </h2>
+
+
+          <button
+            type="button"
+            aria-label="Cerrar rúbrica"
+            onClick={onClose}
+            className="
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-md
+              text-[26px]
+              font-light
+              text-[#334155]
+              transition
+              hover:bg-gray-100
+            "
+          >
+            ×
+          </button>
+        </div>
+
+
+        {/* CONTENIDO */}
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-4">
+          {/* INFORMACIÓN */}
+
+          <div className="rounded-[8px] border border-[#bcdcff] bg-[#e8f4ff] px-5 py-4">
+            <div className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#1479d1] text-[13px] font-bold text-[#1479d1]">
+                i
+              </span>
+
+              <div>
+                <p className="text-[12px] font-semibold text-[#1554a0]">
+                  Estos son los
+                  criterios que se
+                  utilizan para
+                  evaluar esta
+                  actividad.
+                </p>
+
+                <p className="mt-1 text-[11px] leading-[1.4] text-[#315b7e]">
+                  Cada criterio
+                  tiene un puntaje
+                  específico y la
+                  suma total
+                  equivale a la
+                  puntuación máxima
+                  de la actividad.
+                </p>
+              </div>
+            </div>
+          </div>
+
+
+          {/* TABLA */}
+
+          <div className="mt-5 overflow-hidden rounded-[8px] border border-[#dae3ed]">
+            <div className="max-h-[390px] overflow-auto">
+              <table className="w-full min-w-[700px] border-collapse text-[12px]">
+                <thead className="sticky top-0 z-10 bg-[#f0f4f8]">
+                  <tr>
+                    <th className="w-[70px] border-r border-[#dce3eb] px-4 py-3 text-center font-semibold text-[#34445a]">
+                      #
+                    </th>
+
+                    <th className="w-[210px] border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                      Criterio
+                    </th>
+
+                    <th className="border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                      Descripción
+                    </th>
+
+                    <th className="w-[120px] px-5 py-3 text-center font-semibold text-[#34445a]">
+                      Puntos
+                    </th>
+                  </tr>
+                </thead>
+
+
+                <tbody>
+                  {rubrica
+                    .criterios
+                    .length ===
+                  0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-10 text-center text-[13px] text-gray-400"
+                      >
+                        Esta rúbrica
+                        todavía no
+                        tiene
+                        criterios.
+                      </td>
+                    </tr>
+                  ) : (
+                    rubrica.criterios.map(
+                      (
+                        criterio,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            criterio.id ??
+                            index
+                          }
+                          className="border-t border-[#dfe6ee] bg-white"
+                        >
+                          <td className="border-r border-[#dfe6ee] px-4 py-4 text-center font-medium text-[#24364b]">
+                            {index +
+                              1}
+                          </td>
+
+                          <td className="border-r border-[#dfe6ee] px-5 py-4 font-bold text-[#24364b]">
+                            {
+                              criterio.nombre
+                            }
+                          </td>
+
+                          <td className="border-r border-[#dfe6ee] px-5 py-4 leading-[1.5] text-[#43546a]">
+                            {criterio.descripcion ||
+                              "—"}
+                          </td>
+
+                          <td className="px-5 py-4 text-center">
+                            <span className="inline-flex min-w-[48px] justify-center rounded-[6px] bg-[#f1f4f8] px-3 py-2 font-bold text-[#24364b]">
+                              {Number(
+                                criterio.puntaje_maximo
+                              )}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
+          {/* TOTAL */}
+
+          <div className="mt-4 flex items-center gap-3 rounded-[8px] border border-[#bcdcff] bg-[#e8f4ff] px-5 py-4">
+            <span className="text-[20px] text-[#2584dc]">
+              ★
+            </span>
+
+            <p className="text-[16px] font-bold text-[#1554a0]">
+              Puntuación total:{" "}
+              <span>
+                {total ||
+                  maxGrade}{" "}
+                puntos
+              </span>
+            </p>
+          </div>
+        </div>
+
+
+        {/* FOOTER */}
+
+        <div className="flex shrink-0 justify-end border-t border-[#e1e6ec] bg-white px-7 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-10 rounded-[6px] bg-[#2584dc] px-7 py-2 text-[13px] font-semibold text-white transition hover:bg-[#1975c9]"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+
+export default function TeacherActivityDetail({
+  courseId,
+  activityId,
+}: Props) {
+  const [
+    students,
+    setStudents,
+  ] =
+    useState<
+      Student[]
+    >([]);
+
+    const [
+  selectedAttempts,
+  setSelectedAttempts,
+] =
+  useState<
+    StudentAttempt[]
+  >([]);
+
+const [
+  loadingAttempts,
+  setLoadingAttempts,
+] =
+  useState(false);
+
+const [
+  attemptsError,
+  setAttemptsError,
+] =
+  useState("");
+
+
+  const [
+    activity,
+    setActivity,
+  ] =
+    useState<
+      ActivityInfo
+    >({});
+
+
+  const [
+    selectedStudentId,
+    setSelectedStudentId,
+  ] =
+    useState<
+      number | null
+    >(null);
+
+
+  const [
+    teacherComment,
+    setTeacherComment,
+  ] =
+    useState("");
+
+
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
+
+
+  const [
+    savingComment,
+    setSavingComment,
+  ] =
+    useState(false);
+
+
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
+
+
+  const [
+    message,
+    setMessage,
+  ] =
+    useState("");
+
+
+  /* =========================================================
+     NUEVO:
+     ESTADO DE RÚBRICA
+  ========================================================= */
+
+  const [
+    rubrica,
+    setRubrica,
+  ] =
+    useState<
+      RubricInfo | null
+    >(null);
+
+
+  const [
+    showRubric,
+    setShowRubric,
+  ] =
+    useState(false);
+
+
+  const [
+    downloadingRubric,
+    setDownloadingRubric,
+  ] =
+    useState(false);
+
 
   async function load() {
     setLoading(true);
-    setError("");
-    try {
-      const response = await fetch(`${API_URL}/actividades/docente/${courseId}/${activityId}`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "No se pudieron cargar las entregas.");
 
-      const items = (data.alumnos ?? []) as Student[];
-      setStudents(items);
-      setActivity(data.actividad ?? {});
-      setSelectedStudentId((previous) => {
-        if (previous != null && items.some((student) => student.alumno_id === previous)) return previous;
-        return items.find((student) => student.entrega_id != null)?.alumno_id ?? items[0]?.alumno_id ?? null;
-      });
-      const firstSelected = items.find((student) => student.alumno_id === selectedStudentId) ?? items.find((student) => student.entrega_id != null) ?? items[0];
-      setTeacherComment(firstSelected?.retroalimentacion ?? "");
+    setError("");
+
+
+    try {
+      const response =
+        await fetch(
+          `${API_URL}/actividades/docente/${courseId}/${activityId}`,
+          {
+            credentials:
+              "include",
+
+            cache:
+              "no-store",
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "No se pudieron cargar las entregas."
+        );
+      }
+
+
+      const items =
+        (
+          data.alumnos ??
+          []
+        ) as Student[];
+
+
+      setStudents(
+        items
+      );
+
+
+      setActivity(
+        data.actividad ??
+          {}
+      );
+
+
+      /* =========================
+         NUEVO:
+         GUARDAR RÚBRICA REAL
+      ========================= */
+
+      setRubrica(
+        data.rubrica
+          ? (
+              data.rubrica as
+                RubricInfo
+            )
+          : null
+      );
+
+
+      setSelectedStudentId(
+        (
+          previous
+        ) => {
+          if (
+            previous != null &&
+            items.some(
+              (
+                student
+              ) =>
+                student.alumno_id ===
+                previous
+            )
+          ) {
+            return previous;
+          }
+
+
+          return (
+            items.find(
+              (
+                student
+              ) =>
+                student.entrega_id !=
+                null
+            )?.alumno_id ??
+            items[0]
+              ?.alumno_id ??
+            null
+          );
+        }
+      );
+
+
+      const firstSelected =
+        items.find(
+          (
+            student
+          ) =>
+            student.alumno_id ===
+            selectedStudentId
+        ) ??
+        items.find(
+          (
+            student
+          ) =>
+            student.entrega_id !=
+            null
+        ) ??
+        items[0];
+
+
+      setTeacherComment(
+        firstSelected
+          ?.retroalimentacion ??
+          ""
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al cargar las entregas.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Error al cargar las entregas."
+      );
     } finally {
-      setLoading(false);
+      setLoading(
+        false
+      );
     }
   }
 
-  useEffect(() => { void load(); }, [courseId, activityId]);
+
+  useEffect(() => {
+  void load();
+}, [
+  courseId,
+  activityId,
+]);
+
+
 
   // Al seleccionar a un alumno, consulta su historial completo (no solo
   // el último intento que aparece resumido en la tabla principal).
@@ -200,130 +953,671 @@ export default function TeacherActivityDetail({ courseId, activityId }: Props) {
   const submitted = students.filter((student) => Boolean(student.entrega_id)).length;
   const maxGrade = Number(activity.puntaje_maximo ?? 20);
   const maxAttempts = Number(activity.intentos_permitidos ?? 3);
-  const selectedStudent = students.find((student) => student.alumno_id === selectedStudentId) ?? students.find((student) => student.entrega_id != null) ?? students[0] ?? null;
+ const selectedStudent =
+  students.find(
+    (student) =>
+      student.alumno_id ===
+      selectedStudentId
+  ) ??
+  students.find(
+    (student) =>
+      student.entrega_id != null
+  ) ??
+  students[0] ??
+  null;
 
-  function selectStudent(student: Student) {
-    setSelectedStudentId(student.alumno_id);
-    setTeacherComment(student.retroalimentacion ?? "");
-    setError("");
-    setMessage("");
-  }
 
-  async function addComment() {
-    if (!selectedStudent?.entrega_id || selectedStudent.nota == null) {
-      setError("Para guardar un comentario desde esta vista, primero debe existir una calificación.");
+function selectStudent(
+  student: Student
+) {
+  setSelectedStudentId(
+    student.alumno_id
+  );
+
+  setTeacherComment(
+    student.retroalimentacion ??
+      ""
+  );
+
+  setError("");
+
+  setMessage("");
+}
+
+
+  /* =========================================================
+     NUEVO:
+     VER RÚBRICA
+
+     criterios → modal
+     PDF       → descarga
+  ========================================================= */
+
+  async function handleRubricClick() {
+    if (!rubrica) {
       return;
     }
-    setSavingComment(true);
-    setError("");
-    setMessage("");
-    try {
-      const response = await fetch(`${API_URL}/actividades/docente/${courseId}/${activityId}/entregas/${selectedStudent.entrega_id}/calificacion`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nota: Number(selectedStudent.nota), retroalimentacion: teacherComment }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "No se pudo guardar el comentario.");
-      setMessage("Comentario guardado.");
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo guardar el comentario.");
-    } finally {
-      setSavingComment(false);
+
+
+    /*
+     * PDF
+     */
+    if (
+      rubrica.ruta_archivo
+    ) {
+      try {
+        setDownloadingRubric(
+          true
+        );
+
+        setError("");
+
+
+        const response =
+          await fetch(
+            `${API_URL}/actividades/${courseId}/${activityId}/rubrica`,
+            {
+              method:
+                "GET",
+
+              credentials:
+                "include",
+            }
+          );
+
+
+        if (!response.ok) {
+          const data =
+            await response
+              .json()
+              .catch(
+                () => ({})
+              );
+
+
+          throw new Error(
+            typeof data.message ===
+              "string"
+              ? data.message
+              : "No se pudo descargar la rúbrica."
+          );
+        }
+
+
+        const blob =
+          await response.blob();
+
+
+        const url =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        const link =
+          document.createElement(
+            "a"
+          );
+
+
+        link.href =
+          url;
+
+
+        link.download =
+          rubrica.nombre_archivo ||
+          "rubrica.pdf";
+
+
+        document.body.appendChild(
+          link
+        );
+
+
+        link.click();
+
+
+        link.remove();
+
+
+        window.setTimeout(
+          () => {
+            URL.revokeObjectURL(
+              url
+            );
+          },
+          1000
+        );
+      } catch (e) {
+        setError(
+          e instanceof Error
+            ? e.message
+            : "No se pudo descargar la rúbrica."
+        );
+      } finally {
+        setDownloadingRubric(
+          false
+        );
+      }
+
+
+      return;
+    }
+
+
+    /*
+     * CRITERIOS MANUALES
+     */
+    if (
+      rubrica.criterios.length >
+      0
+    ) {
+      setShowRubric(
+        true
+      );
     }
   }
 
-  if (loading) {
-    return <div className="activity-page-root"><div className="activity-card flex min-h-[280px] items-center justify-center p-8 text-sm text-slate-600">Cargando entregas...</div></div>;
+
+  async function addComment() {
+    if (
+      !selectedStudent
+        ?.entrega_id ||
+      selectedStudent
+        .nota == null
+    ) {
+      setError(
+        "Para guardar un comentario desde esta vista, primero debe existir una calificación."
+      );
+
+      return;
+    }
+
+
+    setSavingComment(
+      true
+    );
+
+    setError("");
+
+    setMessage("");
+
+
+    try {
+      const response =
+        await fetch(
+          `${API_URL}/actividades/docente/${courseId}/${activityId}/entregas/${selectedStudent.entrega_id}/calificacion`,
+          {
+            method:
+              "PUT",
+
+            credentials:
+              "include",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                nota:
+                  Number(
+                    selectedStudent.nota
+                  ),
+
+                retroalimentacion:
+                  teacherComment,
+              }),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "No se pudo guardar el comentario."
+        );
+      }
+
+
+      setMessage(
+        "Comentario guardado."
+      );
+
+
+      await load();
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "No se pudo guardar el comentario."
+      );
+    } finally {
+      setSavingComment(
+        false
+      );
+    }
   }
 
-  const due = formattedDate(activity.fecha_limite);
+
+  if (loading) {
+    return (
+      <div className="activity-page-root">
+        <div className="activity-card flex min-h-[280px] items-center justify-center p-8 text-sm text-slate-600">
+          Cargando
+          entregas...
+        </div>
+      </div>
+    );
+  }
+
+
+  const due =
+    formattedDate(
+      activity.fecha_limite
+    );
+
+
+  /* NUEVO */
+  const dueTime =
+    formattedTime(
+      activity.fecha_limite
+    );
+
 
   return (
     <div className="activity-page-root activity-teacher-list-root">
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <div className="flex min-w-0 items-center gap-4">
-        <Link href={`/docente/cursos/${courseId}`} className="activity-primary inline-flex h-[24px] shrink-0 items-center gap-1 rounded-[4px] px-2 text-[10px] font-medium"><span className="text-[16px] leading-none">←</span> Volver</Link>
-        <p className="truncate text-[11px] text-[#252b33]">Módulo 1: Introducción a las TIC &gt; 1.4 Práctica</p>
+        <Link
+          href={`/docente/cursos/${courseId}`}
+          className="activity-primary inline-flex h-[24px] shrink-0 items-center gap-1 rounded-[4px] px-2 text-[10px] font-medium"
+        >
+          <span className="text-[16px] leading-none">
+            ←
+          </span>
+
+          Volver
+        </Link>
+
+
+        <p className="truncate text-[11px] text-[#252b33]">
+          Módulo 1:
+          Introducción a las
+          TIC &gt; 1.4
+          Práctica
+        </p>
       </div>
 
+
+      {/* =====================================================
+          CONTENIDO
+      ===================================================== */}
+
       <div className="mt-[18px] grid grid-cols-1 items-start gap-[10px] md:grid-cols-[minmax(0,1fr)_244px]">
+        {/* ===================================================
+            LADO IZQUIERDO
+        =================================================== */}
+
         <section className="min-w-0 pt-[26px]">
           <div className="px-[24px]">
-            <h1 className="max-w-[440px] text-[23px] font-bold leading-[1.15] text-[#1551ad]">Actividad: {activity.titulo || "Actividad"}</h1>
-            {activity.descripcion && <p className="mt-[10px] max-w-[438px] text-[11px] leading-[1.25] text-[#242424]">{activity.descripcion}</p>}
+            <h1 className="max-w-[440px] text-[23px] font-bold leading-[1.15] text-[#1551ad]">
+              Actividad:{" "}
+              {activity.titulo ||
+                "Actividad"}
+            </h1>
+
+
+            {activity.descripcion && (
+              <p className="mt-[10px] max-w-[438px] text-[11px] leading-[1.25] text-[#242424]">
+                {
+                  activity.descripcion
+                }
+              </p>
+            )}
+
+
             <div className="my-[8px] border-b border-[#555555]" />
-            <h2 className="mb-[23px] text-[16px] font-bold text-[#1551ad]">Entregas</h2>
+
+
+            <h2 className="mb-[23px] text-[16px] font-bold text-[#1551ad]">
+              Entregas
+            </h2>
           </div>
 
-          {error && <p role="alert" className="mx-[2px] mb-2 rounded-md bg-red-50 p-2 text-[10px] text-red-700">{error}</p>}
-          {message && <p role="status" className="mx-[2px] mb-2 rounded-md bg-green-50 p-2 text-[10px] text-green-700">{message}</p>}
+
+          {error && (
+            <p
+              role="alert"
+              className="mx-[2px] mb-2 rounded-md bg-red-50 p-2 text-[10px] text-red-700"
+            >
+              {error}
+            </p>
+          )}
+
+
+          {message && (
+            <p
+              role="status"
+              className="mx-[2px] mb-2 rounded-md bg-green-50 p-2 text-[10px] text-green-700"
+            >
+              {message}
+            </p>
+          )}
+
+
+          {/* TABLA */}
 
           <div className="overflow-x-auto rounded-[7px] border border-[#dfe3e8]">
             <table className="w-full min-w-[410px] table-fixed border-collapse text-left text-[9px]">
-              <colgroup><col className="w-[39%]"/><col className="w-[37%]"/><col className="w-[24%]"/></colgroup>
+              <colgroup>
+                <col className="w-[39%]" />
+                <col className="w-[37%]" />
+                <col className="w-[24%]" />
+              </colgroup>
+
+
               <thead>
                 <tr className="h-[36px] bg-[#dfe4e9] text-[#111111]">
-                  <th className="px-[12px] font-bold">Alumno</th>
-                  <th className="px-[8px] font-bold">Actividad</th>
-                  <th className="px-[8px] font-bold">Nota</th>
+                  <th className="px-[12px] font-bold">
+                    Alumno
+                  </th>
+
+                  <th className="px-[8px] font-bold">
+                    Actividad
+                  </th>
+
+                  <th className="px-[8px] font-bold">
+                    Nota
+                  </th>
                 </tr>
               </thead>
+
+
               <tbody>
-                {students.map((student, index) => {
-                  const isSubmitted = Boolean(student.entrega_id);
-                  const isSelected = selectedStudent?.alumno_id === student.alumno_id;
-                  return (
-                    <tr
-                      key={student.matricula_id}
-                      tabIndex={0}
-                      aria-selected={isSelected}
-                      onClick={() => selectStudent(student)}
-                      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectStudent(student); } }}
-                      className={`activity-table-row h-[34px] cursor-pointer border-t border-[#e2e5e9] ${isSelected ? "is-selected" : ""}`}
+                {students.map(
+                  (
+                    student,
+                    index
+                  ) => {
+                    const isSubmitted =
+                      Boolean(
+                        student.entrega_id
+                      );
+
+
+                    const isSelected =
+                      selectedStudent
+                        ?.alumno_id ===
+                      student.alumno_id;
+
+
+                    return (
+                      <tr
+                        key={
+                          student.matricula_id
+                        }
+                        tabIndex={
+                          0
+                        }
+                        aria-selected={
+                          isSelected
+                        }
+                        onClick={() =>
+                          selectStudent(
+                            student
+                          )
+                        }
+                        onKeyDown={(
+                          event
+                        ) => {
+                          if (
+                            event.key ===
+                              "Enter" ||
+                            event.key ===
+                              " "
+                          ) {
+                            event.preventDefault();
+
+                            selectStudent(
+                              student
+                            );
+                          }
+                        }}
+                        className={`activity-table-row h-[34px] cursor-pointer border-t border-[#e2e5e9] ${
+                          isSelected
+                            ? "is-selected"
+                            : ""
+                        }`}
+                      >
+                        {/* ALUMNO */}
+
+                        <td className="px-[12px] py-[4px]">
+                          <div className="flex min-w-0 items-center gap-[8px]">
+                            <span
+                              className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full text-[8px] font-bold ${
+                                AVATAR_COLORS[
+                                  index %
+                                    AVATAR_COLORS.length
+                                ]
+                              }`}
+                            >
+                              {initials(
+                                student.alumno
+                              )}
+                            </span>
+
+                            <span className="truncate font-semibold text-[#111111]">
+                              {
+                                student.alumno
+                              }
+                            </span>
+                          </div>
+                        </td>
+
+
+                        {/* ACTIVIDAD */}
+
+                        <td className="px-[8px] py-[4px]">
+                          <span
+                            className={`inline-flex rounded-[5px] px-[8px] py-[4px] text-[9px] font-semibold ${
+                              isSubmitted
+                                ? "bg-[#c7f4ce] text-[#169b36]"
+                                : "bg-[#ffe9b3] text-[#b77a00]"
+                            }`}
+                          >
+                            {isSubmitted
+                              ? "Entregada"
+                              : "Pendiente"}
+                          </span>
+                        </td>
+
+
+                        {/* NOTA */}
+
+                        <td className="px-[8px] py-[4px]">
+                          <div className="flex items-center gap-[2px]">
+                            <span className="flex min-w-[36px] items-center justify-center rounded-l-[4px] bg-[#eeeeee] px-[5px] py-[4px] text-[9px] text-[#222222]">
+                              {student.nota ==
+                              null
+                                ? "-"
+                                : student.nota}
+                            </span>
+
+                            <span className="flex min-w-[36px] items-center justify-center rounded-r-[4px] bg-[#eeeeee] px-[5px] py-[4px] text-[9px] text-[#222222]">
+                              Pts
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )}
+
+
+                {students.length ===
+                  0 && (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="bg-white p-5 text-center text-[11px] text-slate-500"
                     >
-                      <td className="px-[12px] py-[4px]">
-                        <div className="flex min-w-0 items-center gap-[8px]">
-                          <span className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full text-[8px] font-bold ${AVATAR_COLORS[index % AVATAR_COLORS.length]}`}>{initials(student.alumno)}</span>
-                          <span className="truncate font-semibold text-[#111111]">{student.alumno}</span>
-                        </div>
-                      </td>
-                      <td className="px-[8px] py-[4px]">
-                        <span className={`inline-flex rounded-[5px] px-[8px] py-[4px] text-[9px] font-semibold ${isSubmitted ? "bg-[#c7f4ce] text-[#169b36]" : "bg-[#ffe9b3] text-[#b77a00]"}`}>{isSubmitted ? "Entregada" : "Pendiente"}</span>
-                      </td>
-                      <td className="px-[8px] py-[4px]">
-                        <div className="flex items-center gap-[2px]">
-                          <span className="flex min-w-[36px] items-center justify-center rounded-l-[4px] bg-[#eeeeee] px-[5px] py-[4px] text-[9px] text-[#222222]">{student.nota == null ? "-" : student.nota}</span>
-                          <span className="flex min-w-[36px] items-center justify-center rounded-r-[4px] bg-[#eeeeee] px-[5px] py-[4px] text-[9px] text-[#222222]">Pts</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {students.length === 0 && <tr><td colSpan={3} className="bg-white p-5 text-center text-[11px] text-slate-500">No hay estudiantes matriculados para esta actividad.</td></tr>}
+                      No hay
+                      estudiantes
+                      matriculados
+                      para esta
+                      actividad.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
+
+        {/* ===================================================
+            LADO DERECHO
+        =================================================== */}
+
         <aside className="min-w-0 space-y-[10px]">
+          {/* DETALLES ACTIVIDAD */}
+
           <section className="activity-card min-h-[272px] p-4">
-            <h2 className="activity-card-title">Detalles de la actividad</h2>
+            <h2 className="activity-card-title">
+              Detalles de la
+              actividad
+            </h2>
+
+
             <div className="mt-[14px] space-y-[10px]">
-              <DetailRow icon="calendar" label="Fecha de entrega"><span className="block">{due}</span><span className="block">23:59 (UTC-5)</span></DetailRow>
-              <DetailRow icon="check" label="Intentos">{maxAttempts} intentos permitidos</DetailRow>
-              <DetailRow icon="star" label="Puntuación máxima">{maxGrade} puntos</DetailRow>
-              <DetailRow icon="book" label="Rúbrica de evaluación"><span className="activity-link">Ver rúbrica ↗</span></DetailRow>
+              {/* FECHA */}
+
+              <DetailRow
+                icon="calendar"
+                label="Fecha de entrega"
+              >
+                <span className="block">
+                  {due}
+                </span>
+
+                {dueTime && (
+                  <span className="block">
+                    {dueTime}
+                  </span>
+                )}
+              </DetailRow>
+
+
+              {/* INTENTOS */}
+
+              <DetailRow
+                icon="check"
+                label="Intentos"
+              >
+                {maxAttempts}{" "}
+                intentos
+                permitidos
+              </DetailRow>
+
+
+              {/* PUNTUACIÓN */}
+
+              <DetailRow
+                icon="star"
+                label="Puntuación máxima"
+              >
+                {maxGrade}{" "}
+                puntos
+              </DetailRow>
+
+
+              {/* =================================================
+                  RÚBRICA FUNCIONAL
+              ================================================= */}
+
+              <DetailRow
+                icon="book"
+                label="Rúbrica de evaluación"
+              >
+                {rubrica ? (
+                  <button
+                    type="button"
+                    onClick={
+                      handleRubricClick
+                    }
+                    disabled={
+                      downloadingRubric
+                    }
+                    className="
+                      activity-link
+                      inline-flex
+                      items-center
+                      gap-1
+                      border-0
+                      bg-transparent
+                      p-0
+                      text-left
+                      disabled:cursor-wait
+                      disabled:opacity-60
+                    "
+                  >
+                    {downloadingRubric
+                      ? "Descargando..."
+                      : "Ver rúbrica ↗"}
+                  </button>
+                ) : (
+                  <span className="text-gray-400">
+                    Sin rúbrica
+                  </span>
+                )}
+              </DetailRow>
             </div>
+
+
             <div className="activity-info-callout mt-[12px] flex gap-2 px-2 py-[9px]">
-              <Icon type="info" size={20}/>
-              <div><p className="text-[10px] font-bold text-[#1766a4]">Importante</p><p className="mt-[2px] text-[9px] leading-[1.2]">Las entregas realizadas después de la fecha límite se marcarán como atrasadas.</p></div>
+              <Icon
+                type="info"
+                size={20}
+              />
+
+              <div>
+                <p className="text-[10px] font-bold text-[#1766a4]">
+                  Importante
+                </p>
+
+                <p className="mt-[2px] text-[9px] leading-[1.2]">
+                  Las entregas
+                  realizadas
+                  después de la
+                  fecha límite se
+                  marcarán como
+                  atrasadas.
+                </p>
+              </div>
             </div>
           </section>
 
+
+          {/* ===================================================
+              TAREA SELECCIONADA
+          =================================================== */}
+
           <section className="activity-card min-h-[356px] p-3">
-            <h2 className="activity-card-title">Tarea Seleccionada:</h2>
+            <h2 className="activity-card-title">
+              Tarea
+              Seleccionada:
+            </h2>
+
+
             {selectedStudent ? (
               <>
                 <div className="mt-[9px] space-y-[6px] text-[10px] leading-[1.35] text-[#333333]">
@@ -376,10 +1670,41 @@ export default function TeacherActivityDetail({ courseId, activityId }: Props) {
                 <button type="button" onClick={addComment} disabled={savingComment || !selectedStudent.entrega_id || selectedStudent.nota == null} className="activity-primary mt-[12px] flex h-[29px] w-full items-center justify-center rounded-[6px] text-[10px] font-medium disabled:cursor-not-allowed disabled:opacity-50">{savingComment ? "Guardando..." : "Agregar Comentario"}</button>
                 {selectedStudent.nota == null && <p className="mt-1 text-[9px] text-slate-500">Para guardar un comentario desde aquí, primero debe existir una calificación.</p>}
               </>
-            ) : <p className="mt-3 text-[10px] text-slate-500">Selecciona un estudiante de la tabla.</p>}
+            ) : (
+              <p className="mt-3 text-[10px] text-slate-500">
+                Selecciona un
+                estudiante de la
+                tabla.
+              </p>
+            )}
           </section>
         </aside>
       </div>
+
+
+      {/* =====================================================
+          MODAL DE RÚBRICA POR CRITERIOS
+
+          Si es PDF nunca llega aquí.
+      ===================================================== */}
+
+      {showRubric &&
+        rubrica &&
+        !rubrica.ruta_archivo && (
+          <TeacherRubricModal
+            rubrica={
+              rubrica
+            }
+            maxGrade={
+              maxGrade
+            }
+            onClose={() =>
+              setShowRubric(
+                false
+              )
+            }
+          />
+        )}
     </div>
   );
 }

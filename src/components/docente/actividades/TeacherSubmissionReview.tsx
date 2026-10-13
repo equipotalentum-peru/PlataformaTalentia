@@ -59,19 +59,139 @@ function formatSize(bytes?: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function Icon({ type, size = 20 }: { type: "back" | "calendar" | "check" | "star" | "file" | "download" | "trophy" | "chat" | "circle-check" | "info" }) {
-  const props = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
+function Icon({
+  type,
+  size = 20,
+}: {
+  type:
+    | "back"
+    | "calendar"
+    | "check"
+    | "star"
+    | "file"
+    | "download"
+    | "trophy"
+    | "chat"
+    | "circle-check"
+    | "info";
+
+  size?: number;
+}) {
+  const props = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+
   switch (type) {
-    case "back": return <svg {...props}><path d="M19 12H5m7 7-7-7 7-7" /></svg>;
-    case "calendar": return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg>;
-    case "check": return <svg {...props}><rect x="3" y="3" width="18" height="18" rx="4" /><path d="m7 12 3 3 7-7" /></svg>;
-    case "star": return <svg {...props}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" /></svg>;
-    case "file": return <svg {...props}><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z" /><path d="M13 3v7h7M12 17V12m-3 3 3-3 3 3" /></svg>;
-    case "download": return <svg {...props}><path d="M12 3v11m-4-4 4 4 4-4" /><path d="M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" /></svg>;
-    case "trophy": return <svg {...props}><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z" /><path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M12 12v5m-4 4h8m-7-4h6" /></svg>;
-    case "chat": return <svg {...props}><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" /></svg>;
-    case "circle-check": return <svg {...props}><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" /><path d="m7 12 3.2 3.2L17.5 8" stroke="#ffffff" strokeWidth="2.2" /></svg>;
-    case "info": return <svg {...props}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7h.01" /></svg>;
+    case "back":
+      return (
+        <svg {...props}>
+          <path d="M19 12H5m7 7-7-7 7-7" />
+        </svg>
+      );
+
+    case "calendar":
+      return (
+        <svg {...props}>
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="16"
+            rx="2"
+          />
+          <path d="M16 3v4M8 3v4M3 10h18" />
+        </svg>
+      );
+
+    case "check":
+      return (
+        <svg {...props}>
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="4"
+          />
+          <path d="m7 12 3 3 7-7" />
+        </svg>
+      );
+
+    case "star":
+      return (
+        <svg {...props}>
+          <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+        </svg>
+      );
+
+    case "file":
+      return (
+        <svg {...props}>
+          <path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z" />
+          <path d="M13 3v7h7M12 17V12m-3 3 3-3 3 3" />
+        </svg>
+      );
+
+    case "download":
+      return (
+        <svg {...props}>
+          <path d="M12 3v11m-4-4 4 4 4-4" />
+          <path d="M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+        </svg>
+      );
+
+    case "trophy":
+      return (
+        <svg {...props}>
+          <path d="M8 4h8v4a4 4 0 0 1-8 0V4Z" />
+          <path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M12 12v5m-4 4h8m-7-4h6" />
+        </svg>
+      );
+
+    case "chat":
+      return (
+        <svg {...props}>
+          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+        </svg>
+      );
+
+    case "circle-check":
+      return (
+        <svg {...props}>
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            fill="currentColor"
+            stroke="none"
+          />
+          <path
+            d="m7 12 3.2 3.2L17.5 8"
+            stroke="#ffffff"
+            strokeWidth="2.2"
+          />
+        </svg>
+      );
+
+    case "info":
+      return (
+        <svg {...props}>
+          <circle
+            cx="12"
+            cy="12"
+            r="9"
+          />
+          <path d="M12 11v5M12 7h.01" />
+        </svg>
+      );
   }
 }
 
