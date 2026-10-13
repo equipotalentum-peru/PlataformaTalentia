@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware";
-import { crearActividad } from "../controllers/actividades-gestion.controller";
+import { actualizarActividad, crearActividad, obtenerConfiguracionActividad } from "../controllers/actividades-gestion.controller";
 import {
   obtenerMiEntrega,
   enviarEntrega,
@@ -12,6 +12,18 @@ import {
 } from "../controllers/actividades-entregas.controller";
 
 const router = Router();
+
+router.get(
+  "/docente/:cursoId/:contenidoId/configuracion",
+  requireAuth,
+  obtenerConfiguracionActividad
+);
+
+router.put(
+  "/docente/:cursoId/:contenidoId/configuracion",
+  requireAuth,
+  actualizarActividad
+);
 
 router.post(
   "/docente/:cursoId/modulos/:moduloId",

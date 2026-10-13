@@ -33,6 +33,7 @@ export default function CreateActivityPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const moduleId = searchParams.get("moduleId") ?? undefined;
+  const contentId = searchParams.get("contenidoId") ?? undefined;
   const courseId = Number(cursoId);
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -40,16 +41,13 @@ export default function CreateActivityPage({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!Number.isSafeInteger(courseId) || courseId <= 0) {
-      setError("El identificador del curso no es válido.");
-      setLoading(false);
-      return;
-    }
-
     const controller = new AbortController();
 
     async function loadCourse() {
       try {
+        if (!Number.isSafeInteger(courseId) || courseId <= 0) {
+          throw new Error("El identificador del curso no es válido.");
+        }
         setLoading(true);
         setError("");
 
@@ -131,5 +129,5 @@ export default function CreateActivityPage({
     );
   }
 
-  return <CreateActivity course={course} moduleId={moduleId} />;
+  return <CreateActivity key={`${moduleId ?? ""}:${contentId ?? ""}`} course={course} moduleId={moduleId} contentId={contentId} />;
 }

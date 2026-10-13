@@ -416,12 +416,16 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
     const max = Number(ctx.rows[0].puntaje_maximo ?? 20);
     if (nota < 0 || nota > max) return res.status(400).json({ message: `La nota debe estar entre 0 y ${max}.` });
     const saved = await pool.query(
-      `UPDATE entregas_actividades e
+      `WITH actividad_actual AS (
+         SELECT id, contenido_id, puntaje_maximo, calificada FROM actividades
+         WHERE contenido_id=$5 FOR SHARE
+       ) UPDATE entregas_actividades e
           SET nota=$1, retroalimentacion=$2, calificado_por=$3,
               calificado_en=CURRENT_TIMESTAMP, estado='Calificada', actualizado_en=CURRENT_TIMESTAMP
-         FROM actividades a, contenidos_curso cc, modulos_curso mc, cursos c,
+         FROM actividad_actual a, contenidos_curso cc, modulos_curso mc, cursos c,
               matriculas m, ofertas_curso oc
         WHERE e.id=$4 AND e.actividad_id=a.id AND a.contenido_id=cc.id
+          AND a.calificada=TRUE AND $1 <= COALESCE(a.puntaje_maximo,20)
           AND cc.id=$5 AND cc.modulo_id=mc.id AND mc.curso_id=c.id
           AND c.id=$6 AND m.id=e.matricula_id
           AND oc.id=m.oferta_curso_id AND oc.curso_id=c.id
