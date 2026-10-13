@@ -1210,187 +1210,251 @@ a {
   }
 }
 
-/* =========================================================
-   TALENTIA - MONITORES GRANDES
-   Aplica SOLO al sistema interno:
-   Alumno / Docente / Administrador
-
-   No afecta:
-   - celular
-   - tablet
-   - laptop común
-   - login
-   - registro
-   - landing page
-========================================================= */
-
 
 /* =========================================================
-   MONITOR GRANDE
-   Ej: 1600x900, 1680x1050
-========================================================= */
+   TALENTIA — VISTAS DE ACTIVIDADES SEGÚN PROTOTIPO FIGMA
+   Estilos acotados para evitar afectar otras páginas.
+   ========================================================= */
 
-@media (min-width: 1600px) {
+/*
+ * Estilos acotados a las cuatro vistas de actividades de Talentia.
+ * No modifica la apariencia del resto de las páginas.
+ */
 
-  :root {
-    /*
-      Permitimos que Alumno y Docente utilicen
-      mucho más espacio horizontal.
-    */
-    --page-max: 1250px;
-    --page-px: 28px;
-    --page-py: 22px;
+.activity-page-root {
+  width: 100%;
+  color: #172033;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.activity-page-root button,
+.activity-page-root input,
+.activity-page-root textarea,
+.activity-page-root a {
+  font-family: inherit;
+}
+
+.activity-page-root a {
+  text-decoration: none;
+}
+
+.activity-page-root .activity-muted {
+  color: #737b87;
+}
+
+.activity-page-root .activity-card {
+  min-width: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 1px rgb(28 52 84 / 2%);
+}
+
+.activity-page-root .activity-primary {
+  background: #2499f3;
+  color: #ffffff;
+  transition: background-color 150ms ease;
+}
+
+.activity-page-root .activity-primary:hover {
+  background: #1389e7;
+}
+
+.activity-page-root .activity-link {
+  color: #1760be;
+}
+
+.activity-page-root .activity-link:hover {
+  text-decoration: underline;
+}
+
+.activity-page-root .activity-icon-circle {
+  display: inline-flex;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #edf5ff;
+  color: #1975d2;
+}
+
+.activity-page-root .activity-info-callout {
+  border-radius: 8px;
+  background: #8fc9f7;
+  color: #163f5f;
+}
+
+.activity-page-root .activity-success-callout {
+  border-radius: 8px;
+  background: #c8e8ca;
+  color: #0ab52c;
+}
+
+.activity-page-root .activity-card-title {
+  color: #1555b4;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.activity-page-root .activity-side-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.activity-page-root .activity-side-item p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.activity-page-root .activity-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #9cb8e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #283548;
+  outline: none;
+}
+
+.activity-page-root .activity-input:focus {
+  border-color: #267cda;
+  box-shadow: 0 0 0 2px rgb(38 124 218 / 12%);
+}
+
+.activity-page-root .activity-table-row {
+  background: #ffffff;
+  transition: background-color 120ms ease;
+}
+
+.activity-page-root .activity-table-row:hover,
+.activity-page-root .activity-table-row.is-selected {
+  background: #f4f8ff;
+}
+
+.activity-page-root .activity-table-row:focus-visible {
+  outline: 2px solid #3186d8;
+  outline-offset: -2px;
+}
+
+@media (min-width: 961px) {
+  /* El prototipo usa sidebar de 232 px incluso en laptops de 995 px. */
+  body:has(.activity-page-root) {
+    background: #e9eff7;
   }
 
-
-  /*
-    Escalamos TODO el sistema:
-    sidebar, textos, botones, tarjetas,
-    tablas, dashboard, cursos, etc.
-  */
-  .app-shell {
-    zoom: 1.10;
-
-    /*
-      Compensación del zoom.
-      100 / 1.10 = 90.9091
-    */
-    width: 90.9091vw;
-
-    min-height: 90.9091vh;
-    min-height: 90.9091dvh;
+  .app-shell:has(.activity-page-root) {
+    --sidebar-width: 232px;
+    --page-px: 16px;
+    --page-py: 16px;
   }
 
-
-  /*
-    El sidebar es fixed.
-    Compensamos también su altura
-    para que "Cerrar sesión" no quede
-    debajo del monitor.
-  */
-  .app-shell .app-sidebar {
-    bottom: auto;
-
-    height: 90.9091vh;
-    height: 90.9091dvh;
+  .app-shell:has(.activity-page-root) .app-main-column,
+  .app-shell--admin:has(.activity-page-root) .app-main-column {
+    margin-left: 232px;
+    padding-top: 0;
   }
 
-
-  .app-shell .app-main-column {
-    min-height: 90.9091vh;
-    min-height: 90.9091dvh;
+  .app-page:has(.activity-page-root) {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px;
   }
 
+  .app-shell:has(.activity-page-root) .app-mobile-header {
+    display: none !important;
+  }
 
-  /*
-    Algunas vistas de Admin utilizan
-    directamente min-h-screen.
-    Evitamos que el zoom cree altura extra.
-  */
-  .app-shell
-    .app-layout-main
-    > [class*="min-h-screen"] {
-    min-height: 90.9091vh !important;
-    min-height: 90.9091dvh !important;
+  .app-shell:has(.activity-page-root) .app-sidebar {
+    position: fixed;
+    z-index: 60;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 232px;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(0);
+    box-shadow: none;
+    background: #d5dce8;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar__brand {
+    flex-basis: 77px;
+    padding: 10px 18px;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar__nav {
+    padding: 18px 10px 18px 16px;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar__link {
+    min-height: 55px;
+    margin-bottom: 8px;
+    padding: 10px 14px 10px 25px;
+    gap: 14px;
+    border-radius: 8px;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar__link.is-active {
+    background: #00b4b7;
+    color: #031b25;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar__account {
+    padding: 0;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar-account-link {
+    min-height: 49px;
+    padding: 4px 30px;
+    border-top: 1px solid rgb(255 255 255 / 65%);
+    border-bottom: 1px solid rgb(255 255 255 / 65%);
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar-account-avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar-account-name {
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .app-shell:has(.activity-page-root) .app-sidebar-logout {
+    min-height: 44px;
+    padding-left: 43px;
+    border-top: 0;
+    font-size: 16px;
+    color: #101820;
   }
 }
 
-
-/* =========================================================
-   MONITOR FULL HD GRANDE
-   Ej: 1920x1080
-========================================================= */
-
-@media (min-width: 1900px) {
-
-  :root {
-    --page-max: 1400px;
-    --page-px: 32px;
-    --page-py: 25px;
+@media (max-width: 960px) {
+  .activity-page-root .activity-side-item p {
+    font-size: 11px;
   }
 
-
-  .app-shell {
-    zoom: 1.14;
-
-    /*
-      100 / 1.14 = 87.7193
-    */
-    width: 87.7193vw;
-
-    min-height: 87.7193vh;
-    min-height: 87.7193dvh;
-  }
-
-
-  .app-shell .app-sidebar {
-    bottom: auto;
-
-    height: 87.7193vh;
-    height: 87.7193dvh;
-  }
-
-
-  .app-shell .app-main-column {
-    min-height: 87.7193vh;
-    min-height: 87.7193dvh;
-  }
-
-
-  .app-shell
-    .app-layout-main
-    > [class*="min-h-screen"] {
-    min-height: 87.7193vh !important;
-    min-height: 87.7193dvh !important;
+  .activity-page-root .activity-card {
+    border-radius: 10px;
   }
 }
 
-
-/* =========================================================
-   MONITORES 2K / MUY GRANDES
-   Ej: 2560x1440
-========================================================= */
-
-@media (min-width: 2400px) {
-
-  :root {
-    --page-max: 1550px;
-    --page-px: 36px;
-    --page-py: 28px;
-  }
-
-
-  .app-shell {
-    zoom: 1.18;
-
-    /*
-      100 / 1.18 = 84.7458
-    */
-    width: 84.7458vw;
-
-    min-height: 84.7458vh;
-    min-height: 84.7458dvh;
-  }
-
-
-  .app-shell .app-sidebar {
-    bottom: auto;
-
-    height: 84.7458vh;
-    height: 84.7458dvh;
-  }
-
-
-  .app-shell .app-main-column {
-    min-height: 84.7458vh;
-    min-height: 84.7458dvh;
-  }
-
-
-  .app-shell
-    .app-layout-main
-    > [class*="min-h-screen"] {
-    min-height: 84.7458vh !important;
-    min-height: 84.7458dvh !important;
+@media (prefers-reduced-motion: reduce) {
+  .activity-page-root *,
+  .activity-page-root *::before,
+  .activity-page-root *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
