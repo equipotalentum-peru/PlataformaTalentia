@@ -17,6 +17,19 @@ type Student = {
   archivo_id: number | null;
   nombre_archivo: string | null;
   tamano_bytes?: number | null;
+  intentos_realizados?: number | string | null;
+};
+
+type StudentAttempt = {
+  entrega_id: number;
+  numero_intento: number;
+  estado: string | null;
+  entregada_en: string | null;
+  nota: number | null;
+  retroalimentacion?: string | null;
+  archivo_id: number | null;
+  nombre_archivo: string | null;
+  tamano_bytes?: number | null;
 };
 
 type ActivityInfo = {
@@ -99,6 +112,9 @@ function DetailRow({ icon, label, children }: { icon: "calendar" | "check" | "st
 
 export default function TeacherActivityDetail({ courseId, activityId }: Props) {
   const [students, setStudents] = useState<Student[]>([]);
+  const [selectedAttempts, setSelectedAttempts] = useState<StudentAttempt[]>([]);
+  const [loadingAttempts, setLoadingAttempts] = useState(false);
+  const [attemptsError, setAttemptsError] = useState("");
   const [activity, setActivity] = useState<ActivityInfo>({});
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [teacherComment, setTeacherComment] = useState("");
@@ -135,6 +151,51 @@ export default function TeacherActivityDetail({ courseId, activityId }: Props) {
   }
 
   useEffect(() => { void load(); }, [courseId, activityId]);
+
+  // Al seleccionar a un alumno, consulta su historial completo (no solo
+  // el último intento que aparece resumido en la tabla principal).
+  useEffect(() => {
+    if (selectedStudentId == null) {
+      setSelectedAttempts([]);
+      setAttemptsError("");
+      setLoadingAttempts(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    async function loadStudentAttempts() {
+      setLoadingAttempts(true);
+      setAttemptsError("");
+      try {
+        const response = await fetch(
+          `${API_URL}/actividades/docente/${courseId}/${activityId}/alumno/${selectedStudentId}`,
+          {
+            credentials: "include",
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "No se pudo cargar el historial de intentos.");
+        }
+
+        const attempts = (Array.isArray(data.entregas) ? data.entregas : data.entrega ? [data.entrega] : [])
+          .filter((item: StudentAttempt) => item.entrega_id != null)
+          .sort((a: StudentAttempt, b: StudentAttempt) => a.numero_intento - b.numero_intento);
+        setSelectedAttempts(attempts);
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        setAttemptsError(e instanceof Error ? e.message : "No se pudo cargar el historial de intentos.");
+        setSelectedAttempts([]);
+      } finally {
+        if (!controller.signal.aborted) setLoadingAttempts(false);
+      }
+    }
+
+    void loadStudentAttempts();
+    return () => controller.abort();
+  }, [courseId, activityId, selectedStudentId]);
 
   const submitted = students.filter((student) => Boolean(student.entrega_id)).length;
   const maxGrade = Number(activity.puntaje_maximo ?? 20);
@@ -267,14 +328,48 @@ export default function TeacherActivityDetail({ courseId, activityId }: Props) {
               <>
                 <div className="mt-[9px] space-y-[6px] text-[10px] leading-[1.35] text-[#333333]">
                   <p><span className="font-medium">Alumno:</span> {selectedStudent.alumno}</p>
-                  <p><span className="font-medium">Fecha de Entrega:</span> {formattedDateTime(selectedStudent.entregada_en)}</p>
-                  <p><span className="font-medium">Intentos Usados:</span> {selectedStudent.numero_intento ?? 0} de {maxAttempts}</p>
+                  <p><span className="font-medium">Última entrega:</span> {formattedDateTime(selectedStudent.entregada_en)}</p>
+                  <p><span className="font-medium">Intentos usados:</span> {selectedAttempts.length || Number(selectedStudent.intentos_realizados ?? selectedStudent.numero_intento ?? 0)} de {maxAttempts}</p>
                 </div>
-                {selectedStudent.entrega_id ? (
-                  <Link href={`/docente/cursos/${courseId}/actividades/${activityId}/alumno/${selectedStudent.alumno_id}`} className="activity-primary mt-[13px] flex h-[29px] w-[128px] items-center justify-center rounded-[6px] text-[10px] font-medium">Revisar Entrega</Link>
-                ) : (
-                  <span className="mt-[13px] flex h-[29px] w-[128px] items-center justify-center rounded-[6px] bg-[#d4dbe4] text-[10px] text-[#697586]">Sin entrega</span>
-                )}
+
+                <div className="mt-[13px]">
+                  <div className="mb-[7px] flex items-center justify-between gap-2">
+                    <h3 className="text-[11px] font-bold text-[#1551ad]">Historial de intentos</h3>
+                    <span className="text-[9px] text-[#737b87]">Del 1 al último</span>
+                  </div>
+
+                  {loadingAttempts ? (
+                    <p className="rounded-md border border-[#dfe3e8] bg-white p-2 text-[10px] text-[#737b87]">Cargando intentos...</p>
+                  ) : attemptsError ? (
+                    <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-2 text-[10px] text-red-700">{attemptsError}</p>
+                  ) : selectedAttempts.length > 0 ? (
+                    <div className="space-y-[7px]">
+                      {selectedAttempts.map((attempt) => (
+                        <div key={attempt.entrega_id} className="rounded-md border border-[#dfe3e8] bg-white p-[9px]">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold text-[#1c5cb4]">Intento {attempt.numero_intento}</span>
+                            <span className={`rounded-[5px] px-[7px] py-[3px] text-[9px] font-semibold ${attempt.nota == null ? "bg-[#ffe9b3] text-[#b77a00]" : "bg-[#c7f4ce] text-[#169b36]"}`}>
+                              {attempt.nota == null ? "Pendiente de nota" : "Calificado"}
+                            </span>
+                          </div>
+                          <p className="mt-[5px] text-[9px] text-[#737b87]">Entrega: {formattedDateTime(attempt.entregada_en)}</p>
+                          <div className="mt-[5px] flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-[#333333]">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
+                            <Link
+                              href={`/docente/cursos/${courseId}/actividades/${activityId}/alumno/${selectedStudent.alumno_id}?entregaId=${attempt.entrega_id}`}
+                              className="activity-primary inline-flex h-[25px] shrink-0 items-center justify-center rounded-[5px] px-[9px] text-[9px] font-medium"
+                            >
+                              {attempt.nota == null ? "Calificar" : "Ver / editar"}
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-md border border-[#dfe3e8] bg-white p-2 text-[10px] text-[#737b87]">Este estudiante todavía no ha enviado ningún intento.</p>
+                  )}
+                </div>
+
                 <div className="mt-[13px] flex items-center gap-2 text-[12px] font-bold text-[#287ee0]"><Icon type="chat" size={16}/> Comentarios del docente (opcional)</div>
                 <label className="sr-only" htmlFor="comentario-docente">Comentario del docente</label>
                 <textarea id="comentario-docente" rows={5} maxLength={5000} value={teacherComment} onChange={(event) => setTeacherComment(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[10px] placeholder:text-[#777777]" />

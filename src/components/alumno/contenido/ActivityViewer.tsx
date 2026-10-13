@@ -237,7 +237,7 @@ export default function ActivityViewer({
     void loadSubmission();
   }, [loadSubmission]);
 
-  const latest = submissions[0] ?? null;
+  const latest = submissions[submissions.length - 1] ?? null;
   const displayedSubmission = selectedSubmissionId == null
     ? latest
     : submissions.find((submission) => submission.id === selectedSubmissionId) ?? latest;
@@ -473,9 +473,9 @@ export default function ActivityViewer({
             )}
           </section>
 
-          {showDeliveryDetail && displayedSubmission ? (
+          {showDeliveryDetail && displayedSubmission && (
             <section className="activity-card min-h-[271px] p-3">
-              <h2 className="activity-card-title">Calificación</h2>
+              <h2 className="activity-card-title">Calificación · Intento {displayedSubmission.numero_intento}</h2>
               {displayedSubmission.nota !== null && displayedSubmission.nota !== undefined ? (
                 <>
                   <div className="mt-2 flex min-h-[29px] items-center justify-center gap-2 rounded-md bg-[#c8e8ca] px-2 text-[14px] font-bold text-[#269d36]">
@@ -483,7 +483,9 @@ export default function ActivityViewer({
                     {displayedSubmission.nota} / {maxGrade} puntos
                   </div>
                   <p className="mt-2 text-[10px] leading-[1.3] text-[#aaaaaa]">
-                    {displayedSubmission.calificado_en ? `Calificado el ${formatDate(displayedSubmission.calificado_en)}` : "La calificación ya está disponible."}
+                    {displayedSubmission.calificado_en
+                      ? `Calificado el ${formatDate(displayedSubmission.calificado_en)}`
+                      : "La calificación ya está disponible."}
                   </p>
                   <div className="mt-4 flex items-center gap-2 text-[12px] font-bold text-[#287ee0]">
                     <Icon type="chat" size={16} /> Comentarios del docente
@@ -493,32 +495,63 @@ export default function ActivityViewer({
                   </p>
                 </>
               ) : (
-                <p className="mt-3 rounded-md bg-[#f1f5fa] p-3 text-[11px] text-slate-600">Tu actividad está pendiente de calificación.</p>
-              )}
-            </section>
-          ) : (
-            <section className="activity-card min-h-[272px] p-4">
-              <h2 className="activity-card-title">Entregas realizadas</h2>
-              {submissions.length === 0 ? (
-                <p className="mt-3 text-[10px] text-[#818181]">Todavía no has realizado entregas.</p>
-              ) : (
-                <div className="mt-[10px] space-y-[7px]">
-                  {submissions.map((submission) => (
-                    <div key={submission.id} className="flex items-center gap-1 text-[10px] leading-[1.35]">
-                      <span className="shrink-0 text-[#333333]">Intento {submission.numero_intento}:</span>
-                      <button
-                        type="button"
-                        onClick={() => { setSelectedSubmissionId(submission.id); setShowSubmitted(true); setError(""); }}
-                        className="activity-link inline-flex items-center gap-1 text-left"
-                      >
-                        Ver entrega <span aria-hidden="true">↗</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <p className="mt-3 rounded-md bg-[#f1f5fa] p-3 text-[11px] text-slate-600">
+                  Este intento está pendiente de calificación.
+                </p>
               )}
             </section>
           )}
+
+          <section className="activity-card min-h-[272px] p-4">
+            <h2 className="activity-card-title">
+              {showDeliveryDetail ? "Historial de intentos" : "Entregas realizadas"}
+            </h2>
+            {submissions.length === 0 ? (
+              <p className="mt-3 text-[10px] text-[#818181]">Todavía no has realizado entregas.</p>
+            ) : (
+              <div className="mt-[10px] space-y-[7px]">
+                {submissions.map((submission) => {
+                  const isSelected = displayedSubmission?.id === submission.id;
+                  const isLatest = latest?.id === submission.id;
+                  return (
+                    <div key={submission.id} className="flex min-w-0 items-center gap-1 text-[10px] leading-[1.35]">
+                      <span className="shrink-0 text-[#333333]">Intento {submission.numero_intento}:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSubmissionId(submission.id);
+                          setShowSubmitted(true);
+                          setError("");
+                        }}
+                        aria-current={isSelected ? "true" : undefined}
+                        className={`activity-link min-w-0 flex-1 truncate text-left ${isSelected ? "font-bold" : ""}`}
+                      >
+                        Ver entrega ↗
+                      </button>
+                      <span className="shrink-0 text-[#555555]">
+                        {submission.nota != null ? `${submission.nota}/${maxGrade}` : "Pendiente"}
+                      </span>
+                      {isLatest && <span className="shrink-0 rounded bg-[#e8f2ff] px-1 py-[2px] text-[8px] text-[#1551ad]">Último</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {showDeliveryDetail && remaining > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSubmissionId(null);
+                  setShowSubmitted(false);
+                  setError("");
+                  setMessage("");
+                }}
+                className="activity-primary mt-[14px] flex min-h-[30px] w-full items-center justify-center rounded-[6px] px-3 text-[10px] font-medium"
+              >
+                Realizar otro intento ({remaining} disponible{remaining === 1 ? "" : "s"})
+              </button>
+            )}
+          </section>
         </aside>
       </div>
 

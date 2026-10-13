@@ -80,6 +80,7 @@ async function studentContext(courseId: number, contentId: number, studentId: nu
 async function teacherContext(courseId: number, contentId: number, teacherId: number) {
   return pool.query(
     `SELECT a.id AS actividad_id, a.puntaje_maximo, a.intentos_permitidos, a.calificada,
+            oc.id AS oferta_curso_id,
             cc.titulo, COALESCE(cc.descripcion, a.instrucciones, '') AS descripcion
        FROM actividades a
        JOIN contenidos_curso cc ON cc.id = a.contenido_id
@@ -109,7 +110,7 @@ export async function obtenerMiEntrega(req: AuthenticatedRequest, res: Response)
     if (!ctx.rowCount) return res.status(404).json({ message: "Actividad no disponible o no estás matriculado." });
     const result = await pool.query(
       `SELECT e.id, e.numero_intento, e.texto_entrega AS comentario, e.estado,
-              e.entregada_en, e.nota, e.retroalimentacion,
+              e.entregada_en, e.nota, e.retroalimentacion, e.calificado_en,
               f.id AS archivo_id, f.nombre_archivo, f.tamano_bytes
          FROM entregas_actividades e
          LEFT JOIN LATERAL (
@@ -117,7 +118,7 @@ export async function obtenerMiEntrega(req: AuthenticatedRequest, res: Response)
            ORDER BY subido_en DESC LIMIT 1
          ) f ON TRUE
         WHERE e.actividad_id=$1 AND e.matricula_id=$2
-        ORDER BY e.numero_intento DESC`,
+        ORDER BY e.numero_intento ASC, e.id ASC`,
       [ctx.rows[0].actividad_id, ctx.rows[0].matricula_id]
     );
     return res.json({ actividad: ctx.rows[0], entregas: result.rows, rubrica: await obtenerRubrica(ctx.rows[0].actividad_id) });
@@ -225,40 +226,81 @@ export async function enviarEntrega(req: AuthenticatedRequest, res: Response) {
 
 export async function listarEntregasDocente(req: AuthenticatedRequest, res: Response) {
   const { userId, courseId, contentId } = ids(req);
-  if (!valid(userId, courseId, contentId)) return res.status(400).json({ message: "Parámetros no válidos." });
+  if (!valid(userId, courseId, contentId)) {
+    return res.status(400).json({ message: "Parámetros no válidos." });
+  }
+
   try {
-    if (!(await role(userId, "Docente"))) return res.status(403).json({ message: "Solo los docentes pueden consultar entregas." });
+    if (!(await role(userId, "Docente"))) {
+      return res.status(403).json({ message: "Solo los docentes pueden consultar entregas." });
+    }
+
     const ctx = await teacherContext(courseId, contentId, userId);
-    if (!ctx.rowCount) return res.status(404).json({ message: "La actividad no pertenece a un curso asignado." });
+    if (!ctx.rowCount) {
+      return res.status(404).json({ message: "La actividad no pertenece a un curso asignado." });
+    }
+
     const result = await pool.query(
-      `SELECT m.estudiante_id AS alumno_id, m.id AS matricula_id,
-              TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
-              e.id AS entrega_id, e.numero_intento, e.estado, e.entregada_en,
-              e.nota, e.retroalimentacion, f.id AS archivo_id, f.nombre_archivo,
-              f.tamano_bytes
-         FROM modulos_curso mc
-         JOIN contenidos_curso cc ON cc.modulo_id=mc.id
-         JOIN cursos c ON c.id=mc.curso_id
-         JOIN ofertas_curso oc ON oc.curso_id=c.id AND oc.docente_id=$3 AND oc.estado <> 'Cancelado'
-         JOIN matriculas m ON m.oferta_curso_id=oc.id AND m.estado IN ('Activa','Completada')
-         JOIN usuarios u ON u.id=m.estudiante_id AND u.rol='Estudiante' AND u.activo=TRUE
-         LEFT JOIN LATERAL (
-           SELECT * FROM actividades WHERE contenido_id=cc.id LIMIT 1
-         ) a ON TRUE
-         LEFT JOIN LATERAL (
-           SELECT * FROM entregas_actividades
-            WHERE actividad_id=a.id AND matricula_id=m.id
-            ORDER BY numero_intento DESC LIMIT 1
-         ) e ON TRUE
-         LEFT JOIN LATERAL (
-           SELECT * FROM archivos_entrega_actividad WHERE entrega_id=e.id
-           ORDER BY subido_en DESC LIMIT 1
-         ) f ON TRUE
-        WHERE c.id=$1 AND cc.id=$2
-        ORDER BY u.apellidos NULLS LAST,u.nombres`,
-      [courseId, contentId, userId]
+      `SELECT
+          m.estudiante_id AS alumno_id,
+          m.id AS matricula_id,
+          TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
+          e.id AS entrega_id,
+          e.numero_intento,
+          e.estado,
+          e.entregada_en,
+          e.nota,
+          e.retroalimentacion,
+          f.id AS archivo_id,
+          f.nombre_archivo,
+          f.tamano_bytes,
+          (SELECT COUNT(*)::int
+             FROM entregas_actividades et
+            WHERE et.actividad_id = a.id
+              AND et.matricula_id = m.id) AS intentos_realizados
+       FROM modulos_curso mc
+       JOIN contenidos_curso cc ON cc.modulo_id = mc.id
+       JOIN cursos c ON c.id = mc.curso_id
+       JOIN ofertas_curso oc
+         ON oc.curso_id = c.id
+        AND oc.docente_id = $3
+        AND oc.id = $4
+        AND oc.estado <> 'Cancelado'
+       JOIN matriculas m
+         ON m.oferta_curso_id = oc.id
+        AND m.estado IN ('Activa','Completada')
+       JOIN usuarios u
+         ON u.id = m.estudiante_id
+        AND u.rol = 'Estudiante'
+        AND u.activo = TRUE
+       JOIN actividades a ON a.contenido_id = cc.id
+       LEFT JOIN LATERAL (
+         SELECT ea.*
+           FROM entregas_actividades ea
+          WHERE ea.actividad_id = a.id
+            AND ea.matricula_id = m.id
+          ORDER BY ea.numero_intento DESC, ea.id DESC
+          LIMIT 1
+       ) e ON TRUE
+       LEFT JOIN LATERAL (
+         SELECT ar.*
+           FROM archivos_entrega_actividad ar
+          WHERE ar.entrega_id = e.id
+          ORDER BY ar.subido_en DESC, ar.id DESC
+          LIMIT 1
+       ) f ON TRUE
+      WHERE c.id = $1
+        AND cc.id = $2
+        AND cc.tipo = 'actividad'
+      ORDER BY u.apellidos NULLS LAST, u.nombres`,
+      [courseId, contentId, userId, ctx.rows[0].oferta_curso_id]
     );
-    return res.json({ actividad: ctx.rows[0], alumnos: result.rows, rubrica: await obtenerRubrica(ctx.rows[0].actividad_id) });
+
+    return res.json({
+      actividad: ctx.rows[0],
+      alumnos: result.rows,
+      rubrica: await obtenerRubrica(ctx.rows[0].actividad_id),
+    });
   } catch (error) {
     console.error("listarEntregasDocente:", error);
     return res.status(500).json({ message: "No se pudieron cargar las entregas." });
@@ -268,37 +310,90 @@ export async function listarEntregasDocente(req: AuthenticatedRequest, res: Resp
 export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res: Response) {
   const { userId, courseId, contentId } = ids(req);
   const studentId = Number(req.params.alumnoId);
-  if (!valid(userId, courseId, contentId, studentId)) return res.status(400).json({ message: "Parámetros no válidos." });
+
+  if (!valid(userId, courseId, contentId, studentId)) {
+    return res.status(400).json({ message: "Parámetros no válidos." });
+  }
+
   try {
-    if (!(await role(userId, "Docente"))) return res.status(403).json({ message: "Solo los docentes pueden revisar entregas." });
+    if (!(await role(userId, "Docente"))) {
+      return res.status(403).json({ message: "Solo los docentes pueden revisar entregas." });
+    }
+
     const ctx = await teacherContext(courseId, contentId, userId);
-    if (!ctx.rowCount) return res.status(404).json({ message: "Actividad no encontrada." });
+    if (!ctx.rowCount) {
+      return res.status(404).json({ message: "Actividad no encontrada." });
+    }
+
+    // Devuelve una fila por cada intento, en orden ascendente. Si el alumno
+    // todavía no ha entregado, la matrícula sigue apareciendo con entregas=[].
     const result = await pool.query(
-      `SELECT e.id AS entrega_id, e.numero_intento, e.estado, e.entregada_en,
-              e.texto_entrega AS comentario, e.nota, e.retroalimentacion,
-              m.id AS matricula_id, m.estudiante_id AS alumno_id,
-              TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
-              f.id AS archivo_id, f.nombre_archivo, f.tamano_bytes
-         FROM modulos_curso mc
-         JOIN contenidos_curso cc ON cc.modulo_id=mc.id
-         JOIN cursos c ON c.id=mc.curso_id
-         JOIN ofertas_curso oc ON oc.curso_id=c.id AND oc.docente_id=$3 AND oc.estado <> 'Cancelado'
-         JOIN matriculas m ON m.oferta_curso_id=oc.id AND m.estudiante_id=$4 AND m.estado IN ('Activa','Completada')
-         JOIN usuarios u ON u.id=m.estudiante_id
-         JOIN actividades a ON a.contenido_id=cc.id
-         LEFT JOIN LATERAL (
-           SELECT * FROM entregas_actividades WHERE actividad_id=a.id AND matricula_id=m.id
-           ORDER BY numero_intento DESC LIMIT 1
-         ) e ON TRUE
-         LEFT JOIN LATERAL (
-           SELECT * FROM archivos_entrega_actividad WHERE entrega_id=e.id
-           ORDER BY subido_en DESC LIMIT 1
-         ) f ON TRUE
-        WHERE c.id=$1 AND cc.id=$2 LIMIT 1`,
-      [courseId, contentId, userId, studentId]
+      `SELECT
+          e.id AS entrega_id,
+          e.numero_intento,
+          e.estado,
+          e.entregada_en,
+          e.texto_entrega AS comentario,
+          e.nota,
+          e.retroalimentacion,
+          e.calificado_en,
+          m.id AS matricula_id,
+          m.estudiante_id AS alumno_id,
+          TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
+          f.id AS archivo_id,
+          f.nombre_archivo,
+          f.tamano_bytes
+       FROM modulos_curso mc
+       JOIN contenidos_curso cc ON cc.modulo_id = mc.id
+       JOIN cursos c ON c.id = mc.curso_id
+       JOIN ofertas_curso oc
+         ON oc.curso_id = c.id
+        AND oc.docente_id = $3
+        AND oc.id = $5
+        AND oc.estado <> 'Cancelado'
+       JOIN matriculas m
+         ON m.oferta_curso_id = oc.id
+        AND m.estudiante_id = $4
+        AND m.estado IN ('Activa','Completada')
+       JOIN usuarios u ON u.id = m.estudiante_id
+       JOIN actividades a ON a.contenido_id = cc.id
+       LEFT JOIN entregas_actividades e
+         ON e.actividad_id = a.id
+        AND e.matricula_id = m.id
+       LEFT JOIN LATERAL (
+         SELECT ar.*
+           FROM archivos_entrega_actividad ar
+          WHERE ar.entrega_id = e.id
+          ORDER BY ar.subido_en DESC, ar.id DESC
+          LIMIT 1
+       ) f ON TRUE
+      WHERE c.id = $1
+        AND cc.id = $2
+        AND cc.tipo = 'actividad'
+      ORDER BY e.numero_intento ASC NULLS LAST, e.id ASC`,
+      [courseId, contentId, userId, studentId, ctx.rows[0].oferta_curso_id]
     );
-    if (!result.rowCount) return res.status(404).json({ message: "Alumno no matriculado en este curso." });
-    return res.json({ actividad: ctx.rows[0], entrega: result.rows[0], rubrica: await obtenerRubrica(ctx.rows[0].actividad_id) });
+
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Alumno no matriculado en este curso." });
+    }
+
+    const firstRow = result.rows[0];
+    const alumno = {
+      alumno_id: firstRow.alumno_id,
+      matricula_id: firstRow.matricula_id,
+      alumno: firstRow.alumno,
+    };
+    const entregas = result.rows.filter((row) => row.entrega_id != null);
+    const entrega = entregas[entregas.length - 1] ?? null;
+
+    return res.json({
+      actividad: ctx.rows[0],
+      alumno,
+      entrega, // Compatibilidad con clientes antiguos: representa el intento más reciente.
+      entregas, // Historial completo, del intento 1 al último.
+      rubrica: await obtenerRubrica(ctx.rows[0].actividad_id),
+    });
   } catch (error) {
     console.error("obtenerEntregaAlumnoDocente:", error);
     return res.status(500).json({ message: "No se pudo cargar la entrega." });
@@ -399,3 +494,4 @@ export async function descargarArchivoEntrega(req: AuthenticatedRequest, res: Re
     if (!res.headersSent) return res.status(500).json({ message: "No se pudo descargar el archivo." });
   }
 }
+
