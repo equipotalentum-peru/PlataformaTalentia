@@ -460,7 +460,19 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                                   disabled={saving}
                                   status={content.status}
                                   onPublish={() => void publishContent(content)}
-                                  onEdit={() => { setEditing(content); setEditTitle(content.title); setEditError(""); }}
+                                  onEdit={() => {
+                                    if (content.type === "activity") {
+                                      const query = new URLSearchParams({
+                                        moduleId: String(content.moduleId),
+                                        contenidoId: String(content.id),
+                                      });
+                                      router.push(`/docente/cursos/${course.id}/crear-actividad?${query}`);
+                                      return;
+                                    }
+                                    setEditing(content);
+                                    setEditTitle(content.title);
+                                    setEditError("");
+                                  }}
                                   onDelete={() => void deleteContent(content)}
                                 />
                               </div>

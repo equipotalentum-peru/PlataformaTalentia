@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 import type { Course } from "@/data/courses";
@@ -11,9 +11,28 @@ import CourseHeader from "@/components/common/curso/CourseHeader";
 import CourseTabs from "@/components/common/curso/CourseTabs";
 import RubricTypeModal from "./modals/RubricTypeModal";
 import RubricEditorModal, { type RubricDraft } from "./modals/RubricEditorModal";
+import type { RubricInfo } from "@/components/common/curso/RubricDetails";
 type CreateActivityProps = {
   course: Course;
   moduleId?: string;
+  contentId?: string;
+};
+
+type ActivityConfiguration = {
+  modulo_id: number | string;
+  titulo: string;
+  descripcion: string;
+  fecha_limite: string | null;
+  intentos_permitidos: number;
+  calificada: boolean;
+  puntaje_maximo: number | string | null;
+  tamano_maximo_mb: number | string | null;
+  permitir_archivo: boolean;
+  permitir_enlace: boolean;
+  permitir_imagen: boolean;
+  permitir_video: boolean;
+  formatos_permitidos: string | null;
+  estado_contenido: "Borrador" | "Publicado";
 };
 
 const deliveryTypes = [
@@ -39,8 +58,13 @@ function PlusIcon() {
   );
 }
 
-export default function CreateActivity({ course, moduleId }: CreateActivityProps) {
+export default function CreateActivity({ course, moduleId, contentId }: CreateActivityProps) {
   const router = useRouter();
+  const editing = contentId !== undefined;
+  const [activityModuleId, setActivityModuleId] = useState(moduleId);
+  const [loading, setLoading] = useState(editing);
+  const [loadError, setLoadError] = useState("");
+  const loadedDeadline = useRef({ date: "", time: "", iso: null as string | null });
   const savingRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [delivery, setDelivery] = useState({ archivo: true, enlace: true, imagen: true, video: true });
@@ -54,15 +78,70 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
   const [rubricModalOpen, setRubricModalOpen] = useState(false);
   const [rubricEditorType, setRubricEditorType] = useState<"pdf" | "criterios" | null>(null);
   const [rubricDraft, setRubricDraft] = useState<RubricDraft | null>(null);
+  const [storedRubric, setStoredRubric] = useState<RubricInfo | null>(null);
+  const [rubricChanged, setRubricChanged] = useState(false);
   const [status, setStatus] = useState<"Oculto" | "Publicado">("Publicado");
   const [formats, setFormats] = useState(["PDF", "DOC", "DOCX", "PPT", "PPTX", "PNG", "JPG", "RAR", "MP4"]);
   const [maxFileSize, setMaxFileSize] = useState(200);
   const [notice, setNotice] = useState("");
   const formatOptions: string[] = deliveryTypes.flatMap(type => delivery[type.key] ? [...type.formats] : []);
+  const storedPDF = !rubricChanged && storedRubric?.ruta_archivo ? storedRubric : null;
+  const busy = saving || loading || Boolean(loadError);
 
-  const backHref = moduleId
-    ? `/docente/cursos/${course.id}?moduleId=${encodeURIComponent(moduleId)}`
+  const backHref = activityModuleId
+    ? `/docente/cursos/${course.id}?moduleId=${encodeURIComponent(activityModuleId)}`
     : `/docente/cursos/${course.id}`;
+
+  useEffect(() => {
+    if (!editing) return;
+    const controller = new AbortController();
+    async function load() {
+      try {
+        if (!Number.isSafeInteger(Number(contentId)) || Number(contentId) <= 0) throw new Error("El identificador de la actividad no es válido.");
+        const response = await fetch(`${API_URL}/actividades/docente/${course.id}/${contentId}/configuracion`, {
+          credentials: "include", cache: "no-store", signal: controller.signal,
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "No se pudo cargar la actividad.");
+        if (controller.signal.aborted) return;
+        const activity = result.actividad as ActivityConfiguration;
+        const rubric = result.rubrica as RubricInfo | null;
+        let date = "", time = "";
+        if (activity.fecha_limite) {
+          const deadline = new Date(activity.fecha_limite);
+          const pad = (value: number) => String(value).padStart(2, "0");
+          date = `${deadline.getFullYear()}-${pad(deadline.getMonth() + 1)}-${pad(deadline.getDate())}`;
+          time = `${pad(deadline.getHours())}:${pad(deadline.getMinutes())}`;
+        }
+        loadedDeadline.current = { date, time, iso: activity.fecha_limite };
+        setActivityModuleId(String(activity.modulo_id));
+        setTitle(activity.titulo);
+        setDescription(activity.descripcion);
+        setDueDate(date);
+        setDueTime(time);
+        setAttempts(Number(activity.intentos_permitidos));
+        setGraded(activity.calificada);
+        setMaxGrade(Number(activity.puntaje_maximo ?? 20));
+        setMaxFileSize(Number(activity.tamano_maximo_mb ?? 200));
+        setDelivery({ archivo: activity.permitir_archivo, enlace: activity.permitir_enlace, imagen: activity.permitir_imagen, video: activity.permitir_video });
+        setFormats((activity.formatos_permitidos ?? "").split(",").map(format => format.trim().toUpperCase()).filter(Boolean));
+        setStatus(activity.estado_contenido === "Publicado" ? "Publicado" : "Oculto");
+        setStoredRubric(rubric);
+        setRubricDraft(rubric && !rubric.ruta_archivo ? {
+          tipo: "criterios", criterios: rubric.criterios.map(criterion => ({
+            nombre: criterion.nombre, descripcion: criterion.descripcion ?? "", puntaje_maximo: Number(criterion.puntaje_maximo),
+          })),
+        } : null);
+        setRubricChanged(false);
+      } catch (error) {
+        if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "No se pudo cargar la actividad.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+    void load();
+    return () => controller.abort();
+  }, [contentId, course.id, editing]);
 
   const toggleFormat = (format: string) => {
     setFormats((current) => current.includes(format) ? current.filter((item) => item !== format) : [...current, format]);
@@ -74,8 +153,8 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
   };
 
   const submit = async (mode: "Borrador" | "Publicado") => {
-    if (savingRef.current) return;
-    if (!moduleId || !Number.isSafeInteger(Number(moduleId)) || Number(moduleId) <= 0) {
+    if (savingRef.current || loading || loadError) return;
+    if (!activityModuleId || !Number.isSafeInteger(Number(activityModuleId)) || Number(activityModuleId) <= 0) {
       showNotice("Selecciona un módulo antes de crear la actividad.");
       return;
     }
@@ -100,7 +179,8 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
     savingRef.current = true;
     setSaving(true);
     try {
-      const fechaLimite = dueDate ? new Date(`${dueDate}T${dueTime}`).toISOString() : null;
+      const fechaLimite = editing && dueDate === loadedDeadline.current.date && dueTime === loadedDeadline.current.time
+        ? loadedDeadline.current.iso : dueDate ? new Date(`${dueDate}T${dueTime}`).toISOString() : null;
       const data = {
         titulo: title.trim(), descripcion: description, estado: mode,
         fecha_limite: fechaLimite, intentos_permitidos: attempts,
@@ -108,7 +188,7 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
         permitir_archivo: delivery.archivo, permitir_enlace: delivery.enlace,
         permitir_imagen: delivery.imagen, permitir_video: delivery.video,
         formatos_permitidos: formats.filter(format => formatOptions.includes(format)).map(format => format.toLowerCase()),
-        rubrica: rubricDraft?.tipo === "pdf" ? { tipo: "pdf" } : rubricDraft,
+        rubrica: editing && !rubricChanged ? { tipo: "conservar" } : rubricDraft?.tipo === "pdf" ? { tipo: "pdf" } : rubricDraft,
       };
       let body: string | FormData = JSON.stringify(data);
       if (rubricDraft?.tipo === "pdf") {
@@ -117,12 +197,14 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
         form.append("rubrica", rubricDraft.archivo);
         body = form;
       }
-      const response = await fetch(`${API_URL}/actividades/docente/${course.id}/modulos/${moduleId}`, {
-        method: "POST", credentials: "include", body,
+      const endpoint = editing ? `${contentId}/configuracion` : `modulos/${activityModuleId}`;
+      const response = await fetch(`${API_URL}/actividades/docente/${course.id}/${endpoint}`, {
+        method: editing ? "PUT" : "POST", credentials: "include", body,
         ...(typeof body === "string" ? { headers: { "Content-Type": "application/json" } } : {}),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || "No se pudo guardar la actividad.");
+      if (result.aviso) window.alert(result.aviso);
       router.push(backHref);
     } catch (error) {
       showNotice(error instanceof Error ? error.message : "No se pudo guardar la actividad.");
@@ -144,9 +226,11 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
 
         <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
 
-        <h1 className="mb-3 mt-5 text-2xl font-semibold text-gray-800">Crear actividad</h1>
+        <h1 className="mb-3 mt-5 text-2xl font-semibold text-gray-800">{editing ? "Editar actividad" : "Crear actividad"}</h1>
+        {loading && <p role="status" className="mb-3 text-sm text-gray-600">Cargando configuración...</p>}
+        {loadError && <p role="alert" className="mb-3 text-sm text-red-700">{loadError}</p>}
 
-        <fieldset disabled={saving} className="grid min-w-0 grid-cols-1 gap-5 border-t border-[#d9e2ec] bg-white p-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.95fr)]">
+        <fieldset disabled={busy} className="grid min-w-0 grid-cols-1 gap-5 border-t border-[#d9e2ec] bg-white p-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.95fr)]">
           <section className="min-w-0">
             <h2 className="mb-4 text-base font-semibold text-[#3186d8]">Información de la actividad</h2>
             <label htmlFor="activity-title" className="block text-sm font-medium text-gray-700">Título:</label>
@@ -276,19 +360,20 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
               <h2 className="text-base font-semibold text-[#3186d8]">Rúbrica de evaluación (opcional)</h2>
               <button type="button" onClick={() => setRubricModalOpen(true)} className="mt-3 flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-md border border-[#3186d8] bg-white px-4 py-2 text-sm font-medium text-[#3186d8] hover:bg-[#eff7ff]">
                 <PlusIcon />
-                {rubricDraft ? "Cambiar tipo de rúbrica" : "Añadir rúbrica"}
+                {rubricDraft || storedPDF ? "Cambiar tipo de rúbrica" : "Añadir rúbrica"}
               </button>
-              {rubricDraft && (
+              {(rubricDraft || storedPDF) && (
                 <div className="mt-3 min-w-0 text-sm">
                   <p className="break-words text-gray-700">
-                    {rubricDraft.tipo === "pdf" ? `PDF preparado: ${rubricDraft.archivo.name}` : `${rubricDraft.criterios.length} criterios preparados`}
+                    {storedPDF ? `PDF guardado: ${storedPDF.nombre_archivo}` : rubricDraft?.tipo === "pdf" ? `PDF preparado: ${rubricDraft.archivo.name}` : `${rubricDraft?.tipo === "criterios" ? rubricDraft.criterios.length : 0} criterios ${editing && !rubricChanged ? "guardados" : "preparados"}`}
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">Pendiente de guardar con la actividad</p>
+                  {(!editing || rubricChanged) && <p className="mt-1 text-xs text-gray-500">Pendiente de guardar con la actividad</p>}
                   <div className="mt-2 flex flex-wrap gap-3">
-                    <button type="button" onClick={() => setRubricEditorType(rubricDraft.tipo)} className="font-medium text-[#3186d8] hover:underline">
-                      {rubricDraft.tipo === "pdf" ? "Reemplazar PDF" : "Editar criterios"}
+                    {storedPDF && <a href={`${API_URL}/actividades/${course.id}/${contentId}/rubrica`} target="_blank" rel="noreferrer" className="font-medium text-[#3186d8] hover:underline">Descargar PDF</a>}
+                    <button type="button" onClick={() => setRubricEditorType(storedPDF ? "pdf" : rubricDraft?.tipo ?? "pdf")} className="font-medium text-[#3186d8] hover:underline">
+                      {storedPDF || rubricDraft?.tipo === "pdf" ? "Reemplazar PDF" : "Editar criterios"}
                     </button>
-                    <button type="button" onClick={() => setRubricDraft(null)} className="font-medium text-red-600 hover:underline">Quitar rúbrica</button>
+                    <button type="button" onClick={() => { setRubricDraft(null); setRubricChanged(true); }} className="font-medium text-red-600 hover:underline">Quitar rúbrica</button>
                   </div>
                 </div>
               )}
@@ -311,8 +396,12 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
         <div className="flex flex-wrap items-center gap-3 border-t border-[#d9e2ec] bg-white p-4">
           <Link href={backHref} aria-disabled={saving} onClick={event => { if (saving) event.preventDefault(); }} className="flex h-10 items-center justify-center rounded-md bg-[#efe6fa] px-4 text-sm font-semibold text-[#4b5fa7] hover:bg-[#e7dcf4]">Cancelar</Link>
           <div className="ml-auto flex flex-wrap gap-3">
-            <button type="button" disabled={saving} onClick={() => submit("Borrador")} className="min-h-10 rounded-md border border-[#cfd9e6] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">{saving ? "Guardando…" : "Guardar como borrador"}</button>
-            <button type="button" disabled={saving || status !== "Publicado"} title={status === "Oculto" ? "Selecciona Publicado para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2777c1] disabled:opacity-50">Publicar</button>
+            {editing ? (
+              <button type="button" disabled={busy} onClick={() => submit(status === "Publicado" ? "Publicado" : "Borrador")} className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2777c1] disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button>
+            ) : <>
+              <button type="button" disabled={busy} onClick={() => submit("Borrador")} className="min-h-10 rounded-md border border-[#cfd9e6] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">{saving ? "Guardando…" : "Guardar como borrador"}</button>
+              <button type="button" disabled={busy || status !== "Publicado"} title={status === "Oculto" ? "Selecciona Publicado para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2777c1] disabled:opacity-50">Publicar</button>
+            </>}
           </div>
         </div>
       </div>
@@ -322,6 +411,7 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
         onClose={() => setRubricModalOpen(false)}
         onSkip={() => {
           setRubricDraft(null);
+          setRubricChanged(true);
           setRubricModalOpen(false);
         }}
         onSelect={(type) => {
@@ -338,6 +428,7 @@ export default function CreateActivity({ course, moduleId }: CreateActivityProps
           onClose={() => setRubricEditorType(null)}
           onConfirm={(draft) => {
             setRubricDraft(draft);
+            setRubricChanged(true);
             setRubricEditorType(null);
           }}
         />
