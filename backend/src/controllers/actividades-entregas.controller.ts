@@ -110,7 +110,7 @@ async function teacherContext(
         AND cc.id = $2
         AND oc.docente_id = $3
         AND oc.estado <> 'Cancelado'
-        AND cc.tipo = 'Actividad'
+        AND cc.tipo = 'actividad'
         AND mc.activo = TRUE
         AND c.estado = 'Activo'
       ORDER BY oc.actualizado_en DESC, oc.id DESC
