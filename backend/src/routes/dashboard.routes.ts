@@ -9,6 +9,10 @@ import {
 } from "../controllers/docente-dashboard.controller";
 
 import {
+  obtenerDashboardAdministrador,
+} from "../controllers/admin-dashboard.controller";
+
+import {
   requireAuth,
 } from "../middleware/auth.middleware";
 
@@ -24,6 +28,12 @@ router.get(
   "/docente",
   requireAuth,
   obtenerDashboardDocente
+);
+
+router.get(
+  "/administrador",
+  requireAuth,
+  obtenerDashboardAdministrador
 );
 
 export default router;
