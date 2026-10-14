@@ -1,7 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
+
+interface CursoApi {
+  id: string | number;
+  nombre: string;
+  codigo: string;
+  docente: string;
+  cupos: number | string;
+  matriculados: number | string;
+  estado: string;
+}
 
 interface Curso {
   id: string;
@@ -12,48 +23,89 @@ interface Curso {
   estado: "Borrador" | "Activo";
 }
 
-const cursosIniciales: Curso[] = [
-  {
-    id: "1",
-    nombre: "Diseño UX",
-    codigo: "UX001",
-    docente: "Sin asignar",
-    matriculas: "64 / 80",
-    estado: "Borrador",
-  },
-  {
-    id: "2",
-    nombre: "Herramientas TIC",
-    codigo: "TIC002",
-    docente: "Gloria Rocha",
-    matriculas: "126 / 140",
-    estado: "Activo",
-  },
-  {
-    id: "3",
-    nombre: "Cloud básico",
-    codigo: "CLD003",
-    docente: "Luis Vega",
-    matriculas: "88 / 100",
-    estado: "Activo",
-  },
-  {
-    id: "4",
-    nombre: "Investigación",
-    codigo: "INV004",
-    docente: "Ana Torres",
-    matriculas: "42 / 60",
-    estado: "Activo",
-  },
-];
-
 export default function TablaCursos() {
+  
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState<"Todos" | "Activos" | "Borrador">("Todos");
+  const [filtroEstado, setFiltroEstado] = useState<
+    "Todos" | "Activos" | "Borrador"
+  >("Todos");
+
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarCursos() {
+      try {
+        setCargando(true);
+        setError("");
+
+        const response = await fetch(
+          `${API_URL}/administrador/cursos`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "No se pudieron cargar los cursos."
+          );
+        }
+
+        const lista: CursoApi[] = Array.isArray(data.cursos)
+          ? data.cursos
+          : [];
+
+        setCursos(
+          lista.map((curso) => ({
+            id: String(curso.id),
+            nombre: curso.nombre,
+            codigo: curso.codigo,
+            docente: curso.docente || "Sin asignar",
+            matriculas: `${Number(curso.matriculados) || 0} / ${
+              Number(curso.cupos) || 0
+            }`,
+            estado:
+              curso.estado.toLowerCase() === "activo"
+                ? "Activo"
+                : "Borrador",
+          }))
+        );
+      } catch (err) {
+        if (controller.signal.aborted) return;
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "No se pudieron cargar los cursos."
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargando(false);
+        }
+      }
+    }
+
+    void cargarCursos();
+
+    return () => controller.abort();
+  }, [router]);
 
   // Filtrado por búsqueda y categoría
-  const cursosFiltrados = cursosIniciales.filter((curso) => {
+  const cursosFiltrados = cursos.filter((curso) => {
     const coincideBusqueda =
       curso.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       curso.codigo.toLowerCase().includes(searchTerm.toLowerCase());
@@ -154,43 +206,62 @@ export default function TablaCursos() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm font-medium text-[#0F2851]">
-              {cursosFiltrados.map((curso) => (
-                <tr key={curso.id} className="hover:bg-gray-50/50 transition">
-                  <td className="py-4 px-6 font-bold">{curso.nombre}</td>
-                  <td className="py-4 px-6 text-[#64748B]">{curso.codigo}</td>
-                  <td className="py-4 px-6 text-[#64748B]">{curso.docente}</td>
-                  <td className="py-4 px-6 text-[#64748B]">{curso.matriculas}</td>
-                  <td className="py-4 px-6">
-                    {curso.estado === "Activo" ? (
-                      <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full text-xs font-bold">
-                        Activo
-                      </span>
-                    ) : (
-                      <span className="inline-block bg-[#F3E8FF] text-[#6B21A8] px-4 py-1.5 rounded-full text-xs font-bold">
-                        Borrador
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        router.push(`/administrador/cursos/configurar?id=${curso.id}`)
-                      }
-                      className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-5 py-2 rounded-xl text-xs transition"
-                    >
-                      Configurar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {cursosFiltrados.length === 0 && (
+              {cargando ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#64748B] text-sm">
-                    No se encontraron cursos que coincidan con la búsqueda.
+                  <td colSpan={6} className="py-8 text-center text-[#64748B]">
+                    Cargando cursos...
                   </td>
                 </tr>
+              ) : error ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="py-8 text-center text-red-600"
+                  >
+                    {error}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {cursosFiltrados.map((curso) => (
+                    <tr key={curso.id} className="hover:bg-gray-50/50 transition">
+                      <td className="py-4 px-6 font-bold">{curso.nombre}</td>
+                      <td className="py-4 px-6 text-[#64748B]">{curso.codigo}</td>
+                      <td className="py-4 px-6 text-[#64748B]">{curso.docente}</td>
+                      <td className="py-4 px-6 text-[#64748B]">{curso.matriculas}</td>
+                      <td className="py-4 px-6">
+                        {curso.estado === "Activo" ? (
+                          <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full text-xs font-bold">
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="inline-block bg-[#F3E8FF] text-[#6B21A8] px-4 py-1.5 rounded-full text-xs font-bold">
+                            Borrador
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            router.push(`/administrador/cursos/configurar?id=${curso.id}`)
+                          }
+                          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-5 py-2 rounded-xl text-xs transition"
+                        >
+                          Configurar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {cursosFiltrados.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-[#64748B] text-sm">
+                        No se encontraron cursos que coincidan con la búsqueda.
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

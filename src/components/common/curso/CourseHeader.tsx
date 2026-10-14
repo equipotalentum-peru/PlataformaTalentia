@@ -5,6 +5,7 @@ import {
   rememberCourseSummary,
   useCourseSummary,
 } from "@/lib/use-course-summary";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
 const IMAGEN_POR_DEFECTO =
   "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80";
@@ -56,9 +57,11 @@ export default function CourseHeader({
     ? nombreLocal
     : (consultado?.nombre ?? "");
 
-  const src =
-    (tieneNombre ? imagen : consultado?.imagen) ||
-    IMAGEN_POR_DEFECTO;
+  const src = resolverImagenPortadaCurso(
+    tieneNombre ? imagen : consultado?.imagen,
+    courseId,
+    IMAGEN_POR_DEFECTO
+  );
 
   return (
     <div className="course-banner">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Course } from "@/data/courses";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
 type CourseCardProps = {
   course: Course;
@@ -24,7 +25,7 @@ export default function CourseCard({
       {/* IMAGEN */}
       <div className="relative h-[110px] overflow-hidden">
         <img
-          src={course.imagen}
+          src={resolverImagenPortadaCurso(course.imagen, course.id)}
           alt={course.nombre}
           className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
         />

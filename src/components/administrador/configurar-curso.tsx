@@ -1,36 +1,65 @@
 "use client";
 
 import { useState } from "react";
+import type { ComponenteCalificacionDraft } from "@/lib/cursos-admin-types";
+
+const EVALUACIONES_INICIALES: ComponenteCalificacionDraft[] = [
+  { id: "1", nombre: "Examen 1", porcentaje: "20" },
+  { id: "2", nombre: "Examen 2", porcentaje: "20" },
+  { id: "3", nombre: "Proyecto final", porcentaje: "50" },
+];
 
 export interface ConfigurarCursoProps {
   esPasoWizard?: boolean;
   onContinuar?: () => void;
+  evaluaciones?: ComponenteCalificacionDraft[];
+  onEvaluacionesChange?: (evaluaciones: ComponenteCalificacionDraft[]) => void;
 }
 
-export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: ConfigurarCursoProps) {
-  const [evaluaciones, setEvaluaciones] = useState([
-    { id: "1", nombre: "Examen 1", porcentaje: "20" },
-    { id: "2", nombre: "Examen 2", porcentaje: "20" },
-    { id: "3", nombre: "Proyecto final", porcentaje: "50" },
-  ]);
+export default function ConfigurarCurso({
+  esPasoWizard = false,
+  onContinuar,
+  evaluaciones: evaluacionesExternas,
+  onEvaluacionesChange,
+}: ConfigurarCursoProps) {
+  const [evaluacionesLocales, setEvaluacionesLocales] = useState<ComponenteCalificacionDraft[]>(
+    EVALUACIONES_INICIALES
+  );
+  const evaluaciones = evaluacionesExternas ?? evaluacionesLocales;
 
-  const handleEvaluacionChange = (id: string, field: "nombre" | "porcentaje", value: string) => {
-    setEvaluaciones((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+  const actualizarEvaluaciones = (nuevas: ComponenteCalificacionDraft[]) => {
+    if (onEvaluacionesChange) {
+      onEvaluacionesChange(nuevas);
+    } else {
+      setEvaluacionesLocales(nuevas);
+    }
+  };
+
+  const handleEvaluacionChange = (
+    id: string,
+    field: "nombre" | "porcentaje",
+    value: string
+  ) => {
+    actualizarEvaluaciones(
+      evaluaciones.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
     );
   };
 
   const handleAgregarEvaluacion = () => {
-    const newId = (evaluaciones.length + 1).toString();
-    setEvaluaciones([...evaluaciones, { id: newId, nombre: "", porcentaje: "" }]);
+    actualizarEvaluaciones([
+      ...evaluaciones,
+      { id: `${Date.now()}-${evaluaciones.length}`, nombre: "", porcentaje: "" },
+    ]);
   };
 
   const handleEliminarEvaluacion = (id: string) => {
-    setEvaluaciones(evaluaciones.filter((item) => item.id !== id));
+    actualizarEvaluaciones(evaluaciones.filter((item) => item.id !== id));
   };
 
   const sumaPorcentaje = evaluaciones.reduce(
-    (acc, item) => acc + (parseFloat(item.porcentaje) || 0),
+    (acc, item) => acc + (Number.parseFloat(item.porcentaje) || 0),
     0
   );
   const porcentajeFaltante = Math.max(0, 100 - sumaPorcentaje);
@@ -47,23 +76,21 @@ export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: C
 
   return (
     <div className="w-full">
-      {/* Título independiente: solo se muestra si NO estamos en el wizard */}
       {!esPasoWizard && (
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">Configurar curso</h1>
-          <p className="text-base font-bold text-[#0F2851] mt-1">Diseño UX</p>
+          <p className="text-base font-bold text-[#0F2851] mt-1">Sistema de evaluación</p>
         </div>
       )}
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Formulario */}
         <div className="flex-1 bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 w-full">
           <h2 className="text-xl font-extrabold text-[#0F2851] mb-6">Sistema de evaluaciones</h2>
 
           <div className="space-y-6 mb-8">
             {evaluaciones.map((item, index) => (
-              <div key={item.id} className="flex items-center gap-4">
-                <div className="flex-1">
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-end gap-4">
+                <div className="flex-1 min-w-0">
                   <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
                     {item.nombre || `Evaluación ${index + 1}`}
                   </label>
@@ -72,33 +99,32 @@ export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: C
                     value={item.nombre}
                     onChange={(e) => handleEvaluacionChange(item.id, "nombre", e.target.value)}
                     placeholder={`Examen ${index + 1}`}
+                    maxLength={200}
                     className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
                   />
                 </div>
 
-                <div className="w-32">
+                <div className="w-full sm:w-32">
                   <label className="block text-xs font-extrabold text-[#0F2851] mb-2">Porcentaje (%)</label>
                   <input
-                    type="text"
-                    value={item.porcentaje ? `${item.porcentaje}%` : ""}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/%/g, "");
-                      handleEvaluacionChange(item.id, "porcentaje", val);
-                    }}
-                    placeholder="20%"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={item.porcentaje}
+                    onChange={(e) => handleEvaluacionChange(item.id, "porcentaje", e.target.value)}
+                    placeholder="20"
                     className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3 text-sm text-[#0F2851] text-center focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
                   />
                 </div>
 
-                <div className="pt-6">
-                  <button
-                    type="button"
-                    onClick={() => handleEliminarEvaluacion(item.id)}
-                    className="bg-[#E9D5FF]/60 hover:bg-[#E9D5FF] text-[#6B21A8] font-bold py-3 px-5 rounded-2xl text-xs transition"
-                  >
-                    Eliminar
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleEliminarEvaluacion(item.id)}
+                  className="bg-[#E9D5FF]/60 hover:bg-[#E9D5FF] text-[#6B21A8] font-bold py-3 px-5 rounded-2xl text-xs transition"
+                >
+                  Eliminar
+                </button>
               </div>
             ))}
           </div>
@@ -112,7 +138,6 @@ export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: C
           </button>
         </div>
 
-        {/* Resumen lateral */}
         <div className="w-full lg:w-80 bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 flex flex-col justify-between min-h-[420px]">
           <div>
             <h2 className="text-xl font-extrabold text-[#0F2851] mb-6">Evaluaciones</h2>
@@ -121,9 +146,7 @@ export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: C
               {evaluaciones.map((item, index) => (
                 <div key={item.id}>
                   <span
-                    className={`inline-block w-full text-center px-4 py-2.5 rounded-full text-xs font-extrabold transition ${getBadgeStyle(
-                      index
-                    )}`}
+                    className={`inline-block w-full text-center px-4 py-2.5 rounded-full text-xs font-extrabold transition ${getBadgeStyle(index)}`}
                   >
                     {item.nombre || `Evaluación ${index + 1}`} - {item.porcentaje || "0"}%
                   </span>
@@ -135,8 +158,15 @@ export default function ConfigurarCurso({ esPasoWizard = false, onContinuar }: C
               <p className="text-xs text-[#6F83A5] font-medium leading-relaxed">
                 Porcentaje faltante por asignar:
                 <br />
-                <span className="font-extrabold text-[#0F2851] text-sm">{porcentajeFaltante}% de nota</span>
+                <span className="font-extrabold text-[#0F2851] text-sm">
+                  {porcentajeFaltante.toLocaleString("es-PE")} % de nota
+                </span>
               </p>
+              {sumaPorcentaje > 100 && (
+                <p className="mt-2 text-xs font-bold text-red-600">
+                  El porcentaje acumulado supera el 100 %.
+                </p>
+              )}
             </div>
           </div>
 

@@ -18,19 +18,11 @@ import chatRoutes from "./routes/chat.routes";
 import certificadosRoutes from "./routes/certificados.routes";
 import reportesRoutes from "./routes/reportes.routes";
 import usuariosRoutes from "./routes/usuarios.routes";
-
 import actividadesRoutes from "./routes/actividades.routes";
-import asistenciasRoutes
-  from "./routes/asistencias.routes";
-
-
-import {
-  sincronizarEstadosClases,
-} from "./services/clases-estado.service";
-
-import {
-  configurarChatSocket,
-} from "./realtime/chat.socket";
+import asistenciasRoutes from "./routes/asistencias.routes";
+import cursosAdminRoutes from "./routes/cursos-admin.routes";
+import { sincronizarEstadosClases, } from "./services/clases-estado.service";
+import { configurarChatSocket,} from "./realtime/chat.socket";
 
 const app = express();
 
@@ -83,24 +75,11 @@ app.use("/api", anunciosRoutes);
 app.use("/api/calificaciones", calificacionesRoutes);
 app.use("/api/foros", forosRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-app.use(
-  "/api/certificados",
-  certificadosRoutes
-);
+app.use("/api/certificados", certificadosRoutes);
 app.use("/api/actividades", actividadesRoutes);
+app.use("/api/asistencias", asistenciasRoutes);
+app.use("/api/administrador/cursos", cursosAdminRoutes);
 
-app.use(
-  "/api/asistencias",
-  asistenciasRoutes
-);
-
-/*
- * Sincronización automática
- * de estados de las clases.
- *
- * ESTO NO ES EL CHAT.
- * NO LO ELIMINES.
- */
 void sincronizarEstadosClases();
 
 setInterval(() => {

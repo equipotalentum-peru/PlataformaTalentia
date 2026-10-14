@@ -1,9 +1,6 @@
-import VistaPublicarCurso from "@/components/administrador/vista-publicar-curso";
+
+import { redirect } from "next/navigation";
 
 export default function PublicarCursoPage() {
-  return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <VistaPublicarCurso />
-    </div>
-  );
+  redirect("/administrador/cursos/crear");
 }
