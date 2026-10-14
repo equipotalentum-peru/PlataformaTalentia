@@ -16,6 +16,7 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import forosRoutes from "./routes/foros.routes";
 import chatRoutes from "./routes/chat.routes";
 import certificadosRoutes from "./routes/certificados.routes";
+import reportesRoutes from "./routes/reportes.routes";
 
 import actividadesRoutes from "./routes/actividades.routes";
 import asistenciasRoutes
@@ -60,6 +61,7 @@ app.use(
     origin:
       "http://localhost:3000",
     credentials: true,
+    exposedHeaders: ["Content-Disposition"],
   })
 );
 
@@ -69,6 +71,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api", healthRoutes);
+app.use("/api/reportes", reportesRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cursos", cursosRoutes);
