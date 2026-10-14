@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 
 import pool from "../config/database";
 
@@ -44,18 +45,40 @@ const transporter = nodemailer.createTransport({
 ========================================== */
 
 export async function sendRegistrationInvitation(
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ) {
   try {
+    const admin = await pool.query(
+  `SELECT id FROM usuarios
+   WHERE id = $1 AND rol = 'Administrador' AND activo = TRUE`,
+  [req.userId]
+);
+
+if (!admin.rowCount) {
+  return res.status(403).json({
+    message: "Solo un administrador puede enviar invitaciones.",
+  });
+}
     const {
-     correo,
-     nombre,
-     dni,
-     telefono,
-     tipoAlumno,
-     empresaAliada,
-   } = req.body;
+  correo,
+  nombre,
+  dni,
+  telefono,
+  tipoAlumno,
+  empresaAliada,
+  rol = "Estudiante",
+  activo = true,
+} = req.body;
+
+if (
+  !["Estudiante", "Docente", "Administrador"].includes(rol) ||
+  typeof activo !== "boolean"
+) {
+  return res.status(400).json({
+    message: "Rol o estado de acceso no válido.",
+  });
+}
 
     if (!correo?.trim()) {
       return res.status(400).json({
@@ -102,36 +125,22 @@ export async function sendRegistrationInvitation(
       .digest("hex");
 
     await pool.query(
-  `
-  INSERT INTO invitaciones_registro (
-    correo,
-    hash_token,
-    expira_en,
-    nombre,
-    dni,
-    telefono,
-    tipo_alumno,
-    empresa_aliada
-  )
-  VALUES (
-    $1,
-    $2,
-    NOW() + INTERVAL '24 hours',
-    $3,
-    $4,
-    $5,
-    $6,
-    $7
-  )
-  `,
+  `INSERT INTO invitaciones_registro (
+    correo, hash_token, expira_en, nombre, dni, telefono,
+    tipo_alumno, empresa_aliada, rol, usuario_activo
+  ) VALUES (
+    $1,$2,NOW() + INTERVAL '24 hours',$3,$4,$5,$6,$7,$8,$9
+  )`,
   [
     email,
     tokenHash,
     nombre || null,
     dni || null,
     telefono || null,
-    tipoAlumno || null,
-    empresaAliada || null,
+    rol === "Estudiante" ? tipoAlumno || null : null,
+    rol === "Estudiante" ? empresaAliada || null : null,
+    rol,
+    activo,
   ]
 );
 
@@ -254,6 +263,7 @@ export async function verifyRegistrationInvitation(
     telefono,
     tipo_alumno,
     empresa_aliada,
+    rol,
     expira_en AS expira_en,
     usada AS usada
   FROM invitaciones_registro
@@ -284,6 +294,7 @@ export async function verifyRegistrationInvitation(
   telefono: invitation.telefono,
   tipoAlumno: invitation.tipo_alumno,
   empresaAliada: invitation.empresa_aliada,
+  rol: invitation.rol,
 });
   } catch (error) {
     console.error(
@@ -390,17 +401,26 @@ const tokenHash = crypto
   .update(token)
   .digest("hex");
 
-const invitationResult = await pool.query(
+const client = await pool.connect();
+let confirmado = false;
+
+try {
+await client.query("BEGIN");
+
+const invitationResult = await client.query(
   `
   SELECT
     id,
-    correo AS email
+    correo AS email,
+    rol,
+    usuario_activo
   FROM invitaciones_registro
   WHERE hash_token = $1
     AND usada = FALSE
     AND expira_en > NOW()
   ORDER BY creado_en DESC
   LIMIT 1
+  FOR UPDATE
   `,
   [tokenHash]
 );
@@ -424,7 +444,7 @@ if (
   });
 }
 
-    const existingUser = await pool.query(
+    const existingUser = await client.query(
       `SELECT id
        FROM usuarios
        WHERE LOWER(usuario) = LOWER($1)
@@ -449,47 +469,22 @@ if (
       12
     );
 
-    const result = await pool.query(
-  `
-  INSERT INTO usuarios (
-    nombres,
-    dni,
-    empresa_aliada,
-    usuario,
-    genero,
-    telefono,
-    fecha_nacimiento,
-    direccion,
-    correo,
-    hash_contrasena,
-    rol
+    const result = await client.query(
+  `INSERT INTO usuarios (
+    nombres, dni, empresa_aliada, usuario, genero, telefono,
+    fecha_nacimiento, direccion, correo, hash_contrasena,
+    rol, activo
+  ) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    $7, $8, $9, $10, $11, $12
   )
-  VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10,
-    'Estudiante'
-  )
-  RETURNING
-    id,
-    nombres,
-    dni,
-    usuario,
-    correo,
-    rol,
-    id_persona
-  `,
+  RETURNING id, nombres, dni, usuario, correo, rol, id_persona`,
   [
     nombres.trim(),
     dni.trim(),
-    empresaAliada?.trim() || null,
+    invitation.rol === "Estudiante"
+      ? empresaAliada?.trim() || null
+      : null,
     usuario.trim(),
     genero,
     telefono.trim(),
@@ -497,27 +492,55 @@ if (
     direccion.trim(),
     correo.trim().toLowerCase(),
     passwordHash,
+    invitation.rol,
+    invitation.usuario_activo,
   ]
 );
 
-await pool.query(
-  `
-  UPDATE invitaciones_registro
-  SET
-    usada = TRUE,
-    estado = 'Matriculado'
-  WHERE id = $1
-  `,
+const nuevoUsuario = result.rows[0];
+const prefijo =
+  invitation.rol === "Estudiante"
+    ? "ALU"
+    : invitation.rol === "Docente"
+      ? "DOC"
+      : "ADM";
+const idPersona = `${prefijo}-${String(nuevoUsuario.id).padStart(6, "0")}`;
+
+await client.query(
+  `UPDATE usuarios SET id_persona = $1 WHERE id = $2`,
+  [idPersona, nuevoUsuario.id]
+);
+
+nuevoUsuario.id_persona = idPersona;
+
+await client.query(
+  `UPDATE invitaciones_registro
+  SET usada = TRUE,
+    estado = CASE
+    WHEN rol = 'Estudiante' THEN 'Matriculado'
+    ELSE estado
+    END
+  WHERE id = $1`,
   [invitation.id]
 );
 
-
+await client.query("COMMIT");
+confirmado = true;
 
     return res.status(201).json({
       message:
         "Usuario registrado correctamente.",
       user: result.rows[0],
     });
+} finally {
+  try {
+    if (!confirmado) {
+      await client.query("ROLLBACK");
+    }
+  } finally {
+    client.release();
+  }
+}
   } catch (error) {
     console.error(
       "Error en registro:",
@@ -587,6 +610,13 @@ export async function login(
           "Usuario o contraseña incorrectos.",
       });
     }
+
+  await pool.query(
+  `UPDATE usuarios
+  SET ultimo_acceso_en = NOW()
+  WHERE id = $1`,
+  [user.id]
+  );
 
     const token = jwt.sign(
       {

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAuth } from "../middleware/auth.middleware";
 
 import {
   register,
@@ -24,6 +25,7 @@ router.post("/reset-password", resetPassword);
 
 router.post(
   "/send-registration-invitation",
+  requireAuth,
   sendRegistrationInvitation
 );
 

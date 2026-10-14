@@ -17,6 +17,7 @@ import forosRoutes from "./routes/foros.routes";
 import chatRoutes from "./routes/chat.routes";
 import certificadosRoutes from "./routes/certificados.routes";
 import reportesRoutes from "./routes/reportes.routes";
+import usuariosRoutes from "./routes/usuarios.routes";
 
 import actividadesRoutes from "./routes/actividades.routes";
 import asistenciasRoutes
@@ -72,6 +73,7 @@ app.use(cookieParser());
 
 app.use("/api", healthRoutes);
 app.use("/api/reportes", reportesRoutes);
+app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cursos", cursosRoutes);

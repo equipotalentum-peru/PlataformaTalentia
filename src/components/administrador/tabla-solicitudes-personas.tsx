@@ -217,6 +217,7 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/send-registration-invitation`,
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

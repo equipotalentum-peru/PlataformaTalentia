@@ -1,75 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 interface Usuario {
-  id: number;
+  id: string;
   nombre: string;
   correo: string;
-  rol: "Alumno" | "Docente";
-  actividad: string;
+  rol: "Alumno" | "Docente" | "Administrador";
+  actividad: string | null;
   estado: "Activo" | "Inactivo";
 }
 
-const usuariosIniciales: Usuario[] = [
-  {
-    id: 1,
-    nombre: "Gray Padilla",
-    correo: "gray@talentum.pe",
-    rol: "Alumno",
-    actividad: "Hace 2 días",
-    estado: "Activo",
-  },
-  {
-    id: 2,
-    nombre: "Gloria Rocha",
-    correo: "gloria@talentum.pe",
-    rol: "Docente",
-    actividad: "Hoy",
-    estado: "Activo",
-  },
-  {
-    id: 3,
-    nombre: "Luis Vega",
-    correo: "lvega@talentum.pe",
-    rol: "Docente",
-    actividad: "Ayer",
-    estado: "Activo",
-  },
-  {
-    id: 4,
-    nombre: "Camila Soto",
-    correo: "camila@talentum.pe",
-    rol: "Alumno",
-    actividad: "Hace 8 días",
-    estado: "Inactivo",
-  },
-  {
-    id: 5,
-    nombre: "Marco Ruiz",
-    correo: "marco@talentum.pe",
-    rol: "Docente",
-    actividad: "Hace 12 días",
-    estado: "Inactivo",
-  },
-];
-
 export default function UsuariosTable() {
-  const [filtroRol, setFiltroRol] = useState<"Todos" | "Alumnos" | "Docentes">("Todos");
+  const [filtroRol, setFiltroRol] = useState<"Todos" | Usuario["rol"]>("Todos");
   const [busqueda, setBusqueda] = useState("");
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const usuariosFiltrados = usuariosIniciales.filter((user) => {
-    const coincideRol =
-      filtroRol === "Todos" ||
-      (filtroRol === "Alumnos" && user.rol === "Alumno") ||
-      (filtroRol === "Docentes" && user.rol === "Docente");
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarUsuarios() {
+      try {
+        const response = await fetch(`${API_URL}/usuarios`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "No se pudo cargar la lista de usuarios.");
+        }
+        if (!controller.signal.aborted) setUsuarios(data);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setError(error instanceof Error ? error.message : "Error de conexión.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setCargando(false);
+      }
+    }
+
+    void cargarUsuarios();
+    return () => controller.abort();
+  }, []);
+
+  const textoBusqueda = busqueda.trim().toLowerCase();
+  const usuariosFiltrados = usuarios.filter((user) => {
+    const coincideRol = filtroRol === "Todos" || user.rol === filtroRol;
 
     const coincideBusqueda =
-      user.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      user.correo.toLowerCase().includes(busqueda.toLowerCase()) ||
-      user.rol.toLowerCase().includes(busqueda.toLowerCase());
+      user.nombre.toLowerCase().includes(textoBusqueda) ||
+      user.correo.toLowerCase().includes(textoBusqueda) ||
+      user.rol.toLowerCase().includes(textoBusqueda);
 
     return coincideRol && coincideBusqueda;
   });
@@ -83,7 +69,7 @@ export default function UsuariosTable() {
             Usuarios
           </h1>
           <p className="text-sm text-[#6F83A5] mt-1 font-medium">
-            Administración de alumnos, docentes y estados de acceso.
+            Administración de alumnos, docentes y administradores.
           </p>
         </div>
 
@@ -105,55 +91,51 @@ export default function UsuariosTable() {
         </div>
 
         {/* Píldoras de Filtro */}
-        <div className="flex items-center gap-2 bg-transparent p-1">
-          <button
-            onClick={() => setFiltroRol("Todos")}
-            className={`px-6 py-2 rounded-full text-xs font-bold transition-all ${
-              filtroRol === "Todos"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-100"
-            }`}
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => setFiltroRol("Alumnos")}
-            className={`px-6 py-2 rounded-full text-xs font-bold transition-all ${
-              filtroRol === "Alumnos"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-100"
-            }`}
-          >
-            Alumnos
-          </button>
-          <button
-            onClick={() => setFiltroRol("Docentes")}
-            className={`px-6 py-2 rounded-full text-xs font-bold transition-all ${
-              filtroRol === "Docentes"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-100"
-            }`}
-          >
-            Docentes
-          </button>
+        <div className="flex flex-wrap items-center justify-center gap-2 bg-transparent p-1">
+          {([
+            ["Todos", "Todos"],
+            ["Alumno", "Alumnos"],
+            ["Docente", "Docentes"],
+            ["Administrador", "Administradores"],
+          ] as const).map(([rol, etiqueta]) => (
+            <button
+              key={rol}
+              onClick={() => setFiltroRol(rol)}
+              aria-pressed={filtroRol === rol}
+              className={`px-6 py-2 rounded-full text-xs font-bold transition-all ${
+                filtroRol === rol
+                  ? "bg-[#C4F1F9] text-[#0F2851]"
+                  : "bg-white text-[#475569] hover:bg-gray-100"
+              }`}
+            >
+              {etiqueta}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Tabla estilo Figma */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-[#F1EBFD]">
               <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Usuario</th>
               <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Correo</th>
               <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Rol</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Actividad</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Último acceso</th>
               <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Estado</th>
               <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-xs">
-            {usuariosFiltrados.map((usuario) => (
+            {(cargando || error || usuariosFiltrados.length === 0) && (
+              <tr>
+                <td colSpan={6} className="py-6 px-6 text-[#64748B]" role={error ? "alert" : "status"}>
+                  {cargando ? "Cargando usuarios..." : error || "No se encontraron usuarios."}
+                </td>
+              </tr>
+            )}
+            {!cargando && !error && usuariosFiltrados.map((usuario) => (
               <tr key={usuario.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="py-4 px-6 font-extrabold text-[#0F2851]">
                   {usuario.nombre}
@@ -165,7 +147,9 @@ export default function UsuariosTable() {
                   {usuario.rol}
                 </td>
                 <td className="py-4 px-6 text-[#64748B] font-medium">
-                  {usuario.actividad}
+                  {usuario.actividad
+                    ? new Date(usuario.actividad).toLocaleString("es-PE")
+                    : "Sin acceso registrado"}
                 </td>
                 <td className="py-4 px-6">
                   {usuario.estado === "Activo" ? (

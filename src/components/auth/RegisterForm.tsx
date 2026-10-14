@@ -15,6 +15,7 @@ export default function RegisterForm() {
   const [validandoInvitacion, setValidandoInvitacion] = useState(true);
   const [invitacionValida, setInvitacionValida] = useState(false);
   const [tipoAlumnoInvitado, setTipoAlumnoInvitado] = useState("");
+  const [rolInvitado, setRolInvitado] = useState("Estudiante");
 
 const [formData, setFormData] = useState({
   nombres: "",
@@ -77,6 +78,7 @@ useEffect(() => {
 }));
 
 setTipoAlumnoInvitado(data.tipoAlumno || "");
+setRolInvitado(data.rol ?? "Estudiante");
 
       setInvitacionValida(true);
     } catch (error) {
@@ -147,7 +149,9 @@ const handleChange = (
           body: JSON.stringify({
             nombres: formData.nombres,
             dni: formData.dni.trim(),
-            empresaAliada: formData.empresaAliada.trim() || null,
+            empresaAliada: rolInvitado === "Estudiante"
+              ? formData.empresaAliada.trim() || null
+              : null,
             usuario: formData.usuario,
             genero: formData.genero,
             telefono: formData.telefono.trim(),
@@ -220,6 +224,7 @@ const handleChange = (
           />
         </div>
 
+        {rolInvitado === "Estudiante" && (
         <div>
           <label htmlFor="registro-empresa" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
             Empresa aliada
@@ -244,6 +249,8 @@ const handleChange = (
           />
         </div>
 
+        )}
+
         {/* Usuario */}
         <div>
           <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
@@ -255,7 +262,7 @@ const handleChange = (
             value={formData.usuario}
             onChange={handleChange}
             required
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
           />
         </div>
 
@@ -284,9 +291,12 @@ const handleChange = (
             id="registro-telefono"
   name="telefono"
   value={formData.telefono}
-  readOnly
+  onChange={handleChange}
+  readOnly={rolInvitado === "Estudiante"}
+  required
+  maxLength={20}
   type="tel"
-  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
+  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] px-3 ${rolInvitado === "Estudiante" ? "bg-gray-100 text-gray-600 cursor-not-allowed" : "bg-white text-gray-800"}`}
           />
         </div>
 
@@ -316,7 +326,7 @@ const handleChange = (
             onChange={handleChange}
             type="text"
             autoComplete="street-address"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
           />
         </div>
 
