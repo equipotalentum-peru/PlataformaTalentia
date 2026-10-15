@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { API_URL } from "@/lib/api";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
 type CursoAlumno = {
   id: number;
@@ -106,8 +106,7 @@ export default function MisCursosPage() {
       ) : (
         <section className="grid max-w-[980px] grid-cols-1 gap-[18px] md:grid-cols-2">
           {cursos.map((curso) => {
-            const imagen =
-              curso.imagen || IMAGEN_POR_DEFECTO;
+            const imagen = resolverImagenPortadaCurso(curso.imagen, curso.id, IMAGEN_POR_DEFECTO);
 
             const progreso = Math.min(
               100,
@@ -131,6 +130,13 @@ export default function MisCursosPage() {
                 <img
                   src={imagen}
                   alt={curso.nombre}
+                  onError={(event) => {
+                    const elemento = event.currentTarget;
+
+                    if (elemento.src !== IMAGEN_POR_DEFECTO) {
+                      elemento.src = IMAGEN_POR_DEFECTO;
+                    }
+                  }}
                   className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />
 

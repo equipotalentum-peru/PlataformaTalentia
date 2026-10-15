@@ -20,17 +20,16 @@ interface Curso {
   codigo: string;
   docente: string;
   matriculas: string;
-  estado: "Borrador" | "Activo";
+  estado: "Borrador" | "Activo" | "Inactivo";
 }
 
 export default function TablaCursos() {
   
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState<
-    "Todos" | "Activos" | "Borrador"
-  >("Todos");
-
+  const [filtroEstado, setFiltroEstado] = useState<"Todos" | "Activos" | "Inactivos" | "Borrador">("Todos");
+  const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
+  const [cursoEnAccion, setCursoEnAccion] = useState<string | null>(null);
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -66,7 +65,9 @@ export default function TablaCursos() {
         }
 
         const lista: CursoApi[] = Array.isArray(data.cursos)
-          ? data.cursos
+          ? data.cursos.filter(
+              (curso: CursoApi) => curso.estado !== "Archivado"
+            )
           : [];
 
         setCursos(
@@ -78,10 +79,7 @@ export default function TablaCursos() {
             matriculas: `${Number(curso.matriculados) || 0} / ${
               Number(curso.cupos) || 0
             }`,
-            estado:
-              curso.estado.toLowerCase() === "activo"
-                ? "Activo"
-                : "Borrador",
+            estado: curso.estado === "Activo" ? "Activo" : curso.estado === "Inactivo" ? "Inactivo" : "Borrador",
           }))
         );
       } catch (err) {
@@ -103,18 +101,99 @@ export default function TablaCursos() {
 
     return () => controller.abort();
   }, [router]);
+  
+  const cambiarEstadoCurso = async (
+    curso: Curso,
+    nuevoEstado: "Activo" | "Inactivo" | "Archivado"
+  ) => {
+    const accion =
+      nuevoEstado === "Activo"
+        ? "activar"
+        : nuevoEstado === "Inactivo"
+          ? "desactivar"
+          : "retirar";
+
+    const mensaje =
+      nuevoEstado === "Archivado"
+        ? `¿Deseas retirar «${curso.nombre}»? El curso dejará de aparecer en los listados habituales, pero sus registros permanecerán en la base de datos.`
+        : `¿Deseas ${accion} «${curso.nombre}»?`;
+
+    if (!window.confirm(mensaje)) return;
+
+    setCursoEnAccion(curso.id);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${API_URL}/administrador/cursos/${encodeURIComponent(curso.id)}/estado`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ estado: nuevoEstado }),
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ?? "No se pudo cambiar el estado del curso."
+        );
+      }
+
+      if (nuevoEstado === "Archivado") {
+        setCursos((actuales) =>
+          actuales.filter((item) => item.id !== curso.id)
+        );
+      } else {
+        setCursos((actuales) =>
+          actuales.map((item) =>
+            item.id === curso.id
+              ? { ...item, estado: nuevoEstado }
+              : item
+          )
+        );
+      }
+
+      setMenuAbierto(null);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cambiar el estado del curso."
+      );
+    } finally {
+      setCursoEnAccion(null);
+    }
+  };
 
   // Filtrado por búsqueda y categoría
   const cursosFiltrados = cursos.filter((curso) => {
+    const termino = searchTerm.trim().toLowerCase();
+
     const coincideBusqueda =
-      curso.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.codigo.toLowerCase().includes(searchTerm.toLowerCase());
+      curso.nombre.toLowerCase().includes(termino) ||
+      curso.codigo.toLowerCase().includes(termino);
 
     if (filtroEstado === "Todos") return coincideBusqueda;
-    if (filtroEstado === "Activos") return coincideBusqueda && curso.estado === "Activo";
-    if (filtroEstado === "Borrador") return coincideBusqueda && curso.estado === "Borrador";
 
-    return coincideBusqueda;
+    if (filtroEstado === "Activos") {
+      return coincideBusqueda && curso.estado === "Activo";
+    }
+
+    if (filtroEstado === "Inactivos") {
+      return coincideBusqueda && curso.estado === "Inactivo";
+    }
+
+    return coincideBusqueda && curso.estado === "Borrador";
   });
 
   return (
@@ -179,6 +258,18 @@ export default function TablaCursos() {
 
           <button
             type="button"
+            onClick={() => setFiltroEstado("Inactivos")}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
+              filtroEstado === "Inactivos"
+                ? "bg-[#C4F1F9] text-[#0F2851]"
+                : "bg-white text-[#475569] hover:bg-gray-50"
+            }`}
+          >
+            Inactivos
+          </button>
+
+          <button
+            type="button"
             onClick={() => setFiltroEstado("Borrador")}
             className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
               filtroEstado === "Borrador"
@@ -230,26 +321,87 @@ export default function TablaCursos() {
                       <td className="py-4 px-6 text-[#64748B]">{curso.docente}</td>
                       <td className="py-4 px-6 text-[#64748B]">{curso.matriculas}</td>
                       <td className="py-4 px-6">
-                        {curso.estado === "Activo" ? (
-                          <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full text-xs font-bold">
-                            Activo
-                          </span>
-                        ) : (
-                          <span className="inline-block bg-[#F3E8FF] text-[#6B21A8] px-4 py-1.5 rounded-full text-xs font-bold">
-                            Borrador
-                          </span>
-                        )}
+                        <span
+                          className={`inline-block rounded-full px-4 py-1.5 text-xs font-bold ${
+                            curso.estado === "Activo"
+                              ? "bg-[#BBF7D0] text-[#166534]"
+                              : curso.estado === "Inactivo"
+                                ? "bg-[#E2E8F0] text-[#475569]"
+                                : "bg-[#F3E8FF] text-[#6B21A8]"
+                          }`}
+                        >
+                          {curso.estado}
+                        </span>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="relative py-4 px-6 text-center">
                         <button
                           type="button"
+                          aria-label={`Acciones de ${curso.nombre}`}
+                          aria-expanded={menuAbierto === curso.id}
+                          disabled={cursoEnAccion === curso.id}
                           onClick={() =>
-                            router.push(`/administrador/cursos/configurar?id=${curso.id}`)
+                            setMenuAbierto((actual) =>
+                              actual === curso.id ? null : curso.id
+                            )
                           }
-                          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-5 py-2 rounded-xl text-xs transition"
+                          className="rounded-xl px-4 py-2 text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50"
                         >
-                          Configurar
+                          ⋮
                         </button>
+
+                        {menuAbierto === curso.id && (
+                          <div className="absolute right-6 top-14 z-30 min-w-40 rounded-xl border border-gray-200 bg-white p-1 text-left shadow-xl">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuAbierto(null);
+                                router.push(
+                                  `/administrador/cursos/configurar?id=${curso.id}`
+                                );
+                              }}
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-[#0F2851] hover:bg-[#F1F5F9]"
+                            >
+                              Editar
+                            </button>
+
+                            {curso.estado === "Activo" && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() =>
+                                  void cambiarEstadoCurso(curso, "Inactivo")
+                                }
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-50"
+                              >
+                                Desactivar
+                              </button>
+                            )}
+
+                            {curso.estado === "Inactivo" && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() =>
+                                  void cambiarEstadoCurso(curso, "Activo")
+                                }
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                              >
+                                Activar
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              disabled={cursoEnAccion === curso.id}
+                              onClick={() =>
+                                void cambiarEstadoCurso(curso, "Archivado")
+                              }
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              Retirar
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

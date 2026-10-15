@@ -16,21 +16,26 @@ export interface VistaPublicarCursoProps {
   evaluaciones: ComponenteCalificacionDraft[];
   docente: DocenteDisponible | null;
   imagenPortada: File | null;
+  imagenExistente?: string | null;
   onGuardar: (publicar: boolean) => Promise<void>;
   onVolver: () => void;
   guardando: boolean;
   error?: string;
+  modoEdicion?: boolean;
 }
+
 
 export default function VistaPublicarCurso({
   curso,
   evaluaciones,
   docente,
   imagenPortada,
+  imagenExistente,
   onGuardar,
   onVolver,
   guardando,
   error = "",
+  modoEdicion = false,
 }: VistaPublicarCursoProps) {
   const componentesCompletos = evaluaciones.filter(
     (item) => item.nombre.trim() && item.porcentaje.trim() !== ""
@@ -106,7 +111,11 @@ export default function VistaPublicarCurso({
         <div>
           <h3 className="mb-2 text-sm font-extrabold text-[#0F2851]">Imagen de portada</h3>
           <p className="rounded-2xl bg-[#F8FAFC] p-4 text-sm text-[#475569]">
-            {imagenPortada ? imagenPortada.name : "No se seleccionó una imagen; el curso se guardará sin portada."}
+            {imagenPortada
+              ? `Nueva imagen seleccionada: ${imagenPortada.name}`
+              : imagenExistente
+                ? "Se conservará la imagen de portada actual."
+                : "No se ha seleccionado una imagen de portada."}
           </p>
         </div>
 
@@ -177,7 +186,7 @@ export default function VistaPublicarCurso({
           disabled={guardando}
           className="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-xs font-extrabold text-[#6B21A8] shadow-xs transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {guardando ? "Guardando..." : "Guardar borrador"}
+          {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios" : "Guardar borrador"}
         </button>
 
         <button
@@ -186,7 +195,7 @@ export default function VistaPublicarCurso({
           disabled={guardando}
           className="rounded-2xl bg-[#3B82F6] px-8 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {guardando ? "Guardando..." : "Publicar curso"}
+          {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios y activar" : "Publicar curso"}
         </button>
       </div>
     </div>

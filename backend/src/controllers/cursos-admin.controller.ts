@@ -3,7 +3,6 @@ import multer from "multer";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { PoolClient } from "pg";
-
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 import {
@@ -36,6 +35,24 @@ type DatosCrearCurso = {
   componentes?: unknown;
   publicar?: unknown;
 };
+
+
+type ComponenteParaEditar = {
+  id: string | null;
+  nombre: string;
+  porcentaje: number | null;
+  tipo: ComponenteCalificacionEntrada["tipo"];
+};
+
+type ErrorHttp = Error & {
+  statusCode?: number;
+};
+
+function errorHttp(mensaje: string, statusCode: number): ErrorHttp {
+  const error = new Error(mensaje) as ErrorHttp;
+  error.statusCode = statusCode;
+  return error;
+}
 
 function esAdministradorActivo(rol: unknown, activo: unknown) {
   return rol === "Administrador" && activo === true;
@@ -185,6 +202,94 @@ function parseDatos(req: AuthenticatedRequest): DatosCrearCurso {
   } catch {
     throw new Error("Los datos del curso no tienen un formato JSON válido.");
   }
+}
+
+function leerComponentesParaEditar(
+  valor: unknown
+): ComponenteParaEditar[] {
+  if (!Array.isArray(valor)) {
+    throw errorHttp("La configuración de evaluaciones no es válida.", 400);
+  }
+
+  const componentes: ComponenteParaEditar[] = [];
+  const idsExistentes = new Set<string>();
+
+  for (const elemento of valor) {
+    if (!elemento || typeof elemento !== "object") {
+      throw errorHttp("Hay un componente con datos no válidos.", 400);
+    }
+
+    const fila = elemento as {
+      id?: unknown;
+      nombre?: unknown;
+      porcentaje?: unknown;
+    };
+
+    const nombre =
+      typeof fila.nombre === "string" ? fila.nombre.trim() : "";
+
+    const porcentajeTexto =
+      fila.porcentaje == null
+        ? ""
+        : String(fila.porcentaje).replace(/%/g, "").trim();
+
+    if (!nombre && !porcentajeTexto) continue;
+
+    if (!nombre) {
+      throw errorHttp("Completa el nombre de cada componente.", 400);
+    }
+
+    if (nombre.length > 200) {
+      throw errorHttp(
+        "Cada componente admite hasta 200 caracteres.",
+        400
+      );
+    }
+
+    let porcentaje: number | null = null;
+
+    if (porcentajeTexto !== "") {
+      porcentaje = Number(porcentajeTexto);
+
+      if (
+        !Number.isFinite(porcentaje) ||
+        porcentaje < 0 ||
+        porcentaje > 100
+      ) {
+        throw errorHttp(
+          `El porcentaje de «${nombre}» debe estar entre 0 y 100.`,
+          400
+        );
+      }
+    }
+
+    let id: string | null = null;
+
+    if (typeof fila.id === "string" && fila.id.startsWith("db-")) {
+      const idNumerico = fila.id.slice(3);
+
+      if (!/^[1-9]\d*$/.test(idNumerico)) {
+        throw errorHttp("Se recibió un ID de componente no válido.", 400);
+      }
+
+      id = idNumerico;
+
+      if (idsExistentes.has(id)) {
+        throw errorHttp("Hay un componente duplicado en el formulario.", 400);
+      }
+
+      idsExistentes.add(id);
+    }
+
+    componentes.push({
+      id,
+      nombre,
+      porcentaje,
+      tipo: inferirTipoComponente(nombre),
+    });
+  }
+
+  return componentes;
 }
 
 export async function listarCursosAdministrador(
@@ -522,5 +627,681 @@ export async function obtenerPortadaCurso(
       return res.status(500).json({ message: "No se pudo cargar la portada del curso." });
     }
     return res.end();
+  }
+}
+
+export async function obtenerCursoAdministrador(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const adminId = await comprobarAdministrador(req, res);
+    if (!adminId) return;
+
+    const cursoId = Number(req.params.cursoId);
+
+    if (!Number.isSafeInteger(cursoId) || cursoId <= 0) {
+      return res.status(400).json({ message: "El ID del curso no es válido." });
+    }
+
+    const resultado = await pool.query(
+      `SELECT
+         c.id::TEXT AS id,
+         c.nombre,
+         c.codigo,
+         c.categoria,
+         c.modalidad,
+         c.descripcion,
+         c.imagen_portada,
+         c.estado,
+         oc.id::TEXT AS oferta_id,
+         COALESCE(oc.cupo_maximo, 0)::INTEGER AS cupos,
+         oc.docente_id::TEXT AS docente_id,
+         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS docente_nombre,
+         COALESCE(u.especialidad, 'Sin especificar') AS docente_especialidad,
+         COALESCE(u.disponibilidad, 'No especificada') AS docente_disponibilidad,
+         COALESCE((
+           SELECT COUNT(*)
+           FROM ofertas_curso oc2
+           WHERE oc2.docente_id = u.id
+             AND oc2.estado <> 'Cancelado'
+         ), 0)::INTEGER AS docente_carga
+       FROM cursos c
+       LEFT JOIN LATERAL (
+         SELECT *
+         FROM ofertas_curso
+         WHERE curso_id = c.id
+         ORDER BY actualizado_en DESC, id DESC
+         LIMIT 1
+       ) oc ON TRUE
+       LEFT JOIN usuarios u ON u.id = oc.docente_id
+       WHERE c.id = $1
+       LIMIT 1`,
+      [cursoId]
+    );
+
+    if (!resultado.rowCount) {
+      return res.status(404).json({ message: "El curso no existe." });
+    }
+
+    const fila = resultado.rows[0];
+
+    if (fila.estado === "Archivado") {
+      return res.status(404).json({
+        message: "El curso archivado no está disponible para edición.",
+      });
+    }
+
+    const componentes = fila.oferta_id
+      ? await pool.query(
+          `SELECT
+             id::TEXT AS id,
+             nombre,
+             tipo,
+             porcentaje::TEXT AS porcentaje
+           FROM componentes_calificacion
+           WHERE oferta_curso_id = $1
+           ORDER BY id`,
+          [fila.oferta_id]
+        )
+      : { rows: [] };
+
+    const docente = fila.docente_id
+      ? {
+          id: String(fila.docente_id),
+          nombre: fila.docente_nombre || "Docente",
+          especialidad: fila.docente_especialidad || "Sin especificar",
+          disponibilidad: fila.docente_disponibilidad || "No especificada",
+          carga: Number(fila.docente_carga) || 0,
+        }
+      : null;
+
+    return res.status(200).json({
+      curso: {
+        id: fila.id,
+        nombreCurso: fila.nombre,
+        codigo: fila.codigo,
+        categoria: fila.categoria ?? "Diseño",
+        modalidad: fila.modalidad,
+        descripcion: fila.descripcion ?? "",
+        cupos: String(fila.cupos),
+        estado: fila.estado,
+        imagenPortada: fila.imagen_portada,
+      },
+      evaluaciones: componentes.rows.map((componente) => ({
+        id: `db-${componente.id}`,
+        nombre: componente.nombre,
+        porcentaje: componente.porcentaje ?? "",
+      })),
+      docente,
+    });
+  } catch (error) {
+    console.error("Error obteniendo el curso para editar:", error);
+
+    return res.status(500).json({
+      message: "No se pudieron cargar los datos del curso.",
+    });
+  }
+}
+
+export async function actualizarCursoAdministrador(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  let client: PoolClient | null = null;
+  let transaccionAbierta = false;
+  let nuevaImagenKey: string | null = null;
+
+  try {
+    const adminId = await comprobarAdministrador(req, res);
+    if (!adminId) return;
+
+    const cursoId = Number(req.params.cursoId);
+
+    if (!Number.isSafeInteger(cursoId) || cursoId <= 0) {
+      return res.status(400).json({ message: "El ID del curso no es válido." });
+    }
+
+    let datos: DatosCrearCurso;
+
+    try {
+      datos = parseDatos(req);
+    } catch (error) {
+      return res.status(400).json({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Los datos del curso no son válidos.",
+      });
+    }
+
+    const nombre = typeof datos.nombreCurso === "string" ? datos.nombreCurso.trim() : "";
+    const codigo = typeof datos.codigo === "string" ? datos.codigo.trim().toUpperCase() : "";
+    const categoria = typeof datos.categoria === "string" ? datos.categoria.trim() : "";
+    const modalidad = typeof datos.modalidad === "string" ? datos.modalidad : "";
+    const descripcion = typeof datos.descripcion === "string" ? datos.descripcion.trim() : "";
+    const cupos = Number(datos.cupos);
+    const publicar = datos.publicar === true;
+    const docenteId = datos.docenteId == null || datos.docenteId === "" ? null : Number(datos.docenteId);
+
+    if (!nombre || nombre.length > 200) {
+      return res.status(400).json({ message: "El nombre del curso no es válido." });
+    }
+
+    if (!codigo || codigo.length > 50) {
+      return res.status(400).json({ message: "El código del curso no es válido." });
+    }
+
+    if (!categoria || categoria.length > 120) {
+      return res.status(400).json({ message: "La categoría no es válida." });
+    }
+
+    if (!["Virtual", "Presencial", "Hibrido"].includes(modalidad)) {
+      return res.status(400).json({ message: "La modalidad no es válida." });
+    }
+
+    if (!descripcion) {
+      return res.status(400).json({ message: "La descripción es obligatoria." });
+    }
+
+    if (!Number.isSafeInteger(cupos) || cupos <= 0) {
+      return res.status(400).json({ message: "Los cupos deben ser mayores que cero." });
+    }
+
+    if (
+      docenteId !== null &&
+      (!Number.isSafeInteger(docenteId) || docenteId <= 0)
+    ) {
+      return res.status(400).json({ message: "El docente no es válido." });
+    }
+
+    let componentes: ComponenteParaEditar[];
+
+    try {
+      componentes = leerComponentesParaEditar(datos.componentes);
+    } catch (error) {
+      return res.status(
+        (error as ErrorHttp).statusCode ?? 400
+      ).json({
+        message:
+          error instanceof Error
+            ? error.message
+            : "La configuración de calificaciones no es válida.",
+      });
+    }
+
+    if (publicar) {
+      const suma = componentes.reduce(
+        (total, item) => total + (item.porcentaje ?? 0),
+        0
+      );
+
+      if (
+        !docenteId ||
+        componentes.length === 0 ||
+        componentes.some((item) => item.porcentaje === null) ||
+        Math.abs(suma - 100) > 0.01
+      ) {
+        return res.status(400).json({
+          message:
+            "Para publicar necesitas un docente asignado y componentes cuyos porcentajes sumen 100 %.",
+        });
+      }
+    }
+
+    if (docenteId !== null) {
+      const docente = await pool.query(
+        `SELECT id
+         FROM usuarios
+         WHERE id = $1
+           AND rol = 'Docente'
+           AND activo = TRUE
+         LIMIT 1`,
+        [docenteId]
+      );
+
+      if (!docente.rowCount) {
+        return res.status(400).json({
+          message: "El docente debe estar registrado, activo y tener el rol Docente.",
+        });
+      }
+    }
+
+    let nuevaImagen: string | null = null;
+
+    if (req.file) {
+      const extension = path.extname(req.file.originalname).toLowerCase();
+      const safeName = slugifyFileName(path.basename(req.file.originalname));
+
+      nuevaImagenKey =
+        `courses/covers/${randomUUID()}-${safeName || `portada${extension}`}`;
+
+      nuevaImagen = await uploadBufferToR2({
+        buffer: req.file.buffer,
+        key: nuevaImagenKey,
+        contentType: req.file.mimetype,
+        contentLength: req.file.size,
+      });
+    }
+
+    client = await pool.connect();
+    await client.query("BEGIN");
+    transaccionAbierta = true;
+
+    const cursoResult = await client.query(
+      `SELECT id, estado, imagen_portada
+       FROM cursos
+       WHERE id = $1
+       FOR UPDATE`,
+      [cursoId]
+    );
+
+    if (!cursoResult.rowCount) {
+      throw errorHttp("El curso no existe.", 404);
+    }
+
+    const cursoActual = cursoResult.rows[0];
+
+    if (cursoActual.estado === "Archivado") {
+      throw errorHttp("No se puede editar un curso archivado.", 409);
+    }
+
+    const ofertaResult = await client.query(
+      `SELECT id, docente_id, publicado
+       FROM ofertas_curso
+       WHERE curso_id = $1
+       ORDER BY actualizado_en DESC, id DESC
+       LIMIT 1
+       FOR UPDATE`,
+      [cursoId]
+    );
+
+    if (!ofertaResult.rowCount) {
+      throw errorHttp(
+        "El curso no tiene una oferta asociada que se pueda editar.",
+        409
+      );
+    }
+
+    const oferta = ofertaResult.rows[0];
+    const ofertaId = String(oferta.id);
+    const publicarEfectivamente =
+      publicar ||
+      (cursoActual.estado === "Activo" && oferta.publicado === true);
+
+    if (publicarEfectivamente) {
+      const suma = componentes.reduce(
+        (total, item) => total + (item.porcentaje ?? 0),
+        0
+      );
+
+      if (
+        !docenteId ||
+        componentes.length === 0 ||
+        componentes.some((item) => item.porcentaje === null) ||
+        Math.abs(suma - 100) > 0.01
+      ) {
+        throw errorHttp(
+          "Para mantener o activar el curso necesitas docente y porcentajes que sumen 100 %.",
+          400
+        );
+      }
+    }
+
+    const estadoFinal = publicar ? "Activo" : cursoActual.estado;
+    const imagenFinal = nuevaImagen ?? cursoActual.imagen_portada;
+
+    await client.query(
+      `UPDATE cursos
+       SET nombre = $2,
+           codigo = $3,
+           categoria = $4,
+           modalidad = $5,
+           descripcion = $6,
+           imagen_portada = $7,
+           estado = $8,
+           actualizado_en = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [
+        cursoId,
+        nombre,
+        codigo,
+        categoria,
+        modalidad,
+        descripcion,
+        imagenFinal,
+        estadoFinal,
+      ]
+    );
+
+    const publicacionFinal =
+      publicar ||
+      (cursoActual.estado === "Activo" && oferta.publicado === true);
+
+    await client.query(
+      `UPDATE ofertas_curso
+       SET cupo_maximo = $2,
+           docente_id = $3,
+           publicado = $4,
+           actualizado_en = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [ofertaId, cupos, docenteId, publicacionFinal]
+    );
+
+    const existentesResult = await client.query(
+      `SELECT id::TEXT AS id
+       FROM componentes_calificacion
+       WHERE oferta_curso_id = $1`,
+      [ofertaId]
+    );
+
+    const idsExistentes = new Set<string>(
+      existentesResult.rows.map((fila) => String(fila.id))
+    );
+
+    for (const componente of componentes) {
+      if (componente.id !== null && !idsExistentes.has(componente.id)) {
+        throw errorHttp(
+          "Un componente pertenece a otra oferta o ya no existe. Recarga el curso.",
+          409
+        );
+      }
+    }
+
+    const idsConservar = new Set(
+      componentes.flatMap((componente) =>
+        componente.id === null ? [] : [componente.id]
+      )
+    );
+
+    const idsEliminar = [...idsExistentes].filter(
+      (id) => !idsConservar.has(id)
+    );
+
+    if (idsEliminar.length > 0) {
+      const notas = await client.query(
+        `SELECT DISTINCT componente_id::TEXT AS id
+         FROM calificaciones
+         WHERE componente_id = ANY($1::BIGINT[])`,
+        [idsEliminar]
+      );
+
+      if (notas.rowCount) {
+        throw errorHttp(
+          "No puedes eliminar un componente que ya tiene calificaciones. Cambia su nombre o porcentaje para conservar las notas.",
+          409
+        );
+      }
+
+      await client.query(
+        `DELETE FROM componentes_calificacion
+         WHERE oferta_curso_id = $1
+           AND id = ANY($2::BIGINT[])`,
+        [ofertaId, idsEliminar]
+      );
+    }
+
+    for (const componente of componentes) {
+      if (componente.id !== null) {
+        await client.query(
+          `UPDATE componentes_calificacion
+           SET nombre = $2,
+               tipo = $3,
+               porcentaje = $4
+           WHERE id = $1
+             AND oferta_curso_id = $5`,
+          [
+            componente.id,
+            componente.nombre,
+            componente.tipo,
+            componente.porcentaje,
+            ofertaId,
+          ]
+        );
+      } else {
+        await client.query(
+          `INSERT INTO componentes_calificacion (
+             oferta_curso_id,
+             nombre,
+             tipo,
+             porcentaje,
+             puntaje_maximo
+           ) VALUES ($1, $2, $3, $4, 20)`,
+          [
+            ofertaId,
+            componente.nombre,
+            componente.tipo,
+            componente.porcentaje,
+          ]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    transaccionAbierta = false;
+
+    if (
+      nuevaImagen &&
+      cursoActual.imagen_portada &&
+      isR2Path(cursoActual.imagen_portada)
+    ) {
+      await deleteObjectFromR2(
+        stripR2Prefix(cursoActual.imagen_portada)
+      ).catch((error) => {
+        console.error("No se pudo retirar la portada anterior de R2:", error);
+      });
+    }
+
+    return res.status(200).json({
+      message: publicar
+        ? "Los cambios se guardaron y el curso está activo."
+        : "Los cambios del curso se guardaron correctamente.",
+      curso: {
+        id: String(cursoId),
+        estado: estadoFinal,
+        imagen_portada: imagenFinal,
+      },
+    });
+  } catch (error) {
+    if (client && transaccionAbierta) {
+      await client.query("ROLLBACK").catch(() => undefined);
+    }
+
+    if (nuevaImagenKey) {
+      await deleteObjectFromR2(nuevaImagenKey).catch(() => undefined);
+    }
+
+    const codigo = (error as ErrorHttp).statusCode;
+
+    if (codigo) {
+      return res.status(codigo).json({
+        message: (error as Error).message,
+      });
+    }
+
+    const errorPostgres = error as { code?: string };
+
+    if (errorPostgres.code === "23505") {
+      return res.status(409).json({
+        message: "Ya existe un curso con ese código.",
+      });
+    }
+
+    console.error("Error actualizando el curso:", error);
+
+    return res.status(500).json({
+      message: "No se pudo actualizar el curso.",
+    });
+  } finally {
+    client?.release();
+  }
+}
+
+export async function cambiarEstadoCursoAdministrador(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  let client: PoolClient | null = null;
+  let transaccionAbierta = false;
+
+  try {
+    const adminId = await comprobarAdministrador(req, res);
+    if (!adminId) return;
+
+    const cursoId = Number(req.params.cursoId);
+    const estadoSolicitado = req.body?.estado;
+
+    if (!Number.isSafeInteger(cursoId) || cursoId <= 0) {
+      return res.status(400).json({ message: "El ID del curso no es válido." });
+    }
+
+    if (!["Activo", "Inactivo", "Archivado"].includes(estadoSolicitado)) {
+      return res.status(400).json({ message: "El estado solicitado no es válido." });
+    }
+
+    client = await pool.connect();
+    await client.query("BEGIN");
+    transaccionAbierta = true;
+
+    const cursoResult = await client.query(
+      `SELECT id, estado
+       FROM cursos
+       WHERE id = $1
+       FOR UPDATE`,
+      [cursoId]
+    );
+
+    if (!cursoResult.rowCount) {
+      throw errorHttp("El curso no existe.", 404);
+    }
+
+    const curso = cursoResult.rows[0];
+
+    if (curso.estado === "Archivado") {
+      throw errorHttp("Un curso archivado no se puede reactivar desde esta pantalla.", 409);
+    }
+
+    const ofertaResult = await client.query(
+      `SELECT id, docente_id
+       FROM ofertas_curso
+       WHERE curso_id = $1
+       ORDER BY actualizado_en DESC, id DESC
+       LIMIT 1
+       FOR UPDATE`,
+      [cursoId]
+    );
+
+    if (estadoSolicitado === "Activo") {
+      if (!ofertaResult.rowCount) {
+        throw errorHttp("El curso no tiene una oferta configurada.", 400);
+      }
+
+      const oferta = ofertaResult.rows[0];
+
+      if (!oferta.docente_id) {
+        throw errorHttp(
+          "No puedes activar el curso sin asignar un docente.",
+          400
+        );
+      }
+
+      const docente = await client.query(
+        `SELECT id
+         FROM usuarios
+         WHERE id = $1
+           AND rol = 'Docente'
+           AND activo = TRUE`,
+        [oferta.docente_id]
+      );
+
+      if (!docente.rowCount) {
+        throw errorHttp(
+          "El docente asignado no está activo. Edita el curso y selecciona otro docente.",
+          400
+        );
+      }
+
+      const sumaResult = await client.query(
+        `SELECT
+           COUNT(*)::INTEGER AS cantidad,
+           COUNT(*) FILTER (WHERE porcentaje IS NULL)::INTEGER AS faltantes,
+           COALESCE(SUM(porcentaje), 0)::NUMERIC AS total
+         FROM componentes_calificacion
+         WHERE oferta_curso_id = $1`,
+        [oferta.id]
+      );
+
+      const resumen = sumaResult.rows[0];
+      const total = Number(resumen.total);
+
+      if (
+        Number(resumen.cantidad) === 0 ||
+        Number(resumen.faltantes) > 0 ||
+        Math.abs(total - 100) > 0.01
+      ) {
+        throw errorHttp(
+          `Para activar el curso, configura sus componentes de calificación y asegúrate de que sumen 100 %. Total actual: ${total} %.`,
+          400
+        );
+      }
+    }
+
+    await client.query(
+      `UPDATE cursos
+       SET estado = $2,
+           actualizado_en = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [cursoId, estadoSolicitado]
+    );
+
+    if (ofertaResult.rowCount) {
+      await client.query(
+        `UPDATE ofertas_curso
+         SET publicado = $2,
+             estado = CASE
+               WHEN $2 = TRUE AND estado = 'Cancelado' THEN 'Programado'
+               ELSE estado
+             END,
+             actualizado_en = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [
+          ofertaResult.rows[0].id,
+          estadoSolicitado === "Activo",
+        ]
+      );
+    }
+
+    await client.query("COMMIT");
+    transaccionAbierta = false;
+
+    return res.status(200).json({
+      message:
+        estadoSolicitado === "Activo"
+          ? "El curso está activo."
+          : estadoSolicitado === "Inactivo"
+            ? "El curso se desactivó correctamente."
+            : "El curso se retiró y quedó archivado.",
+      estado: estadoSolicitado,
+    });
+  } catch (error) {
+    if (client && transaccionAbierta) {
+      await client.query("ROLLBACK").catch(() => undefined);
+    }
+
+    const codigo = (error as ErrorHttp).statusCode;
+
+    if (codigo) {
+      return res.status(codigo).json({
+        message: (error as Error).message,
+      });
+    }
+
+    console.error("Error cambiando estado del curso:", error);
+
+    return res.status(500).json({
+      message: "No se pudo cambiar el estado del curso.",
+    });
+  } finally {
+    client?.release();
   }
 }

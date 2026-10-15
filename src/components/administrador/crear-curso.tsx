@@ -9,8 +9,14 @@ import type { ComponenteCalificacionDraft, DocenteDisponible } from "@/lib/curso
 import ConfigurarCurso from "./configurar-curso";
 import AsignarDocente from "./asignar-docente";
 import VistaPublicarCurso from "@/components/administrador/vista-publicar-curso";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
-export default function CrearCurso() {
+export default function CrearCurso({
+  cursoId,
+}: {
+  cursoId?: string;
+}) {
+  const modoEdicion = Boolean(cursoId);
   const router = useRouter();
   const [step, setStep] = useState<number>(1);
 
@@ -22,7 +28,6 @@ export default function CrearCurso() {
     modalidad: "Virtual",
     descripcion: "",
   });
-
   const [evaluaciones, setEvaluaciones] = useState<ComponenteCalificacionDraft[]>([
     { id: "1", nombre: "Examen 1", porcentaje: "20" },
     { id: "2", nombre: "Examen 2", porcentaje: "20" },
@@ -31,14 +36,16 @@ export default function CrearCurso() {
   const [docenteSeleccionado, setDocenteSeleccionado] = useState<DocenteDisponible | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [errorGuardar, setErrorGuardar] = useState("");
-  
   const [imagenPortada, setImagenPortada] = useState<File | null>(null);
   const [vistaPreviaImagen, setVistaPreviaImagen] = useState<string | null>(null);
   const [errorImagen, setErrorImagen] = useState("");
+  const [cargandoCurso, setCargandoCurso] = useState(Boolean(cursoId));
+  const [errorCargaCurso, setErrorCargaCurso] = useState("");
+  const [imagenExistente, setImagenExistente] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
-      if (vistaPreviaImagen) {
+      if (vistaPreviaImagen?.startsWith("blob:")) {
         URL.revokeObjectURL(vistaPreviaImagen);
       }
     };
@@ -82,6 +89,107 @@ export default function CrearCurso() {
     setImagenPortada(archivo);
     setVistaPreviaImagen(URL.createObjectURL(archivo));
   };
+  
+  
+  
+  useEffect(() => {
+    const idCursoSeguro: string = String(cursoId ?? "").trim();
+
+    if (idCursoSeguro.length === 0) return;
+
+    const controller = new AbortController();
+
+    async function cargarCursoParaEditar() {
+      try {
+        setCargandoCurso(true);
+        setErrorCargaCurso("");
+
+        const response = await fetch(
+          `${API_URL}/administrador/cursos/${encodeURIComponent(idCursoSeguro)}`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ?? "No se pudieron cargar los datos del curso."
+          );
+        }
+
+        const curso = data.curso;
+
+        if (!curso) {
+          throw new Error("El backend no devolvió los datos del curso.");
+        }
+
+        setFormData({
+          nombreCurso: curso.nombreCurso ?? "",
+          codigo: curso.codigo ?? "",
+          cupos: String(curso.cupos ?? ""),
+          categoria: curso.categoria ?? "Diseño",
+          modalidad: curso.modalidad ?? "Virtual",
+          descripcion: curso.descripcion ?? "",
+        });
+
+        const portada: string | null = curso.imagenPortada ?? null;
+
+        setImagenExistente(portada);
+        setImagenPortada(null);
+
+        setVistaPreviaImagen(
+          portada
+            ? resolverImagenPortadaCurso(portada, curso.id)
+            : null
+        );
+
+        setEvaluaciones(
+          Array.isArray(data.evaluaciones)
+            ? data.evaluaciones.map(
+                (item: {
+                  id: string;
+                  nombre: string;
+                  porcentaje: string | number | null;
+                }) => ({
+                  id: String(item.id),
+                  nombre: item.nombre,
+                  porcentaje:
+                    item.porcentaje == null
+                      ? ""
+                      : String(item.porcentaje),
+                })
+              )
+            : []
+        );
+
+        setDocenteSeleccionado(data.docente ?? null);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        setErrorCargaCurso(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron cargar los datos del curso."
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargandoCurso(false);
+        }
+      }
+    }
+
+    void cargarCursoParaEditar();
+
+    return () => controller.abort();
+  }, [cursoId, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -113,8 +221,12 @@ export default function CrearCurso() {
     }
 
     const componentes = filasConDatos.map((item) => ({
+      id: item.id,
       nombre: item.nombre.trim(),
-      porcentaje: item.porcentaje.trim() === "" ? null : Number(item.porcentaje),
+      porcentaje:
+        item.porcentaje.trim() === ""
+          ? null
+          : Number(item.porcentaje),
     }));
 
     if (publicar) {
@@ -153,8 +265,12 @@ export default function CrearCurso() {
 
     setGuardando(true);
     try {
-      const response = await fetch(`${API_URL}/administrador/cursos`, {
-        method: "POST",
+      const url = cursoId
+        ? `${API_URL}/administrador/cursos/${encodeURIComponent(cursoId)}`
+        : `${API_URL}/administrador/cursos`;
+
+      const response = await fetch(url, {
+        method: cursoId ? "PATCH" : "POST",
         credentials: "include",
         body: form,
       });
@@ -189,6 +305,32 @@ export default function CrearCurso() {
     setStep(2);
   };
 
+  if (modoEdicion && cargandoCurso) {
+    return (
+      <div className="mx-auto w-full max-w-[1600px] p-8 text-center text-[#64748B]">
+        Cargando datos del curso...
+      </div>
+    );
+  }
+
+  if (modoEdicion && errorCargaCurso) {
+    return (
+      <div className="mx-auto w-full max-w-[1600px] space-y-4 p-8">
+        <p role="alert" className="text-sm font-semibold text-red-600">
+          {errorCargaCurso}
+        </p>
+
+        <button
+          type="button"
+          onClick={() => router.push("/administrador/cursos")}
+          className="rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white"
+        >
+          Volver a cursos
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1600px] pb-10">
       {/* Enlace de regreso y Encabezado según el paso */}
@@ -200,12 +342,14 @@ export default function CrearCurso() {
           ← Volver a cursos
         </Link>
         <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
-          {step === 4 ? "Publicar curso" : "Crear curso"}
+          {modoEdicion ? step === 4 ? "Revisar cambios" : "Editar curso" : step === 4 ? "Publicar curso" : "Crear curso"}
         </h1>
         <p className="text-xs font-semibold text-[#64748B] mt-1">
-          {step === 4
-            ? "Revisión final antes de activar el curso para alumnos."
-            : "Registro inicial antes de configurar contenido y docentes."}
+          {modoEdicion
+            ? "Actualiza los datos del curso, su sistema de calificación y el docente responsable."
+            : step === 4
+              ? "Revisión final antes de activar el curso para alumnos."
+              : "Registro inicial antes de configurar contenido y docentes."}
         </p>
       </div>
 
@@ -445,6 +589,7 @@ export default function CrearCurso() {
             evaluaciones={evaluaciones}
             docente={docenteSeleccionado}
             imagenPortada={imagenPortada}
+            imagenExistente={imagenExistente}
             onGuardar={handleGuardarCurso}
             onVolver={() => {
               setErrorGuardar("");
@@ -452,6 +597,7 @@ export default function CrearCurso() {
             }}
             guardando={guardando}
             error={errorGuardar}
+            modoEdicion={modoEdicion}
           />
         </div>
       )}

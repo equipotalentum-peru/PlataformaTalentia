@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useRouter,
-} from "next/navigation";
-
-import {
-  API_URL,
-} from "@/lib/api";
+import { useEffect, useState, } from "react";
+import { useRouter, } from "next/navigation";
+import { API_URL, } from "@/lib/api";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
 type ComponenteCalificacion = {
   id: number;
@@ -471,15 +463,24 @@ export default function CalificacionesPage() {
                     }
                     className="flex w-full items-center gap-4 px-5 py-4 text-left"
                   >
-
+          
                     <img
-                      src={
-                        curso.imagen ||
+                      src={resolverImagenPortadaCurso(
+                        curso.imagen,
+                        curso.id,
                         IMAGEN_POR_DEFECTO
-                      }
-                      alt={
-                        curso.nombre
-                      }
+                      )}
+                      alt={curso.nombre}
+                      onError={(event) => {
+                        const elemento = event.currentTarget;
+
+                        if (elemento.dataset.fallbackApplied === "true") {
+                          return;
+                        }
+
+                        elemento.dataset.fallbackApplied = "true";
+                        elemento.src = IMAGEN_POR_DEFECTO;
+                      }}
                       className="h-[72px] w-[105px] shrink-0 rounded-[10px] object-cover"
                     />
 
