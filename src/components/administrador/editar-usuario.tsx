@@ -1,22 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 export default function EditarUsuario() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const guardandoRef = useRef(false);
 
   const [formData, setFormData] = useState({
-    nombreCompleto: "Gloria Rocha",
-    correo: "gloria@talentum.pe",
-    rol: "Docente",
-    telefono: "987 654 321",
-    estado: "Activo",
-    cursosAsignados: ["Herramientas TIC", "Diseño UX"],
+    nombreCompleto: "",
+    correo: "",
+    rol: "",
+    telefono: "",
+    estado: "",
   });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function cargar() {
+      setCargando(true);
+      setError("");
+      try {
+        if (!userId) throw new Error("Selecciona un usuario desde la lista.");
+        const response = await fetch(`${API_URL}/usuarios/${encodeURIComponent(userId)}`, {
+          credentials: "include", signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "No se pudo consultar el usuario.");
+        if (!controller.signal.aborted) setFormData({
+          nombreCompleto: data.nombre, correo: data.correo, rol: data.rol,
+          telefono: data.telefono || "", estado: data.estado,
+        });
+      } catch (error) {
+        if (!controller.signal.aborted) setError(error instanceof Error ? error.message : "Error de conexión.");
+      } finally {
+        if (!controller.signal.aborted) setCargando(false);
+      }
+    }
+    void cargar();
+    return () => controller.abort();
+  }, [userId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -27,24 +57,28 @@ export default function EditarUsuario() {
     });
   };
 
-  const toggleEstado = () => {
-    setFormData((prev) => ({
-      ...prev,
-      estado: prev.estado === "Activo" ? "Inactivo" : "Activo",
-    }));
-  };
-
-  const handleRemoveCurso = (cursoNombre: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      cursosAsignados: prev.cursosAsignados.filter((c) => c !== cursoNombre),
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Guardando datos del usuario:", userId, formData);
-    router.push("/administrador/usuarios");
+    if (!userId || cargando || guardandoRef.current || !formData.rol) return;
+    guardandoRef.current = true;
+    setGuardando(true);
+    setError("");
+    try {
+      const response = await fetch(`${API_URL}/usuarios/${encodeURIComponent(userId)}`, {
+        method: "PUT", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: formData.nombreCompleto.trim(), correo: formData.correo.trim(),
+          rol: formData.rol, telefono: formData.telefono.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "No se pudo guardar el usuario.");
+      router.push("/administrador/usuarios");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error de conexión.");
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
+    }
   };
 
   const iniciales = formData.nombreCompleto
@@ -54,7 +88,7 @@ export default function EditarUsuario() {
         .join("")
         .substring(0, 2)
         .toUpperCase()
-    : "GR";
+    : "";
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -72,10 +106,12 @@ export default function EditarUsuario() {
           Editar usuario
         </h1>
         <p className="text-sm text-[#6F83A5] mt-1 font-medium">
-          Actualizar datos, rol y estado de una cuenta.
+          Actualizar datos y rol de una cuenta.
         </p>
       </div>
 
+      {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
+      {cargando ? <p role="status" className="text-sm text-slate-500">Cargando usuario...</p> : formData.rol && (
       <form onSubmit={handleSubmit}>
         {/* Tarjeta de Contenido Principal */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-12">
@@ -119,6 +155,7 @@ export default function EditarUsuario() {
                 <input
                   type="text"
                   name="nombreCompleto"
+                  maxLength={100}
                   value={formData.nombreCompleto}
                   onChange={handleChange}
                   required
@@ -133,6 +170,7 @@ export default function EditarUsuario() {
                 <input
                   type="email"
                   name="correo"
+                  maxLength={150}
                   value={formData.correo}
                   onChange={handleChange}
                   required
@@ -141,8 +179,7 @@ export default function EditarUsuario() {
               </div>
             </div>
 
-            {/* Fila 2: Rol, Teléfono y Estado */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
                   Rol *
@@ -165,28 +202,15 @@ export default function EditarUsuario() {
                   Teléfono
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   name="telefono"
+                  maxLength={20}
                   value={formData.telefono}
                   onChange={handleChange}
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
-                  Estado
-                </label>
-                <select
-                  name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition cursor-pointer font-medium"
-                >
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
             </div>
 
             {/* Sección: Cursos Asignados */}
@@ -195,39 +219,7 @@ export default function EditarUsuario() {
                 Cursos asignados
               </h3>
 
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                {formData.cursosAsignados.map((curso, idx) => {
-                  const isPurple = idx % 2 !== 0;
-                  return (
-                    <span
-                      key={curso}
-                      className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-extrabold ${
-                        isPurple
-                          ? "bg-[#E9D5FF] text-[#6B21A8]"
-                          : "bg-[#C4F1F9] text-[#0F2851]"
-                      }`}
-                    >
-                      {curso}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCurso(curso)}
-                        className="hover:opacity-75 transition"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Botón Cambiar estado */}
-              <button
-                type="button"
-                onClick={() => router.push(`/administrador/usuarios/cambiar-estado?id=${userId}`)}
-                className="bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-gray-100 text-[#6B21A8] font-extrabold px-6 py-3 rounded-2xl text-xs transition"
-              >
-                Cambiar estado
-              </button>
+              <p className="text-sm text-[#64748B]">Ninguno</p>
             </div>
           </div>
         </div>
@@ -244,12 +236,14 @@ export default function EditarUsuario() {
 
           <button
             type="submit"
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm"
+            disabled={guardando}
+            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm disabled:opacity-50"
           >
-            Guardar cambios
+            {guardando ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

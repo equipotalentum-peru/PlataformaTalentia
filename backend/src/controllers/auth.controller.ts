@@ -583,7 +583,8 @@ export async function login(
         correo,
         hash_contrasena,
         rol,
-        id_persona
+        id_persona,
+        activo
        FROM usuarios
        WHERE LOWER(usuario) = LOWER($1)`,
       [usuario.trim()]
@@ -609,6 +610,10 @@ export async function login(
         message:
           "Usuario o contraseña incorrectos.",
       });
+    }
+
+    if (!user.activo) {
+      return res.status(403).json({ message: "Tu cuenta está inactiva. Contacta al administrador." });
     }
 
   await pool.query(

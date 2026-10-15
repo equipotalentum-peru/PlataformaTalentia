@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import UsuarioDetallesModal from "./usuario-detalles-modal";
 
 interface Usuario {
   id: string;
@@ -19,7 +21,64 @@ export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [menu, setMenu] = useState<{ usuario: Usuario; top: number; left: number } | null>(null);
+  const [detalleId, setDetalleId] = useState<string | null>(null);
+  const [errorAccion, setErrorAccion] = useState("");
+  const [cambiando, setCambiando] = useState(false);
+  const cambiandoRef = useRef(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!menu) return;
+    function cerrarFuera(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node) &&
+          !(event.target as Element).closest("[data-user-actions]")) setMenu(null);
+    }
+    function cerrar() { setMenu(null); }
+    function teclado(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenu(null);
+    }
+    menuRef.current?.querySelector("button")?.focus();
+    document.addEventListener("mousedown", cerrarFuera);
+    document.addEventListener("keydown", teclado);
+    window.addEventListener("resize", cerrar);
+    window.addEventListener("scroll", cerrar, true);
+    return () => {
+      document.removeEventListener("mousedown", cerrarFuera);
+      document.removeEventListener("keydown", teclado);
+      window.removeEventListener("resize", cerrar);
+      window.removeEventListener("scroll", cerrar, true);
+    };
+  }, [menu]);
+
+  async function cambiarUsuario(usuario: Usuario, eliminar: boolean) {
+    if (cambiandoRef.current) return;
+    setMenu(null);
+    const accion = eliminar ? "eliminar definitivamente" : usuario.estado === "Activo" ? "desactivar" : "activar";
+    if (!window.confirm(`¿Deseas ${accion} a ${usuario.nombre}?`)) return;
+    cambiandoRef.current = true;
+    setCambiando(true);
+    setErrorAccion("");
+    try {
+      const activo = usuario.estado !== "Activo";
+      const response = await fetch(`${API_URL}/usuarios/${usuario.id}${eliminar ? "" : "/estado"}`, {
+        method: eliminar ? "DELETE" : "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: eliminar ? undefined : JSON.stringify({ activo }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "No se pudo guardar el cambio.");
+      setUsuarios((prev) => eliminar ? prev.filter((item) => item.id !== usuario.id) :
+        prev.map((item) => item.id === usuario.id ? { ...item, estado: activo ? "Activo" : "Inactivo" } : item));
+    } catch (error) {
+      setErrorAccion(error instanceof Error ? error.message : "Error de conexión.");
+    } finally {
+      cambiandoRef.current = false;
+      setCambiando(false);
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -115,6 +174,7 @@ export default function UsuariosTable() {
       </div>
 
       {/* Tabla estilo Figma */}
+      {errorAccion && <p role="alert" className="mb-4 text-sm text-red-600">{errorAccion}</p>}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -163,17 +223,51 @@ export default function UsuariosTable() {
                   )}
                 </td>
                 <td className="py-4 px-6">
-                  {usuario.estado === "Activo" && (
-                    <button onClick={() => router.push(`/administrador/usuarios/editar?id=${usuario.id}`)} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-4 py-2 rounded-xl text-xs transition">
-                      Ver / Editar
-                    </button>
-                  )}
+                  <button type="button" data-user-actions aria-expanded={menu?.usuario.id === usuario.id}
+                    aria-controls={menu?.usuario.id === usuario.id ? "usuario-acciones" : undefined}
+                    disabled={cambiando}
+                    onClick={(event) => {
+                      if (menu?.usuario.id === usuario.id) { setMenu(null); return; }
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setMenu({ usuario,
+                        top: rect.bottom + 200 > window.innerHeight ? Math.max(8, rect.top - 192) : rect.bottom + 6,
+                        left: Math.max(8, Math.min(rect.right - 224, window.innerWidth - 232)),
+                      });
+                    }}
+                    className="bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0F2851] font-bold px-4 py-2 rounded-xl text-xs transition disabled:opacity-50">
+                    Acciones
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {menu && createPortal(
+        <div ref={menuRef} id="usuario-acciones" aria-label={`Acciones de ${menu.usuario.nombre}`}
+          style={{ top: menu.top, left: menu.left }}
+          className="fixed z-50 w-56 rounded-lg border border-slate-100 bg-white py-1 text-sm text-[#0F2851] shadow-lg">
+          {([
+            ["Ver detalles", "M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6"],
+            ["Editar", "m16 3 5 5M3 21l5-1L21 7a2 2 0 0 0-5-5L3 16v5Z"],
+            [menu.usuario.estado === "Activo" ? "Desactivar" : "Activar", "M12 2v10M6 5a9 9 0 1 0 12 0"],
+            ["Eliminar", "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"],
+          ] as const).map(([label, path], index) => (
+            <button key={label} type="button"
+              onClick={() => {
+                setMenu(null);
+                if (index === 0) setDetalleId(menu.usuario.id);
+                else if (index === 1) router.push(`/administrador/usuarios/editar?id=${menu.usuario.id}`);
+                else void cambiarUsuario(menu.usuario, index === 3);
+              }}
+              className={`flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 ${index === 3 ? "border-t border-slate-100 text-red-600" : ""}`}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0"><path d={path} /></svg>
+              {label}
+            </button>
+          ))}
+        </div>, document.body
+      )}
+      {detalleId && <UsuarioDetallesModal key={detalleId} id={detalleId} onClose={() => setDetalleId(null)} />}
     </div>
   );
 }
