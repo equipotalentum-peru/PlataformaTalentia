@@ -37,8 +37,7 @@ export default function TablaMatriculas() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [editandoId, setEditandoId] = useState<string | null>(null);
-  const [estadoEditado, setEstadoEditado] = useState<EstadoMatricula>("Pendiente");
+  const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
   const [guardandoId, setGuardandoId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -98,43 +97,51 @@ export default function TablaMatriculas() {
       return true;
     });
   }, [matriculas, busqueda, filtroEstado]);
-
-  async function guardarEstado(matricula: Matricula) {
+  
+  async function guardarEstado(
+    matricula: Matricula,
+    nuevoEstado: EstadoMatricula
+  ) {
     setError("");
     setGuardandoId(matricula.id);
-
+    
     try {
       const response = await fetch(
         `${API_URL}/administrador/matriculas/${encodeURIComponent(matricula.id)}/estado`,
         {
           method: "PATCH",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ estado: estadoEditado }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ estado: nuevoEstado }),
         }
       );
+      
       const data = await response.json().catch(() => ({}));
-
       if (response.status === 401) {
         router.push("/login");
         return;
       }
-
+      
       if (!response.ok) {
-        throw new Error(data.message ?? "No se pudo actualizar la matrícula.");
+        throw new Error(
+          data.message ?? "No se pudo actualizar la matrícula."
+        );
       }
-
+      
       setMatriculas((actuales) =>
-        actuales.map((item) =>
-          item.id === matricula.id ? { ...item, estado: estadoEditado } : item
-        )
-      );
-      setEditandoId(null);
+        actuales.map((item) => item.id === matricula.id ? { ...item, estado: nuevoEstado } : item)
+    );
+    
+    setMenuAbierto(null);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "No se pudo actualizar la matrícula."
+        cause instanceof Error
+          ? cause.message
+          : "No se pudo actualizar la matrícula."
       );
-    } finally {
+    }   finally {
       setGuardandoId(null);
     }
   }
@@ -240,46 +247,63 @@ export default function TablaMatriculas() {
                         {item.estado}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-center">
-                      {editandoId === item.id ? (
-                        <div className="flex min-w-36 flex-col gap-2">
-                          <select
-                            value={estadoEditado}
-                            onChange={(event) => setEstadoEditado(event.target.value as EstadoMatricula)}
-                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-[#0F2851]"
-                          >
-                            {ESTADOS.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
-                          </select>
-                          <button
+                    <td className="relative py-4 px-6 text-center">
+                      <button
+                      type="button"
+                      aria-label={`Acciones de la matrícula de ${item.alumno}`}
+                      aria-expanded={menuAbierto === item.id}
+                      disabled={guardandoId === item.id}
+                      onClick={() =>
+                        setMenuAbierto((actual) =>
+                          actual === item.id ? null : item.id
+                    )
+                  }
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-2xl font-bold text-[#475569] transition hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ⋮
+                    </button>
+                    
+                    {menuAbierto === item.id && (
+                      <div className="absolute right-6 top-14 z-30 min-w-44 rounded-xl border border-gray-200 bg-white p-2 text-left shadow-lg">
+                        <p className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-[#94A3B8]">
+                          Cambiar estado
+                          </p>
+                          
+                          {ESTADOS.map((estado) => {
+                            const seleccionado = item.estado === estado;
+                            const guardando = guardandoId === item.id;
+                            
+                            return (
+                            <button
+                            key={estado}
                             type="button"
-                            disabled={guardandoId === item.id}
-                            onClick={() => void guardarEstado(item)}
-                            className="rounded-xl bg-[#3B82F6] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
-                          >
-                            {guardandoId === item.id ? "Guardando..." : "Guardar"}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={guardandoId === item.id}
-                            onClick={() => setEditandoId(null)}
-                            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-[#64748B]"
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditandoId(item.id);
-                            setEstadoEditado(item.estado);
-                          }}
-                          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-6 py-2 rounded-xl transition shadow-sm"
-                        >
-                          {item.estado === "Retirada" || item.estado === "Cancelada" ? "Historial" : "Modificar"}
-                        </button>
-                      )}
-                    </td>
+                            disabled={guardando || seleccionado}
+                            onClick={() => void guardarEstado(item, estado)}
+                            className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold transition disabled:cursor-default ${
+                              seleccionado
+                              ? "bg-[#F3E8FF] text-[#6B21A8]"
+                              : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F2851]"
+                            }`}
+                            >
+                              <span>{estado}</span>
+                              {seleccionado && (
+                                <span aria-label="Estado actual" className="text-[#6B21A8]">
+                                  ✓
+                                  </span>
+                                )}
+                                </button>
+                                );
+                                })}
+                                
+                                {guardandoId === item.id && (
+                                  <p className="px-3 py-2 text-[11px] text-[#64748B]">
+                                    Guardando estado...
+                                    </p>
+                                  )}
+                                  </div>
+                                )}
+                                </td>
+
                   </tr>
                 ))
               )}
