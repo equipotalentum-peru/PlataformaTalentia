@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import * as XLSX from "xlsx";
 import {
   collection,
+  doc,
   getDocs,
   orderBy,
   query,
+  updateDoc,
 } from "firebase/firestore";
+
+
 
 import { db } from "../../lib/firebase";
 
@@ -19,7 +24,6 @@ interface DatosEmpresa {
   nombreContacto: string;
   correoCorporativo: string;
   telefono: string;
-  interes: string;
 }
 
 interface SolicitudPersona {
@@ -40,6 +44,15 @@ export default function TablaSolicitudesPersonas() {
  const [solicitudes, setSolicitudes] = useState<SolicitudPersona[]>([]);
  const [cargando, setCargando] = useState(true);
  const [busqueda, setBusqueda] = useState("");
+ const [
+  modalCorreoEnviado,
+  setModalCorreoEnviado,
+] = useState(false);
+
+const [
+  correoEnviadoA,
+  setCorreoEnviadoA,
+] = useState("");
 
  useEffect(() => {
   async function cargarSolicitudes() {
@@ -53,20 +66,33 @@ export default function TablaSolicitudesPersonas() {
 
       const snapshot = await getDocs(consulta);
 
-      const responseEstados = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/auth/registration-statuses`
-);
+      let estadosPorCorreo = new Map<string, EstadoSolicitud>();
 
-const dataEstados = await responseEstados.json();
+      try {
+        const responseEstados = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/registration-statuses`
+        );
 
-const estadosPorCorreo = new Map<string, EstadoSolicitud>(
-  (dataEstados.statuses || []).map(
-    (registro: { email: string; estado: EstadoSolicitud }) => [
-      registro.email.toLowerCase(),
-      registro.estado,
-    ]
-  )
-);
+        if (responseEstados.ok) {
+          const dataEstados = await responseEstados.json();
+
+          estadosPorCorreo = new Map<string, EstadoSolicitud>(
+            (dataEstados.statuses || []).map(
+              (registro: { email: string; estado: EstadoSolicitud }) => [
+                registro.email.toLowerCase(),
+                registro.estado,
+              ]
+            )
+          );
+        }
+      } catch (error) {
+        console.warn(
+          "No se pudieron consultar los estados de registro:",
+          error
+        );
+      }
+
+      const sincronizaciones: Promise<unknown>[] = [];
 
       const datos: SolicitudPersona[] = snapshot.docs.map((documento) => {
         const data = documento.data();
@@ -83,6 +109,57 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
             });
         }
 
+        const estadoFirebase: EstadoSolicitud | null =
+          data.estado === "Pendiente" ||
+          data.estado === "Contactado" ||
+          data.estado === "Matriculado" ||
+          data.estado === "Cancelado"
+            ? data.estado
+            : null;
+
+        const estadoBackend = estadosPorCorreo.get(
+          String(data.email || "").toLowerCase()
+        );
+
+        const estado: EstadoSolicitud =
+          estadoBackend === "Matriculado"
+            ? "Matriculado"
+            : estadoFirebase || estadoBackend || "Pendiente";
+
+        if (
+          estadoBackend === "Matriculado" &&
+          estadoFirebase !== "Matriculado"
+        ) {
+          sincronizaciones.push(
+            updateDoc(
+              doc(db, "FormularioAlumno", documento.id),
+              {
+                estado: "Matriculado",
+              }
+            )
+          );
+        }
+
+        const datosEmpresaRaw =
+          data.datos_empresa &&
+          typeof data.datos_empresa === "object"
+            ? data.datos_empresa
+            : {};
+
+        const datosEmpresa: DatosEmpresa = {
+          ruc: String(datosEmpresaRaw.ruc || ""),
+          nombreEmpresa: String(datosEmpresaRaw.nombreEmpresa || ""),
+          nombreContacto: String(datosEmpresaRaw.nombreContacto || ""),
+          correoCorporativo: String(
+            datosEmpresaRaw.correoCorporativo || ""
+          ),
+          telefono: String(datosEmpresaRaw.telefono || ""),
+        };
+
+        const tieneDatosEmpresa = Object.values(datosEmpresa).some(
+          (valor) => valor.trim().length > 0
+        );
+
         return {
           id: documento.id,
           fecha,
@@ -94,15 +171,23 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
             data.tipo_alumno === "Alumno convenio"
               ? "Convenio"
               : "Externo",
+          empresa:
+            data.empresa ||
+            datosEmpresa.nombreEmpresa ||
+            "",
+          datosEmpresa: tieneDatosEmpresa
+            ? datosEmpresa
+            : undefined,
           interes: data.interes || "",
-          estado:
-  estadosPorCorreo.get(
-    String(data.email || "").toLowerCase()
-  ) || "Pendiente",
+          estado,
         };
       });
 
       setSolicitudes(datos);
+
+      if (sincronizaciones.length > 0) {
+        await Promise.allSettled(sincronizaciones);
+      }
     } catch (error) {
       console.error(
         "Error al cargar solicitudes de personas:",
@@ -113,7 +198,7 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
     }
   }
 
-  cargarSolicitudes();
+  void cargarSolicitudes();
 }, []);
 
   // Estado menú desplegable acciones
@@ -131,68 +216,7 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
     nombreContacto: "",
     correoCorporativo: "",
     telefono: "",
-    interes: "",
   });
-
-  useEffect(() => {
-  async function cargarSolicitudes() {
-    try {
-      setCargando(true);
-
-      const consulta = query(
-        collection(db, "FormularioAlumno"),
-        orderBy("fecha_registro", "desc")
-      );
-
-      const snapshot = await getDocs(consulta);
-
-      const datos: SolicitudPersona[] = snapshot.docs.map((documento) => {
-        const data = documento.data();
-
-        let fecha = "Sin fecha";
-
-        if (data.fecha_registro?.toDate) {
-          fecha = data.fecha_registro
-            .toDate()
-            .toLocaleDateString("es-PE", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            });
-        }
-
-        return {
-          id: documento.id,
-          fecha,
-          nombre: data.nombre || "",
-          dni: data.dni || "",
-          email: data.email || "",
-          telefono: data.telefono || "",
-
-          tipoAlumno:
-            data.tipo_alumno === "Alumno convenio"
-              ? "Convenio"
-              : "Externo",
-
-          interes: data.interes || "",
-
-          estado: "Pendiente",
-        };
-      });
-
-      setSolicitudes(datos);
-    } catch (error) {
-      console.error(
-        "Error al cargar solicitudes de personas:",
-        error
-      );
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  cargarSolicitudes();
-}, []);
 
   // Cerrar menú desplegable al hacer clic fuera
   useEffect(() => {
@@ -210,46 +234,50 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
   };
 
   const enviarInvitacion = async (solicitud: SolicitudPersona) => {
-  try {
-    setMenuAbiertoId(null);
+    try {
+      setMenuAbiertoId(null);
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/send-registration-invitation`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          correo: solicitud.email,
-         nombre: solicitud.nombre,
-         dni: solicitud.dni,
-         telefono: solicitud.telefono,
-         tipoAlumno: solicitud.tipoAlumno,
-         empresaAliada: solicitud.empresa || null,
-        }),
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/send-registration-invitation`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            correo: solicitud.email,
+            nombre: solicitud.nombre,
+            dni: solicitud.dni,
+            telefono: solicitud.telefono,
+            tipoAlumno: solicitud.tipoAlumno,
+            empresaAliada: solicitud.empresa || null,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "No se pudo enviar la invitación."
+        );
       }
-    );
 
-    const data = await response.json();
+      await cambiarEstadoPersona(
+        solicitud.id,
+        "Contactado"
+      );
 
-    if (!response.ok) {
-      throw new Error(
-        data.message || "No se pudo enviar la invitación."
+      alert("Invitación enviada correctamente.");
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Error al enviar la invitación."
       );
     }
-
-    alert("Invitación enviada correctamente.");
-  } catch (error) {
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Error al enviar la invitación."
-    );
-  }
-};
-
+  };
 
 
   const handleEliminar = (id: string) => {
@@ -262,16 +290,17 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
   const abrirModalEmpresa = (solicitud: SolicitudPersona) => {
     setMenuAbiertoId(null);
     setPersonaSeleccionada(solicitud);
+
     setFormEmpresa(
       solicitud.datosEmpresa || {
         ruc: "",
-        nombreEmpresa: solicitud.empresa || "",
-        nombreContacto: solicitud.nombre,
-        correoCorporativo: solicitud.email,
-        telefono: solicitud.telefono,
-        interes: solicitud.interes,
+        nombreEmpresa: "",
+        nombreContacto: "",
+        correoCorporativo: "",
+        telefono: "",
       }
     );
+
     setModalEmpresaAbierto(true);
   };
 
@@ -287,33 +316,116 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
     setPersonaSeleccionada(null);
   };
 
-  const cambiarEstadoPersona = (id: string, nuevoEstado: EstadoSolicitud) => {
-    setSolicitudes((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, estado: nuevoEstado } : item))
-    );
-    if (personaSeleccionada && personaSeleccionada.id === id) {
-      setPersonaSeleccionada((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
+  const cambiarEstadoPersona = async (
+    id: string,
+    nuevoEstado: EstadoSolicitud
+  ) => {
+    try {
+      await updateDoc(
+        doc(
+          db,
+          "FormularioAlumno",
+          id
+        ),
+        {
+          estado: nuevoEstado,
+        }
+      );
+
+      setSolicitudes((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                estado: nuevoEstado,
+              }
+            : item
+        )
+      );
+
+      if (
+        personaSeleccionada &&
+        personaSeleccionada.id === id
+      ) {
+        setPersonaSeleccionada((prev) =>
+          prev
+            ? {
+                ...prev,
+                estado: nuevoEstado,
+              }
+            : null
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error actualizando estado del postulante:",
+        error
+      );
+
+      alert(
+        "No se pudo actualizar el estado."
+      );
     }
   };
 
-  const handleGuardarEmpresa = (e: React.FormEvent) => {
+  const handleGuardarEmpresa = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
-    if (!personaSeleccionada) return;
 
-    setSolicitudes((prev) =>
-      prev.map((item) =>
-        item.id === personaSeleccionada.id
-          ? {
-              ...item,
-              empresa: formEmpresa.nombreEmpresa,
-              datosEmpresa: { ...formEmpresa },
-            }
-          : item
-      )
-    );
+    if (!personaSeleccionada) {
+      return;
+    }
 
-    alert(`Información de empresa guardada exitosamente.`);
-    cerrarModales();
+    const datosEmpresa: DatosEmpresa = {
+      ruc: formEmpresa.ruc.trim(),
+      nombreEmpresa: formEmpresa.nombreEmpresa.trim(),
+      nombreContacto: formEmpresa.nombreContacto.trim(),
+      correoCorporativo: formEmpresa.correoCorporativo.trim(),
+      telefono: formEmpresa.telefono.trim(),
+    };
+
+    try {
+      await updateDoc(
+        doc(
+          db,
+          "FormularioAlumno",
+          personaSeleccionada.id
+        ),
+        {
+          empresa: datosEmpresa.nombreEmpresa,
+          datos_empresa: datosEmpresa,
+          estado: personaSeleccionada.estado,
+        }
+      );
+
+      setSolicitudes((prev) =>
+        prev.map((item) =>
+          item.id === personaSeleccionada.id
+            ? {
+                ...item,
+                empresa: datosEmpresa.nombreEmpresa,
+                datosEmpresa,
+              }
+            : item
+        )
+      );
+
+      alert(
+        "Información de empresa guardada exitosamente."
+      );
+
+      cerrarModales();
+    } catch (error) {
+      console.error(
+        "Error guardando información de empresa:",
+        error
+      );
+
+      alert(
+        "No se pudo guardar la información de la empresa."
+      );
+    }
   };
 
   const renderBadgeEstado = (estado: EstadoSolicitud) => {
@@ -349,6 +461,118 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
     }
   };
 
+
+  function exportarExcelPersonas() {
+    const alumnosConvenio =
+      solicitudes
+        .filter(
+          (item) =>
+            item.tipoAlumno === "Convenio"
+        )
+        .map((item) => ({
+          Fecha: item.fecha,
+          "Nombre completo": item.nombre,
+          DNI: item.dni,
+          Correo: item.email,
+          Teléfono: item.telefono,
+          "Tipo de alumno": "Alumno con Convenio",
+          Empresa: item.empresa || "",
+          Interés: item.interes,
+          Estado: item.estado,
+        }));
+
+    const alumnosExternos =
+      solicitudes
+        .filter(
+          (item) =>
+            item.tipoAlumno === "Externo"
+        )
+        .map((item) => ({
+          Fecha: item.fecha,
+          "Nombre completo": item.nombre,
+          DNI: item.dni,
+          Correo: item.email,
+          Teléfono: item.telefono,
+          "Tipo de alumno": "Alumno Externo",
+          Interés: item.interes,
+          Estado: item.estado,
+        }));
+
+    const workbook =
+      XLSX.utils.book_new();
+
+    const hojaConvenio =
+      XLSX.utils.json_to_sheet(
+        alumnosConvenio
+      );
+
+    const hojaExternos =
+      XLSX.utils.json_to_sheet(
+        alumnosExternos
+      );
+
+    hojaConvenio["!cols"] = [
+      { wch: 15 },
+      { wch: 32 },
+      { wch: 15 },
+      { wch: 34 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 28 },
+      { wch: 55 },
+      { wch: 16 },
+    ];
+
+    hojaExternos["!cols"] = [
+      { wch: 15 },
+      { wch: 32 },
+      { wch: 15 },
+      { wch: 34 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 55 },
+      { wch: 16 },
+    ];
+
+    if (
+      alumnosConvenio.length > 0
+    ) {
+      hojaConvenio["!autofilter"] = {
+        ref: hojaConvenio["!ref"]!,
+      };
+    }
+
+    if (
+      alumnosExternos.length > 0
+    ) {
+      hojaExternos["!autofilter"] = {
+        ref: hojaExternos["!ref"]!,
+      };
+    }
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      hojaConvenio,
+      "Alumnos Convenio"
+    );
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      hojaExternos,
+      "Alumnos Externos"
+    );
+
+    const fecha =
+      new Date()
+        .toISOString()
+        .slice(0, 10);
+
+    XLSX.writeFile(
+      workbook,
+      `solicitudes-personas-${fecha}.xlsx`
+    );
+  }
+
   const solicitudesFiltradas = solicitudes.filter(
     (item) =>
       item.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -357,9 +581,9 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
   );
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative">
+    <div className="mx-auto w-full max-w-[1500px] rounded-3xl border border-slate-100 bg-white p-6 shadow-sm relative xl:p-8 2xl:max-w-[1560px]">
       {/* Encabezado y buscador */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+     <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-bold text-[#0F2851]">
             Listado de Registros Personales
@@ -369,14 +593,37 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
           </p>
         </div>
 
-        <div className="relative w-full md:w-80">
-          <input
-            type="text"
-            placeholder="Buscar por DNI, nombre o empresa..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-4 pr-4 py-2.5 bg-[#F4F7FC] text-sm text-[#0F2851] rounded-2xl border border-transparent focus:border-[#2D97E8] focus:bg-white transition outline-none placeholder-[#8EA1C0]"
-          />
+        <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto md:items-center">
+          <button
+            type="button"
+            onClick={exportarExcelPersonas}
+            disabled={solicitudes.length === 0}
+            className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#16A085] px-5 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#138a73] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-4 w-4"
+            >
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+
+            Exportar Excel
+          </button>
+
+          <div className="relative w-full sm:w-80">
+            <input
+              type="text"
+              placeholder="Buscar por DNI, nombre o empresa..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full pl-4 pr-4 py-2.5 bg-[#F4F7FC] text-sm text-[#0F2851] rounded-2xl border border-transparent focus:border-[#2D97E8] focus:bg-white transition outline-none placeholder-[#8EA1C0]"
+            />
+          </div>
         </div>
       </div>
 
@@ -593,7 +840,7 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
                 <select
                   value={personaSeleccionada.estado}
                   onChange={(e) =>
-                    cambiarEstadoPersona(
+                    void cambiarEstadoPersona(
                       personaSeleccionada.id,
                       e.target.value as EstadoSolicitud
                     )
@@ -767,24 +1014,6 @@ const estadosPorCorreo = new Map<string, EstadoSolicitud>(
                   onChange={(e) => setFormEmpresa({ ...formEmpresa, correoCorporativo: e.target.value })}
                   className="w-full px-4 py-2.5 bg-[#F4F7FC] text-sm text-[#0F2851] rounded-2xl border border-transparent focus:border-[#2D97E8] focus:bg-white transition outline-none placeholder-[#8EA1C0]"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#0F2851] mb-1 pl-1">
-                  Programa de Interés Institucional
-                </label>
-                <select
-                  value={formEmpresa.interes}
-                  onChange={(e) => setFormEmpresa({ ...formEmpresa, interes: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[#F4F7FC] text-sm text-[#0F2851] rounded-2xl border border-transparent focus:border-[#2D97E8] focus:bg-white transition outline-none cursor-pointer"
-                >
-                  <option value="" disabled>¿En qué está interesado?</option>
-                  <option value="Diseño UX/UI">Diseño UX/UI</option>
-                  <option value="Data Analytics">Data Analytics</option>
-                  <option value="Desarrollo Web">Desarrollo Web</option>
-                  <option value="Gestión de Proyectos">Gestión de Proyectos</option>
-                  <option value="Capacitación Corporativa General">Capacitación Corporativa General</option>
-                </select>
               </div>
 
               <div className="pt-3 flex gap-3">

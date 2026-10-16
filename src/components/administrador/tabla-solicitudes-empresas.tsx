@@ -18,6 +18,8 @@ import {
   db,
 } from "../../lib/firebase";
 
+import * as XLSX from "xlsx";
+
 
 type EstadoEmpresa =
   | "Pendiente"
@@ -285,6 +287,95 @@ export default function TablaSolicitudesEmpresas() {
   }
 
 
+  function exportarExcelEmpresas() {
+    const datos =
+      solicitudes.map(
+        (item) => ({
+          Fecha:
+            item.fecha,
+
+          Empresa:
+            item.empresa,
+
+          RUC:
+            item.ruc,
+
+          "Persona de contacto":
+            item.contacto,
+
+          "Correo corporativo":
+            item.correo,
+
+          "Teléfono":
+            item.telefono,
+
+          "Interés de capacitación":
+            item.interes,
+
+          Estado:
+            item.estado,
+        })
+      );
+
+
+    const workbook =
+      XLSX.utils.book_new();
+
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        datos
+      );
+
+
+    worksheet["!cols"] = [
+      { wch: 15 },
+      { wch: 32 },
+      { wch: 18 },
+      { wch: 30 },
+      { wch: 34 },
+      { wch: 16 },
+      { wch: 48 },
+      { wch: 16 },
+    ];
+
+
+    if (
+      datos.length >
+      0
+    ) {
+      worksheet[
+        "!autofilter"
+      ] = {
+        ref:
+          worksheet["!ref"]!,
+      };
+    }
+
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Solicitudes Empresas"
+    );
+
+
+    const fecha =
+      new Date()
+        .toISOString()
+        .slice(
+          0,
+          10
+        );
+
+
+    XLSX.writeFile(
+      workbook,
+      `solicitudes-empresas-${fecha}.xlsx`
+    );
+  }
+
+
   function renderEstado(
     estado:
       EstadoEmpresa
@@ -322,9 +413,9 @@ export default function TablaSolicitudesEmpresas() {
 
 
   return (
-    <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="mx-auto w-full max-w-[1500px] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:p-8 2xl:max-w-[1560px]">
 
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
 
@@ -337,6 +428,34 @@ export default function TablaSolicitudesEmpresas() {
           </p>
 
         </div>
+
+
+        <button
+          type="button"
+          onClick={
+            exportarExcelEmpresas
+          }
+          disabled={
+            solicitudes.length ===
+            0
+          }
+          className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#16A085] px-5 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#138a73] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
+
+          Exportar Excel
+        </button>
 
       </div>
 
