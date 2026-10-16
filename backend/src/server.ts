@@ -23,6 +23,7 @@ import asistenciasRoutes from "./routes/asistencias.routes";
 import cursosAdminRoutes from "./routes/cursos-admin.routes";
 import { sincronizarEstadosClases, } from "./services/clases-estado.service";
 import { configurarChatSocket,} from "./realtime/chat.socket";
+import matriculasAdminRoutes from "./routes/matriculas-admin.routes";
 
 const app = express();
 
@@ -79,6 +80,7 @@ app.use("/api/certificados", certificadosRoutes);
 app.use("/api/actividades", actividadesRoutes);
 app.use("/api/asistencias", asistenciasRoutes);
 app.use("/api/administrador/cursos", cursosAdminRoutes);
+app.use("/api/administrador/matriculas", matriculasAdminRoutes);
 
 void sincronizarEstadosClases();
 

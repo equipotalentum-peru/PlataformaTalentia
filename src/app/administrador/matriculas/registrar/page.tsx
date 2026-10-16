@@ -1,10 +1,11 @@
 "use client";
 
 import RegistrarMatricula, {
-  MatriculaFormData,
+  type MatriculaFormData,
 } from "@/components/administrador/registrar-matrícula";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
 
 export default function RegistrarMatriculaPage() {
   const router = useRouter();
@@ -13,10 +14,29 @@ export default function RegistrarMatriculaPage() {
     router.push("/administrador/matriculas");
   };
 
-  // Usar el tipo importado en lugar de 'any'
-  const handleRegistrar = (datos: MatriculaFormData) => {
-    console.log("Matrícula registrada:", datos);
+  const handleRegistrar = async (datos: MatriculaFormData) => {
+    const response = await fetch(`${API_URL}/administrador/matriculas`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
+
+    const resultado = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      router.push("/login");
+      throw new Error("Tu sesión expiró. Inicia sesión nuevamente.");
+    }
+
+    if (!response.ok) {
+      throw new Error(resultado.message ?? "No se pudo registrar la matrícula.");
+    }
+
     router.push("/administrador/matriculas");
+    router.refresh();
   };
 
   return (
@@ -33,7 +53,7 @@ export default function RegistrarMatriculaPage() {
           Registrar matrícula
         </h1>
         <p className="text-xs font-semibold text-[#64748B] mt-1">
-          Inscribir alumno en curso y validar disponibilidad.
+          Inscribir alumno en una oferta publicada y validar disponibilidad.
         </p>
       </div>
 
