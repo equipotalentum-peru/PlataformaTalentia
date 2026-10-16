@@ -122,14 +122,14 @@ export default function UsuariosTable() {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-6">
       {/* Encabezado de la página */}
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
             Usuarios
           </h1>
-          <p className="text-sm text-[#6F83A5] mt-1 font-medium">
+          <p className="text-sm font-semibold text-[#64748B] mt-1">
             Administración de alumnos, docentes y administradores.
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function UsuariosTable() {
         </button>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 items-end gap-3 min-[480px]:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_190px_160px]">
+      <div className="grid grid-cols-1 items-end gap-3 min-[480px]:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_190px_160px]">
         <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B] min-[480px]:col-span-2 lg:col-span-1">
           Buscar
           <input
@@ -176,19 +176,19 @@ export default function UsuariosTable() {
 
       {/* Tabla estilo Figma */}
       {errorAccion && <p role="alert" className="mb-4 text-sm text-red-600">{errorAccion}</p>}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#F1EBFD]">
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Usuario</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Correo</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Rol</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Último acceso</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Estado</th>
-              <th className="py-4 px-6 text-xs font-bold text-[#7C3AED]">Acciones</th>
+            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+              <th className="py-4 px-6">Usuario</th>
+              <th className="py-4 px-6">Correo</th>
+              <th className="py-4 px-6">Rol</th>
+              <th className="py-4 px-6">Último acceso</th>
+              <th className="py-4 px-6">Estado</th>
+              <th className="py-4 px-6 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 text-xs">
+          <tbody className="divide-y divide-gray-100 text-xs">
             {(cargando || error || usuariosFiltrados.length === 0) && (
               <tr>
                 <td colSpan={6} className="py-6 px-6 text-[#64748B]" role={error ? "alert" : "status"}>
@@ -198,32 +198,32 @@ export default function UsuariosTable() {
             )}
             {!cargando && !error && usuariosFiltrados.map((usuario) => (
               <tr key={usuario.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-extrabold text-[#0F2851]">
+                <td className="py-4 px-6 font-bold text-[#0F2851]">
                   {usuario.nombre}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-medium">
+                <td className="py-4 px-6 text-[#64748B] font-semibold">
                   {usuario.correo}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-medium">
+                <td className="py-4 px-6 text-[#64748B] font-semibold">
                   {usuario.rol}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-medium">
+                <td className="py-4 px-6 text-[#64748B] font-semibold">
                   {usuario.actividad
                     ? new Date(usuario.actividad).toLocaleString("es-PE")
                     : "Sin acceso registrado"}
                 </td>
                 <td className="py-4 px-6">
                   {usuario.estado === "Activo" ? (
-                    <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full font-bold text-[11px]">
+                    <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full font-extrabold text-xs">
                       Activo
                     </span>
                   ) : (
-                    <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-4 py-1.5 rounded-full font-bold text-[11px]">
+                    <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-4 py-1.5 rounded-full font-extrabold text-xs">
                       Inactivo
                     </span>
                   )}
                 </td>
-                <td className="py-4 px-6">
+                <td className="py-4 px-6 text-center">
                   <button type="button" data-user-actions aria-expanded={menu?.usuario.id === usuario.id}
                     aria-controls={menu?.usuario.id === usuario.id ? "usuario-acciones" : undefined}
                     disabled={cambiando}

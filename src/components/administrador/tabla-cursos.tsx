@@ -199,14 +199,14 @@ export default function TablaCursos() {
   });
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full space-y-6">
       {/* Encabezado y Botón Crear Curso */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
             Cursos
           </h1>
-          <p className="text-sm text-[#6F83A5] mt-1 font-medium">
+          <p className="text-sm font-semibold text-[#64748B] mt-1">
             Administración de cursos, docentes, publicación y cupos.
           </p>
         </div>
@@ -221,19 +221,21 @@ export default function TablaCursos() {
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+          Buscar
           <input
             type="text"
             placeholder="Buscar por curso o código"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-gray-100/80 rounded-2xl px-5 py-3 text-sm text-[#0F2851] placeholder-[#94A3B8] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] transition"
+            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
           />
-        </div>
+        </label>
 
-        {/* Píldoras de Filtro */}
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
+          <span className="text-xs font-semibold text-[#64748B]">Estado</span>
+          <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("Todos")}
@@ -281,6 +283,7 @@ export default function TablaCursos() {
           >
             Borrador
           </button>
+          </div>
         </div>
       </div>
 
@@ -289,7 +292,7 @@ export default function TablaCursos() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F1F3FD] text-[#312E81] text-xs font-extrabold">
+              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
                 <th className="py-4 px-6">Curso</th>
                 <th className="py-4 px-6">Código</th>
                 <th className="py-4 px-6">Docente</th>
@@ -298,7 +301,7 @@ export default function TablaCursos() {
                 <th className="py-4 px-6 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm font-medium text-[#0F2851]">
+            <tbody className="divide-y divide-gray-100 text-xs font-semibold text-[#64748B]">
               {cargando ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-[#64748B]">
@@ -318,13 +321,13 @@ export default function TablaCursos() {
                 <>
                   {cursosFiltrados.map((curso) => (
                     <tr key={curso.id} className="hover:bg-gray-50/50 transition">
-                      <td className="py-4 px-6 font-bold">{curso.nombre}</td>
+                      <td className="py-4 px-6 font-bold text-[#0F2851]">{curso.nombre}</td>
                       <td className="py-4 px-6 text-[#64748B]">{curso.codigo}</td>
                       <td className="py-4 px-6 text-[#64748B]">{curso.docente}</td>
                       <td className="py-4 px-6 text-[#64748B]">{curso.matriculas}</td>
                       <td className="py-4 px-6">
                         <span
-                          className={`inline-block rounded-full px-4 py-1.5 text-xs font-bold ${
+                          className={`inline-block rounded-full px-4 py-1.5 text-xs font-extrabold ${
                             curso.estado === "Activo"
                               ? "bg-[#BBF7D0] text-[#166534]"
                               : curso.estado === "Inactivo"
@@ -346,7 +349,7 @@ export default function TablaCursos() {
                               actual === curso.id ? null : curso.id
                             )
                           }
-                          className="rounded-xl px-4 py-2 text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50"
                         >
                           ⋮
                         </button>

@@ -175,18 +175,21 @@ export default function TablaMatriculas() {
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+          Buscar
           <input
             type="text"
             placeholder="Buscar alumno o curso"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm text-[#0F2851] placeholder-[#94A3B8] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30"
+            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
           />
-        </div>
+        </label>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
+          <span className="text-xs font-semibold text-[#64748B]">Estado</span>
+          <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("todos")}
@@ -208,6 +211,7 @@ export default function TablaMatriculas() {
           >
             Pendientes
           </button>
+          </div>
         </div>
       </div>
 
