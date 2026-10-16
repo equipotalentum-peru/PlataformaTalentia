@@ -107,11 +107,13 @@ export default function TablaCursos() {
     nuevoEstado: "Activo" | "Inactivo" | "Archivado"
   ) => {
     const accion =
-      nuevoEstado === "Activo"
-        ? "activar"
-        : nuevoEstado === "Inactivo"
-          ? "desactivar"
-          : "retirar";
+    nuevoEstado === "Activo"
+      ? curso.estado === "Borrador"
+        ? "publicar"
+        : "activar"
+      : nuevoEstado === "Inactivo"
+        ? "desactivar"
+        : "retirar";
 
     const mensaje =
       nuevoEstado === "Archivado"
@@ -363,6 +365,17 @@ export default function TablaCursos() {
                             >
                               Editar
                             </button>
+
+                            {curso.estado === "Borrador" && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() => void cambiarEstadoCurso(curso, "Activo")}
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                              >
+                                {cursoEnAccion === curso.id ? "Publicando..." : "Publicar"}
+                              </button>
+                            )}
 
                             {curso.estado === "Activo" && (
                               <button

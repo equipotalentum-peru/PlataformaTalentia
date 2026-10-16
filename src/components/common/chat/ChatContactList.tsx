@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { ChatContact } from "@/data/chat";
-
+import Link from "next/link";
 import ChatContactItem from "./ChatContactItem";
 import ChatFilters from "./ChatFilters";
 
@@ -17,6 +17,7 @@ type Props = {
   onSearchChange: (value: string) => void;
   onFilterChange: (value: Filter) => void;
   onSelect: (id: number) => void;
+  backHref: string;
   className?: string;
 };
 
@@ -29,6 +30,7 @@ export default function ChatContactList({
   onSearchChange,
   onFilterChange,
   onSelect,
+  backHref,
   className = "flex",
 }: Props) {
   const filteredContacts = useMemo(() => {
@@ -57,8 +59,27 @@ export default function ChatContactList({
       className={`${className} w-full shrink-0 flex-col bg-white min-[861px]:w-[255px] min-[861px]:border-r min-[861px]:border-gray-300`}
     >
       <div className="border-b border-gray-300 px-4 py-4">
+        
+        <Link
+          href={backHref}
+          className="mb-3 inline-flex h-8 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-[#18407c] transition hover:bg-gray-100"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Volver a cursos
+        </Link>
 
-        <h1 className="break-words text-[22px] font-semibold text-[#18407c] sm:text-[25px]">
+        <h1 className="break-words text-[18px] leading-snug font-semibold text-[#18407c] sm:text-[20px]">
           {courseName}
         </h1>
 
@@ -85,7 +106,7 @@ export default function ChatContactList({
               onSearchChange(event.target.value)
             }
             placeholder="Buscar por nombre"
-            className="w-full bg-transparent text-[10px] outline-none"
+            className="w-full min-w-0 bg-transparent text-xs leading-normal outline-none placeholder:text-gray-500"
           />
 
         </div>

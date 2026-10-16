@@ -385,6 +385,7 @@ export async function obtenerCursosChat(
           c.id,
           c.nombre,
           c.codigo,
+          c.imagen_portada AS imagen,
 
           COALESCE(
             docente.nombres,
@@ -449,6 +450,7 @@ export async function obtenerCursosChat(
           c.id,
           c.nombre,
           c.codigo,
+          c.imagen_portada AS imagen,
 
           COALESCE(
             docente.nombres,
@@ -503,22 +505,11 @@ export async function obtenerCursosChat(
       cursos: result.rows.map(
         (row) => ({
           id: Number(row.id),
-
-          nombre:
-            row.nombre,
-
-          codigo:
-            row.codigo,
-
-          initials:
-            obtenerIniciales(
-              row.docente_nombres ||
-                row.nombre,
-              row.docente_apellidos
-            ),
-
-          miembros:
-            Number(row.miembros),
+          nombre: row.nombre,
+          codigo: row.codigo,
+          imagen: row.imagen ?? null,
+          initials: obtenerIniciales(row.docente_nombres || row.nombre, row.docente_apellidos),
+          miembros: Number(row.miembros),
         })
       ),
     });
@@ -634,7 +625,8 @@ export async function obtenerContactosChat(
             candidatos.nombres,
             candidatos.apellidos,
             candidatos.rol,
-
+            foto_usuario.foto_perfil IS NOT NULL AS tiene_foto_perfil,
+            EXTRACT(EPOCH FROM foto_usuario.actualizado_en)::TEXT AS foto_version,
             conv.id AS conversacion_id,
 
             EXISTS (
@@ -662,6 +654,9 @@ export async function obtenerContactosChat(
             ) AS no_leido
 
           FROM candidatos
+
+          LEFT JOIN usuarios foto_usuario
+            ON foto_usuario.id = candidatos.id
 
           LEFT JOIN LATERAL (
             SELECT cc.id
@@ -712,7 +707,8 @@ export async function obtenerContactosChat(
             u.nombres,
             u.apellidos,
             u.rol,
-
+            u.foto_perfil IS NOT NULL AS tiene_foto_perfil,
+            EXTRACT(EPOCH FROM u.actualizado_en)::TEXT AS foto_version,
             conv.id AS conversacion_id,
 
             EXISTS (
@@ -807,30 +803,13 @@ export async function obtenerContactosChat(
             id:
               Number(row.id),
 
-            initials:
-              obtenerIniciales(
-                row.nombres,
-                row.apellidos
-              ),
-
-            name:
-              row.rol === "Docente"
-                ? `Prof. ${nombreCompleto(
-                    row.nombres,
-                    row.apellidos
-                  )}`
-                : nombreCompleto(
-                    row.nombres,
-                    row.apellidos
-                  ),
-
-            role:
-              row.rol,
-
-            unread:
-              Boolean(
-                row.no_leido
-              ),
+            initials: obtenerIniciales(row.nombres, row.apellidos),
+            name: row.rol === "Docente" ? `Prof. ${nombreCompleto(row.nombres, row.apellidos)}` : nombreCompleto(row.nombres, row.apellidos),
+            role: row.rol,
+            unread: Boolean(row.no_leido),
+            fotoPerfil: row.tiene_foto_perfil
+              ? `/chat/cursos/${cursoId}/contactos/${Number(row.id)}/foto?v=${encodeURIComponent(String(row.foto_version ?? ""))}`
+              : null,
           })
         ),
     });
@@ -844,6 +823,65 @@ export async function obtenerContactosChat(
       message:
         "No se pudieron obtener los contactos.",
     });
+  }
+}
+
+
+export async function obtenerFotoContactoChat(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  const usuarioId = validarId(req.userId);
+  const cursoId = validarId(req.params.cursoId);
+  const contactoId = validarId(req.params.contactoId);
+
+  if (!usuarioId || !cursoId || !contactoId) {
+    return res.status(400).end();
+  }
+
+  try {
+    const acceso = await obtenerAccesoCurso(usuarioId, cursoId);
+
+    if (!acceso) {
+      return res.status(403).end();
+    }
+
+    const contactoValido = await verificarContacto(
+      Number(acceso.oferta_curso_id),
+      usuarioId,
+      contactoId,
+      acceso.rol
+    );
+
+    if (!contactoValido) {
+      return res.status(403).end();
+    }
+
+    const resultado = await pool.query<{
+      foto_perfil: Buffer | null;
+    }>(
+      `SELECT foto_perfil
+       FROM usuarios
+       WHERE id = $1
+         AND activo = TRUE
+       LIMIT 1`,
+      [contactoId]
+    );
+
+    const foto = resultado.rows[0]?.foto_perfil;
+
+    if (!foto) {
+      return res.status(404).end();
+    }
+
+    res.setHeader("Content-Type", "image/webp");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    return res.status(200).send(foto);
+  } catch (error) {
+    console.error("Error obteniendo foto del contacto:", error);
+    return res.status(500).end();
   }
 }
 

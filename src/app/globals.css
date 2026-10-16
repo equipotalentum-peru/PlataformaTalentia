@@ -64,12 +64,14 @@ video {
   height: auto;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  max-width: 100%;
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    max-width: 100%;
+  }
 }
 
 button,
@@ -463,9 +465,14 @@ a {
 .app-layout-main h3,
 .app-layout-main p,
 .app-layout-main label,
-.app-layout-main button,
 .app-layout-main a {
   overflow-wrap: anywhere;
+}
+
+/* Los botones no deben partir sus palabras a mitad de texto. */
+.app-layout-main button {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .app-layout-main input,

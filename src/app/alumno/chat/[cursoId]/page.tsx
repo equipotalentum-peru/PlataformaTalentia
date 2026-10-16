@@ -12,6 +12,6 @@ export default async function StudentChatConversationPage({
   const { cursoId } = await params;
 
   return (
-    <ChatConversation cursoId={cursoId} />
+    <ChatConversation cursoId={cursoId} basePath="alumno" />
   );
 }

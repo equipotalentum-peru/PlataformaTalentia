@@ -1,4 +1,5 @@
 import type { ChatContact } from "@/data/chat";
+import ChatAvatar from "./ChatAvatar";
 
 type Props = {
   contact: ChatContact;
@@ -21,9 +22,12 @@ export default function ChatContactItem({
           : "bg-white hover:bg-[#f5f7fa]"
       }`}
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#11b7b8] text-[11px] font-semibold text-white">
-        {contact.initials}
-      </div>
+      <ChatAvatar
+        src={contact.fotoPerfil}
+        initials={contact.initials}
+        name={contact.name}
+        className="h-12 w-12 bg-[#11b7b8] text-[11px]"
+      />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-[12px] font-semibold text-gray-900">

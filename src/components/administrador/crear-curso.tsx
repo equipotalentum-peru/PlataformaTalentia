@@ -374,7 +374,7 @@ export default function CrearCurso({
                   : "bg-gray-100 text-[#94A3B8]"
               }`}
             >
-              2. Sistema de evaluación
+              2. Evaluaciones
             </div>
             <div className="h-[2px] bg-gray-200 flex-1 mx-4"></div>
             <div

@@ -1,38 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import type { ComponenteCalificacionDraft } from "@/lib/cursos-admin-types";
-
-const EVALUACIONES_INICIALES: ComponenteCalificacionDraft[] = [
-  { id: "1", nombre: "Examen 1", porcentaje: "20" },
-  { id: "2", nombre: "Examen 2", porcentaje: "20" },
-  { id: "3", nombre: "Proyecto final", porcentaje: "50" },
-];
 
 export interface ConfigurarCursoProps {
   esPasoWizard?: boolean;
   onContinuar?: () => void;
-  evaluaciones?: ComponenteCalificacionDraft[];
-  onEvaluacionesChange?: (evaluaciones: ComponenteCalificacionDraft[]) => void;
+  evaluaciones: ComponenteCalificacionDraft[];
+  onEvaluacionesChange: (
+    evaluaciones: ComponenteCalificacionDraft[]
+  ) => void;
 }
 
 export default function ConfigurarCurso({
   esPasoWizard = false,
   onContinuar,
-  evaluaciones: evaluacionesExternas,
+  evaluaciones,
   onEvaluacionesChange,
 }: ConfigurarCursoProps) {
-  const [evaluacionesLocales, setEvaluacionesLocales] = useState<ComponenteCalificacionDraft[]>(
-    EVALUACIONES_INICIALES
-  );
-  const evaluaciones = evaluacionesExternas ?? evaluacionesLocales;
-
-  const actualizarEvaluaciones = (nuevas: ComponenteCalificacionDraft[]) => {
-    if (onEvaluacionesChange) {
-      onEvaluacionesChange(nuevas);
-    } else {
-      setEvaluacionesLocales(nuevas);
-    }
+  const actualizarEvaluaciones = (
+    nuevas: ComponenteCalificacionDraft[]
+  ) => {
+    onEvaluacionesChange(nuevas);
   };
 
   const handleEvaluacionChange = (

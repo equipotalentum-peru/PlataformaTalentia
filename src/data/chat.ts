@@ -8,6 +8,7 @@ export type ChatCourse = {
   nombre: string;
   codigo: string;
   miembros: number;
+  imagen?: string | null;
 };
 
 export type ChatContact = {
@@ -16,6 +17,7 @@ export type ChatContact = {
   name: string;
   role: ChatRole;
   unread: boolean;
+  fotoPerfil?: string | null;
 };
 
 export type ChatMessage = {

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, } from "react";
 import type { ChatCourse, } from "@/data/chat";
 import { API_URL } from "@/lib/api";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
+import ChatAvatar from "./ChatAvatar";
 
 type Props = {
   basePath:
@@ -147,9 +149,16 @@ export default function ChatCourseList({
                   className="flex min-h-[78px] items-center justify-between gap-3 border-b border-gray-300 px-3 py-2 hover:bg-[#f5f8fc] sm:px-6"
                 >
                   <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 bg-[#2f80d8] text-[13px] font-semibold text-white">
-                      {course.initials}
-                    </div>
+                    <ChatAvatar
+                      src={
+                        course.imagen
+                          ? resolverImagenPortadaCurso(course.imagen, course.id, "")
+                          : null
+                      }
+                      initials={course.initials}
+                      name={course.nombre}
+                      className="h-11 w-11 bg-[#2f80d8] text-[13px] sm:h-14 sm:w-14"
+                    />
 
                     <div className="min-w-0">
                       <h2 className="break-words text-[14px] font-bold">

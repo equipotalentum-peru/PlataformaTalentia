@@ -86,16 +86,10 @@ export default function ChatComposer({
 
         <input
           value={value}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-            )
-          }
-          onKeyDown={
-            handleKeyDown
-          }
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje"
-          className="h-10 min-w-0 flex-1 rounded-md border border-gray-300 px-3 text-[11px] outline-none focus:border-[#3186d8]"
+          className="h-10 min-w-0 flex-1 rounded-md border border-gray-300 px-3 text-sm leading-normal outline-none placeholder:text-gray-500 focus:border-[#3186d8]"
         />
 
         <button

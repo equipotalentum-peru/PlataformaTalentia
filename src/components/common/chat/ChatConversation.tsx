@@ -11,10 +11,12 @@ import { crearChatSocket, type ChatSocket, type ChatMensajeNuevo, } from "@/lib/
 
 type Props = {
   cursoId: string;
+  basePath: "alumno" | "docente";
 };
 
 export default function ChatConversation({
   cursoId,
+  basePath,
 }: Props) {
   const courseId =
     Number(cursoId);
@@ -105,12 +107,17 @@ export default function ChatConversation({
             ""
         );
 
-        const nuevosContactos =
-          Array.isArray(
-            data.contactos
-          )
-            ? data.contactos
-            : [];
+        
+        const contactosApi: ChatContact[] = Array.isArray(data.contactos)
+          ? data.contactos
+          : [];
+
+        const nuevosContactos: ChatContact[] = contactosApi.map((contacto) => ({
+          ...contacto,
+          fotoPerfil: contacto.fotoPerfil
+            ? `${API_URL.replace(/\/$/, "")}${contacto.fotoPerfil}`
+            : null,
+        }));
 
         setContacts(
           nuevosContactos
@@ -761,21 +768,14 @@ export default function ChatConversation({
         ) : (
           <>
             <ChatContactList
-              courseName={
-                courseName
-              }
+              courseName={courseName}
+              backHref={`/${basePath}/chat`}
               contacts={contacts}
-              selectedContact={
-                selectedContact
-              }
+              selectedContact={selectedContact}
               search={search}
               filter={filter}
-              onSearchChange={
-                setSearch
-              }
-              onFilterChange={
-                setFilter
-              }
+              onSearchChange={setSearch}
+              onFilterChange={setFilter}
               onSelect={(id) => {
                 setSelectedContact(id);
                 setShowChat(true);

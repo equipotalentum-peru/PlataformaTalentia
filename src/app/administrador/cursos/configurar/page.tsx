@@ -13,5 +13,9 @@ export default async function ConfigurarPage({
     redirect("/administrador/cursos");
   }
 
-  return <CrearCurso cursoId={id} />;
+  return (
+    <div className="min-h-screen w-full bg-[#EEF2F8] px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
+      <CrearCurso cursoId={id} />
+    </div>
+  );
 }
