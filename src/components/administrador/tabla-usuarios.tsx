@@ -17,6 +17,7 @@ interface Usuario {
 
 export default function UsuariosTable() {
   const [filtroRol, setFiltroRol] = useState<"Todos" | Usuario["rol"]>("Todos");
+  const [filtroEstado, setFiltroEstado] = useState<"Todos" | Usuario["estado"]>("Todos");
   const [busqueda, setBusqueda] = useState("");
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -110,13 +111,14 @@ export default function UsuariosTable() {
   const textoBusqueda = busqueda.trim().toLowerCase();
   const usuariosFiltrados = usuarios.filter((user) => {
     const coincideRol = filtroRol === "Todos" || user.rol === filtroRol;
+    const coincideEstado = filtroEstado === "Todos" || user.estado === filtroEstado;
 
     const coincideBusqueda =
       user.nombre.toLowerCase().includes(textoBusqueda) ||
       user.correo.toLowerCase().includes(textoBusqueda) ||
       user.rol.toLowerCase().includes(textoBusqueda);
 
-    return coincideRol && coincideBusqueda;
+    return coincideRol && coincideEstado && coincideBusqueda;
   });
 
   return (
@@ -137,40 +139,39 @@ export default function UsuariosTable() {
         </button>
       </div>
 
-      {/* Controles: Búsqueda y Filtros de Píldora */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        <div className="relative w-full md:w-96">
+      <div className="mb-6 grid grid-cols-1 items-end gap-3 min-[480px]:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_190px_160px]">
+        <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B] min-[480px]:col-span-2 lg:col-span-1">
+          Buscar
           <input
             type="text"
             placeholder="Buscar por nombre, correo o rol"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full bg-white border-none rounded-2xl px-5 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
           />
-        </div>
+        </label>
 
-        {/* Píldoras de Filtro */}
-        <div className="flex flex-wrap items-center justify-center gap-2 bg-transparent p-1">
-          {([
-            ["Todos", "Todos"],
-            ["Alumno", "Alumnos"],
-            ["Docente", "Docentes"],
-            ["Administrador", "Administradores"],
-          ] as const).map(([rol, etiqueta]) => (
-            <button
-              key={rol}
-              onClick={() => setFiltroRol(rol)}
-              aria-pressed={filtroRol === rol}
-              className={`px-6 py-2 rounded-full text-xs font-bold transition-all ${
-                filtroRol === rol
-                  ? "bg-[#C4F1F9] text-[#0F2851]"
-                  : "bg-white text-[#475569] hover:bg-gray-100"
-              }`}
-            >
-              {etiqueta}
-            </button>
-          ))}
-        </div>
+          <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+            Rol
+            <select value={filtroRol}
+              onChange={(event) => setFiltroRol(event.target.value as typeof filtroRol)}
+              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-[#D7E0EC] bg-white px-3 text-sm font-normal text-[#0F2851] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15">
+              <option value="Todos">Todos</option>
+              <option value="Alumno">Alumno</option>
+              <option value="Docente">Docente</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </label>
+          <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+            Estado
+            <select value={filtroEstado}
+              onChange={(event) => setFiltroEstado(event.target.value as typeof filtroEstado)}
+              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-[#D7E0EC] bg-white px-3 text-sm font-normal text-[#0F2851] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15">
+              <option value="Todos">Todos</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </label>
       </div>
 
       {/* Tabla estilo Figma */}
