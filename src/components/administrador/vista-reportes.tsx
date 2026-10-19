@@ -233,7 +233,7 @@ export default function VistaReportes() {
               key={categoria}
               type="button"
               onClick={() => setCategoriaActiva(categoria)}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition ${
+              className={`px-5 py-2 rounded-full text-[13px] font-bold transition ${
                 categoriaActiva === categoria
                   ? "bg-[#A5F3FC] text-[#0891B2]"
                   : "text-[#6B21A8] hover:bg-slate-50"
@@ -265,7 +265,7 @@ export default function VistaReportes() {
       {/* Gráfico e indicadores: se conserva el diseño de Figma */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 flex flex-col justify-between">
-          <h2 className="text-lg font-extrabold text-[#0F2851] mb-6">
+          <h2 className="text-sm font-extrabold text-[#0F2851] mb-6">
             {datos?.grafico.titulo ?? (
               categoriaActiva === "Usuarios"
                 ? "Usuarios por rol"
@@ -280,11 +280,11 @@ export default function VistaReportes() {
           </h2>
           <div className="flex items-end justify-around gap-3 h-48 pt-4 border-b border-gray-100 pb-2">
             {cargando && !datos ? (
-              <p className="text-xs font-semibold text-[#64748B]">
+              <p className="text-[13px] font-semibold text-[#64748B]">
                 Cargando datos...
               </p>
             ) : itemsGrafico.length === 0 ? (
-              <p className="text-xs font-semibold text-[#64748B]">
+              <p className="text-[13px] font-semibold text-[#64748B]">
                 No hay datos disponibles.
               </p>
             ) : (
@@ -308,7 +308,7 @@ export default function VistaReportes() {
                       style={{ height: `${altura}px` }}
                       aria-label={`${item.label}: ${item.value}`}
                     />
-                    <span className="max-w-full truncate text-xs font-bold text-[#64748B]">
+                    <span className="max-w-full truncate text-[13px] font-bold text-[#64748B]">
                       {item.label}
                     </span>
                   </div>
@@ -319,7 +319,7 @@ export default function VistaReportes() {
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
-          <h2 className="text-lg font-extrabold text-[#0F2851] mb-6">
+          <h2 className="text-sm font-extrabold text-[#0F2851] mb-6">
             {categoriaActiva === "Usuarios"
               ? "Indicadores clave"
               : categoriaActiva === "Cursos"
@@ -351,7 +351,7 @@ export default function VistaReportes() {
                   >
                     {cargando && !datos ? "—" : valor}
                   </p>
-                  <p className="text-xs font-bold text-[#64748B] mt-2">
+                  <p className="text-[13px] font-bold text-[#64748B] mt-2">
                     {indicador?.label ?? "Cargando indicador"}
                   </p>
                 </div>
@@ -364,13 +364,13 @@ export default function VistaReportes() {
       {/* Tabla de reportes exportados recientemente */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
         <div className="flex justify-between items-center mb-6 gap-3">
-          <h2 className="text-lg font-extrabold text-[#0F2851]">
+          <h2 className="text-sm font-extrabold text-[#0F2851]">
             Reporte reciente
           </h2>
           <button
             type="button"
             onClick={() => router.push("/administrador/reportes/historial")}
-            className="text-xs font-bold text-[#6B21A8] hover:text-[#581c87] bg-[#F5F3FF] hover:bg-[#e9e5ff] px-4 py-2 rounded-xl transition"
+            className="text-[13px] font-bold text-[#6B21A8] hover:text-[#581c87] bg-[#F5F3FF] hover:bg-[#e9e5ff] px-4 py-2 rounded-xl transition"
           >
             Ver historial administrativo →
           </button>
@@ -379,7 +379,7 @@ export default function VistaReportes() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
                 <th className="py-4 px-6">Reporte</th>
                 <th className="py-4 px-6">Fecha</th>
                 <th className="py-4 px-6">Responsable</th>
@@ -387,7 +387,7 @@ export default function VistaReportes() {
                 <th className="py-4 px-6 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-xs">
+            <tbody className="divide-y divide-gray-100 text-[13px]">
               {(datos?.reportesRecientes ?? []).map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/50 transition">
                   <td className="py-4 px-6 font-bold text-[#0F2851]">
@@ -400,7 +400,7 @@ export default function VistaReportes() {
                     {item.responsable}
                   </td>
                   <td className="py-4 px-6">
-                    <span className="bg-[#BBF7D0] text-[#166534] text-xs font-extrabold px-4 py-1.5 rounded-full inline-block">
+                    <span className="bg-[#BBF7D0] text-[#166534] text-[13px] font-extrabold px-4 py-1.5 rounded-full inline-block">
                       {item.estado === "Completo" ? "Listo" : item.estado}
                     </span>
                   </td>

@@ -551,7 +551,7 @@ export default function AdministradorDashboardPage() {
 
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F8] font-sans">
+    <div className="flex min-h-screen bg-[#EEF2F8]">
 
       {/* ==========================================
           ÁREA PRINCIPAL DEL DASHBOARD
@@ -598,12 +598,12 @@ export default function AdministradorDashboardPage() {
 
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-5">
 
-            <h2 className="text-base font-bold text-[#0F2851]">
+            <h2 className="text-sm font-bold text-[#0F2851]">
               Aprobados vs
               desaprobados
             </h2>
 
-            <p className="mb-6 text-xs text-[#6F83A5]">
+            <p className="mb-6 text-[13px] text-[#6F83A5]">
               Resultado académico
               general de los alumnos.
             </p>
@@ -633,7 +633,7 @@ export default function AdministradorDashboardPage() {
                         )}
                     </span>
 
-                    <span className="text-[10px] text-[#6F83A5]">
+                    <span className="text-[13px] text-[#6F83A5]">
                       alumnos
                     </span>
 
@@ -645,7 +645,7 @@ export default function AdministradorDashboardPage() {
 
               {/* LEYENDA */}
 
-              <div className="space-y-3 text-xs">
+              <div className="space-y-3 text-[13px]">
 
                 {/* APROBADOS */}
 
@@ -667,7 +667,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[10px] text-[#6F83A5]">
+                    <p className="text-[13px] text-[#6F83A5]">
                       {dashboard
                         .resumenAcademico
                         .aprobados
@@ -703,7 +703,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[10px] text-[#6F83A5]">
+                    <p className="text-[13px] text-[#6F83A5]">
                       {dashboard
                         .resumenAcademico
                         .desaprobados
@@ -739,7 +739,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[10px] text-[#6F83A5]">
+                    <p className="text-[13px] text-[#6F83A5]">
                       {dashboard
                         .resumenAcademico
                         .enRiesgo
@@ -771,12 +771,12 @@ export default function AdministradorDashboardPage() {
 
               <div>
 
-                <h2 className="text-base font-bold text-[#0F2851]">
+                <h2 className="text-sm font-bold text-[#0F2851]">
                   Actividad de
                   matrículas
                 </h2>
 
-                <p className="text-xs text-[#6F83A5]">
+                <p className="text-[13px] text-[#6F83A5]">
                   Nuevas matrículas
                   por mes y tendencia.
                 </p>
@@ -784,19 +784,19 @@ export default function AdministradorDashboardPage() {
               </div>
 
 
-              <span className="text-xs font-semibold text-[#2D97E8]">
+              <span className="text-[13px] font-semibold text-[#2D97E8]">
                 Últimos 6 meses
               </span>
 
             </div>
 
 
-            <div className="mt-6 flex h-44 items-end justify-between border-b border-gray-100 px-4 pb-2 text-xs text-[#6F83A5]">
+            <div className="mt-6 flex h-44 items-end justify-between border-b border-gray-100 px-4 pb-2 text-[13px] text-[#6F83A5]">
 
               {matriculasMes.length ===
               0 ? (
 
-                <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                <div className="flex h-full w-full items-center justify-center text-[13px] text-gray-400">
                   No hay matrículas
                   registradas.
                 </div>
@@ -832,7 +832,7 @@ export default function AdministradorDashboardPage() {
                         className="flex flex-col items-center gap-2"
                       >
 
-                        <span className="text-[10px] font-bold text-[#2D97E8]">
+                        <span className="text-[13px] font-bold text-[#2D97E8]">
                           {
                             item.cantidad
                           }
@@ -864,7 +864,7 @@ export default function AdministradorDashboardPage() {
             </div>
 
 
-            <div className="mt-3 flex flex-wrap justify-center gap-6 text-xs">
+            <div className="mt-3 flex flex-wrap justify-center gap-6 text-[13px]">
 
               <span className="flex items-center gap-1.5 text-[#2D97E8]">
                 ● Nuevas matrículas
@@ -916,11 +916,11 @@ export default function AdministradorDashboardPage() {
 
               <div>
 
-                <h2 className="text-base font-bold text-[#0F2851]">
+                <h2 className="text-sm font-bold text-[#0F2851]">
                   Alumnos destacados
                 </h2>
 
-                <p className="text-xs text-[#6F83A5]">
+                <p className="text-[13px] text-[#6F83A5]">
                   Mejores promedios
                   del período.
                 </p>
@@ -930,7 +930,7 @@ export default function AdministradorDashboardPage() {
 
               <button
                 type="button"
-                className="text-xs font-semibold text-[#2D97E8] hover:underline"
+                className="text-[13px] font-semibold text-[#2D97E8] hover:underline"
               >
                 Ver todos
               </button>
@@ -941,7 +941,7 @@ export default function AdministradorDashboardPage() {
             {destacados.length ===
             0 ? (
 
-              <div className="flex min-h-[170px] items-center justify-center text-xs text-gray-400">
+              <div className="flex min-h-[170px] items-center justify-center text-[13px] text-gray-400">
                 Aún no existen
                 calificaciones
                 suficientes para
@@ -956,14 +956,14 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex flex-col items-center">
 
-                  <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-[#B2DAFC] text-xs font-bold text-[#2D97E8]">
+                  <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-[#B2DAFC] text-[13px] font-bold text-[#2D97E8]">
                     2
                   </div>
 
                   <div className="w-28 rounded-2xl bg-[#EBF4FE] p-3 text-center">
 
                     <p
-                      className="truncate text-[10px] font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-[#0F2851]"
                       title={
                         top2?.nombre ??
                         ""
@@ -973,7 +973,7 @@ export default function AdministradorDashboardPage() {
                         "—"}
                     </p>
 
-                    <p className="mt-1 text-xs font-extrabold text-[#0F2851]">
+                    <p className="mt-1 text-[13px] font-extrabold text-[#0F2851]">
                       {top2
                         ? formatearPromedio(
                             top2.promedio
@@ -990,14 +990,14 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex -translate-y-2 flex-col items-center">
 
-                  <div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FFB800] text-xs font-bold text-white">
+                  <div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FFB800] text-[13px] font-bold text-white">
                     1
                   </div>
 
                   <div className="w-32 rounded-2xl bg-[#FFF9E6] p-4 text-center">
 
                     <p
-                      className="truncate text-xs font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-[#0F2851]"
                       title={
                         top1?.nombre ??
                         ""
@@ -1024,14 +1024,14 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex flex-col items-center">
 
-                  <div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FF7D00] text-xs font-bold text-white">
+                  <div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FF7D00] text-[13px] font-bold text-white">
                     3
                   </div>
 
                   <div className="w-28 rounded-2xl bg-[#F6EBFD] p-3 text-center">
 
                     <p
-                      className="truncate text-[10px] font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-[#0F2851]"
                       title={
                         top3?.nombre ??
                         ""
@@ -1041,7 +1041,7 @@ export default function AdministradorDashboardPage() {
                         "—"}
                     </p>
 
-                    <p className="mt-1 text-xs font-extrabold text-[#0F2851]">
+                    <p className="mt-1 text-[13px] font-extrabold text-[#0F2851]">
                       {top3
                         ? formatearPromedio(
                             top3.promedio
@@ -1066,25 +1066,25 @@ export default function AdministradorDashboardPage() {
 
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-6">
 
-            <h2 className="text-base font-bold text-[#0F2851]">
+            <h2 className="text-sm font-bold text-[#0F2851]">
               Cursos con baja
               continuidad
             </h2>
 
-            <p className="mb-6 text-xs text-[#6F83A5]">
+            <p className="mb-6 text-[13px] text-[#6F83A5]">
               Alumnos que siguen
               activos por curso.
             </p>
 
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-4 text-[13px]">
 
               {dashboard
                 .cursosBajaContinuidad
                 .length ===
               0 ? (
 
-                <p className="py-8 text-center text-xs text-gray-400">
+                <p className="py-8 text-center text-[13px] text-gray-400">
                   No hay información
                   suficiente de
                   continuidad.
@@ -1171,11 +1171,11 @@ export default function AdministradorDashboardPage() {
 
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
 
-          <h2 className="text-base font-bold text-[#0F2851]">
+          <h2 className="text-sm font-bold text-[#0F2851]">
             Distribución académica
           </h2>
 
-          <p className="mb-4 text-xs text-[#6F83A5]">
+          <p className="mb-4 text-[13px] text-[#6F83A5]">
             Estado general de los
             alumnos.
           </p>
@@ -1186,7 +1186,7 @@ export default function AdministradorDashboardPage() {
           {distribucion.total >
           0 ? (
 
-            <div className="mb-4 flex h-6 w-full overflow-hidden rounded-xl text-center text-[10px] font-bold leading-6">
+            <div className="mb-4 flex h-6 w-full overflow-hidden rounded-xl text-center text-[13px] font-bold leading-6">
 
               {segmentos.map(
                 (
@@ -1223,7 +1223,7 @@ export default function AdministradorDashboardPage() {
 
           ) : (
 
-            <div className="mb-4 flex h-6 w-full items-center justify-center rounded-xl bg-gray-200 text-[10px] text-gray-500">
+            <div className="mb-4 flex h-6 w-full items-center justify-center rounded-xl bg-gray-200 text-[13px] text-gray-500">
               Sin datos académicos
             </div>
 
@@ -1232,7 +1232,7 @@ export default function AdministradorDashboardPage() {
 
           {/* LEYENDA */}
 
-          <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 text-[13px] md:grid-cols-5">
 
             {segmentos.map(
               (
@@ -1262,7 +1262,7 @@ export default function AdministradorDashboardPage() {
                       }
                     </p>
 
-                    <p className="text-[10px] text-[#6F83A5]">
+                    <p className="text-[13px] text-[#6F83A5]">
                       {item.cantidad.toLocaleString(
                         "es-PE"
                       )}{" "}

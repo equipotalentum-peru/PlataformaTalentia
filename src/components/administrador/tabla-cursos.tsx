@@ -222,7 +222,7 @@ export default function TablaCursos() {
 
       {/* Barra de Filtros y Búsqueda */}
       <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
           Buscar
           <input
             type="text"
@@ -234,12 +234,12 @@ export default function TablaCursos() {
         </label>
 
         <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
-          <span className="text-xs font-semibold text-[#64748B]">Estado</span>
+          <span className="text-[13px] font-semibold text-[#64748B]">Estado</span>
           <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("Todos")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Todos"
                 ? "bg-[#C4F1F9] text-[#0F2851]"
                 : "bg-white text-[#475569] hover:bg-gray-50"
@@ -251,7 +251,7 @@ export default function TablaCursos() {
           <button
             type="button"
             onClick={() => setFiltroEstado("Activos")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Activos"
                 ? "bg-[#C4F1F9] text-[#0F2851]"
                 : "bg-white text-[#475569] hover:bg-gray-50"
@@ -263,7 +263,7 @@ export default function TablaCursos() {
           <button
             type="button"
             onClick={() => setFiltroEstado("Inactivos")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Inactivos"
                 ? "bg-[#C4F1F9] text-[#0F2851]"
                 : "bg-white text-[#475569] hover:bg-gray-50"
@@ -275,7 +275,7 @@ export default function TablaCursos() {
           <button
             type="button"
             onClick={() => setFiltroEstado("Borrador")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Borrador"
                 ? "bg-[#C4F1F9] text-[#0F2851]"
                 : "bg-white text-[#475569] hover:bg-gray-50"
@@ -290,18 +290,26 @@ export default function TablaCursos() {
       {/* Tabla de Cursos */}
       <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/80">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[1000px] table-fixed text-left border-collapse">
+            <colgroup>
+              <col />
+              <col className="w-32" />
+              <col className="w-44" />
+              <col className="w-28" />
+              <col className="w-32" />
+              <col className="w-24" />
+            </colgroup>
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
                 <th className="py-4 px-6">Curso</th>
-                <th className="py-4 px-6">Código</th>
-                <th className="py-4 px-6">Docente</th>
-                <th className="py-4 px-6">Matrículas</th>
-                <th className="py-4 px-6">Estado</th>
-                <th className="py-4 px-6 text-center">Acciones</th>
+                <th className="py-4 px-4">Código</th>
+                <th className="py-4 px-4">Docente</th>
+                <th className="py-4 px-4">Matrículas</th>
+                <th className="py-4 px-4">Estado</th>
+                <th className="py-4 px-4 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-xs font-semibold text-[#64748B]">
+            <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
               {cargando ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-[#64748B]">
@@ -321,13 +329,13 @@ export default function TablaCursos() {
                 <>
                   {cursosFiltrados.map((curso) => (
                     <tr key={curso.id} className="hover:bg-gray-50/50 transition">
-                      <td className="py-4 px-6 font-bold text-[#0F2851]">{curso.nombre}</td>
-                      <td className="py-4 px-6 text-[#64748B]">{curso.codigo}</td>
-                      <td className="py-4 px-6 text-[#64748B]">{curso.docente}</td>
-                      <td className="py-4 px-6 text-[#64748B]">{curso.matriculas}</td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-6 break-words font-bold text-[#0F2851]">{curso.nombre}</td>
+                      <td className="py-4 px-4 whitespace-nowrap text-[#64748B]">{curso.codigo}</td>
+                      <td className="py-4 px-4 break-words text-[#64748B]">{curso.docente}</td>
+                      <td className="py-4 px-4 whitespace-nowrap text-[#64748B]">{curso.matriculas}</td>
+                      <td className="py-4 px-4">
                         <span
-                          className={`inline-block rounded-full px-4 py-1.5 text-xs font-extrabold ${
+                          className={`inline-block whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-extrabold ${
                             curso.estado === "Activo"
                               ? "bg-[#BBF7D0] text-[#166534]"
                               : curso.estado === "Inactivo"
@@ -338,7 +346,7 @@ export default function TablaCursos() {
                           {curso.estado}
                         </span>
                       </td>
-                      <td className="relative py-4 px-6 text-center">
+                      <td className="relative py-4 px-4 text-center">
                         <button
                           type="button"
                           aria-label={`Acciones de ${curso.nombre}`}
@@ -364,7 +372,7 @@ export default function TablaCursos() {
                                   `/administrador/cursos/configurar?id=${curso.id}`
                                 );
                               }}
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-[#0F2851] hover:bg-[#F1F5F9]"
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-[#0F2851] hover:bg-[#F1F5F9]"
                             >
                               Editar
                             </button>
@@ -374,7 +382,7 @@ export default function TablaCursos() {
                                 type="button"
                                 disabled={cursoEnAccion === curso.id}
                                 onClick={() => void cambiarEstadoCurso(curso, "Activo")}
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
                               >
                                 {cursoEnAccion === curso.id ? "Publicando..." : "Publicar"}
                               </button>
@@ -387,7 +395,7 @@ export default function TablaCursos() {
                                 onClick={() =>
                                   void cambiarEstadoCurso(curso, "Inactivo")
                                 }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-50"
                               >
                                 Desactivar
                               </button>
@@ -400,7 +408,7 @@ export default function TablaCursos() {
                                 onClick={() =>
                                   void cambiarEstadoCurso(curso, "Activo")
                                 }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
                               >
                                 Activar
                               </button>
@@ -412,7 +420,7 @@ export default function TablaCursos() {
                               onClick={() =>
                                 void cambiarEstadoCurso(curso, "Archivado")
                               }
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
                             >
                               Retirar
                             </button>
@@ -424,7 +432,7 @@ export default function TablaCursos() {
 
                   {cursosFiltrados.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#64748B] text-sm">
+                      <td colSpan={6} className="py-8 text-center text-[#64748B] text-[13px]">
                         No se encontraron cursos que coincidan con la búsqueda.
                       </td>
                     </tr>

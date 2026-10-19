@@ -176,7 +176,7 @@ export default function TablaMatriculas() {
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
           Buscar
           <input
             type="text"
@@ -188,26 +188,26 @@ export default function TablaMatriculas() {
         </label>
 
         <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
-          <span className="text-xs font-semibold text-[#64748B]">Estado</span>
+          <span className="text-[13px] font-semibold text-[#64748B]">Estado</span>
           <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("todos")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${filtroEstado === "todos" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "todos" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
           >
             Curso
           </button>
           <button
             type="button"
             onClick={() => setFiltroEstado("activas")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${filtroEstado === "activas" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "activas" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
           >
             Activas
           </button>
           <button
             type="button"
             onClick={() => setFiltroEstado("pendientes")}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${filtroEstado === "pendientes" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "pendientes" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
           >
             Pendientes
           </button>
@@ -216,42 +216,50 @@ export default function TablaMatriculas() {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-700">
           {error}
         </p>
       )}
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[1000px] table-fixed text-left border-collapse">
+            <colgroup>
+              <col className="w-[22%]" />
+              <col />
+              <col className="w-28" />
+              <col className="w-36" />
+              <col className="w-36" />
+              <col className="w-24" />
+            </colgroup>
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
                 <th className="py-4 px-6">Alumno</th>
-                <th className="py-4 px-6">Curso</th>
-                <th className="py-4 px-6">Código</th>
-                <th className="py-4 px-6">Fecha</th>
-                <th className="py-4 px-6">Estado</th>
-                <th className="py-4 px-6 text-center">Acciones</th>
+                <th className="py-4 px-4">Curso</th>
+                <th className="py-4 px-4">Código</th>
+                <th className="py-4 px-4">Fecha</th>
+                <th className="py-4 px-4">Estado</th>
+                <th className="py-4 px-4 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-xs">
+            <tbody className="divide-y divide-gray-100 text-[13px]">
               {cargando ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-sm text-[#64748B]">Cargando matrículas...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-[#64748B]">Cargando matrículas...</td></tr>
               ) : matriculasFiltradas.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-sm text-[#64748B]">No se encontraron matrículas.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-[#64748B]">No se encontraron matrículas.</td></tr>
               ) : (
                 matriculasFiltradas.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-4 px-6 font-bold text-[#0F2851]">{item.alumno}</td>
-                    <td className="py-4 px-6 font-semibold text-[#64748B]">{item.curso}</td>
-                    <td className="py-4 px-6 font-semibold text-[#64748B]">{item.codigo}</td>
-                    <td className="py-4 px-6 font-semibold text-[#64748B]">{item.fecha}</td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-block px-4 py-1.5 rounded-full font-extrabold text-xs ${claseEstado(item.estado)}`}>
+                    <td className="py-4 px-6 break-words font-bold text-[#0F2851]">{item.alumno}</td>
+                    <td className="py-4 px-4 break-words font-semibold text-[#64748B]">{item.curso}</td>
+                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-[#64748B]">{item.codigo}</td>
+                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-[#64748B]">{item.fecha}</td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-block whitespace-nowrap px-4 py-1.5 rounded-full font-extrabold text-[13px] ${claseEstado(item.estado)}`}>
                         {item.estado}
                       </span>
                     </td>
-                    <td className="relative py-4 px-6 text-center">
+                    <td className="relative py-4 px-4 text-center">
                       <button
                       type="button"
                       aria-label={`Acciones de la matrícula de ${item.alumno}`}
@@ -283,7 +291,7 @@ export default function TablaMatriculas() {
                             type="button"
                             disabled={guardando || seleccionado}
                             onClick={() => void guardarEstado(item, estado)}
-                            className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold transition disabled:cursor-default ${
+                            className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-bold transition disabled:cursor-default ${
                               seleccionado
                               ? "bg-[#F3E8FF] text-[#6B21A8]"
                               : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F2851]"

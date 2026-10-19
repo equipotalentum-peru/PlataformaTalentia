@@ -140,7 +140,7 @@ export default function UsuariosTable() {
       </div>
 
       <div className="grid grid-cols-1 items-end gap-3 min-[480px]:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_190px_160px]">
-        <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B] min-[480px]:col-span-2 lg:col-span-1">
+        <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B] min-[480px]:col-span-2 lg:col-span-1">
           Buscar
           <input
             type="text"
@@ -151,7 +151,7 @@ export default function UsuariosTable() {
           />
         </label>
 
-          <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
             Rol
             <select value={filtroRol}
               onChange={(event) => setFiltroRol(event.target.value as typeof filtroRol)}
@@ -162,7 +162,7 @@ export default function UsuariosTable() {
               <option value="Administrador">Administrador</option>
             </select>
           </label>
-          <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#64748B]">
+          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
             Estado
             <select value={filtroEstado}
               onChange={(event) => setFiltroEstado(event.target.value as typeof filtroEstado)}
@@ -175,11 +175,11 @@ export default function UsuariosTable() {
       </div>
 
       {/* Tabla estilo Figma */}
-      {errorAccion && <p role="alert" className="mb-4 text-sm text-red-600">{errorAccion}</p>}
+      {errorAccion && <p role="alert" className="mb-4 text-[13px] text-red-600">{errorAccion}</p>}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
               <th className="py-4 px-6">Usuario</th>
               <th className="py-4 px-6">Correo</th>
               <th className="py-4 px-6">Rol</th>
@@ -188,7 +188,7 @@ export default function UsuariosTable() {
               <th className="py-4 px-6 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-xs">
+          <tbody className="divide-y divide-gray-100 text-[13px]">
             {(cargando || error || usuariosFiltrados.length === 0) && (
               <tr>
                 <td colSpan={6} className="py-6 px-6 text-[#64748B]" role={error ? "alert" : "status"}>
@@ -214,17 +214,19 @@ export default function UsuariosTable() {
                 </td>
                 <td className="py-4 px-6">
                   {usuario.estado === "Activo" ? (
-                    <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full font-extrabold text-xs">
+                    <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full font-extrabold text-[13px]">
                       Activo
                     </span>
                   ) : (
-                    <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-4 py-1.5 rounded-full font-extrabold text-xs">
+                    <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-4 py-1.5 rounded-full font-extrabold text-[13px]">
                       Inactivo
                     </span>
                   )}
                 </td>
                 <td className="py-4 px-6 text-center">
                   <button type="button" data-user-actions aria-expanded={menu?.usuario.id === usuario.id}
+                    aria-label={`Acciones de ${usuario.nombre}`}
+                    title="Acciones"
                     aria-controls={menu?.usuario.id === usuario.id ? "usuario-acciones" : undefined}
                     disabled={cambiando}
                     onClick={(event) => {
@@ -235,8 +237,8 @@ export default function UsuariosTable() {
                         left: Math.max(8, Math.min(rect.right - 224, window.innerWidth - 232)),
                       });
                     }}
-                    className="bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#0F2851] font-bold px-4 py-2 rounded-xl text-xs transition disabled:opacity-50">
-                    Acciones
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50">
+                    ⋮
                   </button>
                 </td>
               </tr>
@@ -247,13 +249,13 @@ export default function UsuariosTable() {
       {menu && createPortal(
         <div ref={menuRef} id="usuario-acciones" aria-label={`Acciones de ${menu.usuario.nombre}`}
           style={{ top: menu.top, left: menu.left }}
-          className="fixed z-50 w-56 rounded-lg border border-slate-100 bg-white py-1 text-sm text-[#0F2851] shadow-lg">
+          className="fixed z-50 w-56 rounded-lg border border-slate-100 bg-white py-1 text-[13px] text-[#0F2851] shadow-lg">
           {([
-            ["Ver detalles", "M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6"],
-            ["Editar", "m16 3 5 5M3 21l5-1L21 7a2 2 0 0 0-5-5L3 16v5Z"],
-            [menu.usuario.estado === "Activo" ? "Desactivar" : "Activar", "M12 2v10M6 5a9 9 0 1 0 12 0"],
-            ["Eliminar", "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"],
-          ] as const).map(([label, path], index) => (
+            "Ver detalles",
+            "Editar",
+            menu.usuario.estado === "Activo" ? "Desactivar" : "Activar",
+            "Eliminar",
+          ] as const).map((label, index) => (
             <button key={label} type="button"
               onClick={() => {
                 setMenu(null);
@@ -261,8 +263,7 @@ export default function UsuariosTable() {
                 else if (index === 1) router.push(`/administrador/usuarios/editar?id=${menu.usuario.id}`);
                 else void cambiarUsuario(menu.usuario, index === 3);
               }}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 ${index === 3 ? "border-t border-slate-100 text-red-600" : ""}`}>
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0"><path d={path} /></svg>
+              className={`w-full px-4 py-3 text-left hover:bg-slate-50 ${index === 3 ? "border-t border-slate-100 text-red-600" : ""}`}>
               {label}
             </button>
           ))}

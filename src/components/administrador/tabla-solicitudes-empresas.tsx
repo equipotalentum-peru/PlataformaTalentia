@@ -385,7 +385,7 @@ export default function TablaSolicitudesEmpresas() {
       "Atendido"
     ) {
       return (
-        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-extrabold text-emerald-700">
+        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[13px] font-extrabold text-emerald-700">
           Atendido
         </span>
       );
@@ -397,7 +397,7 @@ export default function TablaSolicitudesEmpresas() {
       "Cancelado"
     ) {
       return (
-        <span className="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[10px] font-extrabold text-red-600">
+        <span className="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[13px] font-extrabold text-red-600">
           Cancelado
         </span>
       );
@@ -405,7 +405,7 @@ export default function TablaSolicitudesEmpresas() {
 
 
     return (
-      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-extrabold text-amber-700">
+      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-extrabold text-amber-700">
         Pendiente
       </span>
     );
@@ -419,11 +419,11 @@ export default function TablaSolicitudesEmpresas() {
 
         <div>
 
-          <h2 className="text-lg font-extrabold text-[#0F2851]">
+          <h2 className="text-sm font-extrabold text-[#0F2851]">
             Solicitudes Corporativas (B2B)
           </h2>
 
-          <p className="mt-0.5 text-xs font-semibold text-[#64748B]">
+          <p className="mt-0.5 text-[13px] font-semibold text-[#64748B]">
             Empresas interesadas en capacitaciones masivas o convenios
           </p>
 
@@ -439,7 +439,7 @@ export default function TablaSolicitudesEmpresas() {
             solicitudes.length ===
             0
           }
-          className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#16A085] px-5 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#138a73] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             viewBox="0 0 24 24"
@@ -466,29 +466,29 @@ export default function TablaSolicitudesEmpresas() {
 
           <thead>
 
-            <tr className="border-b border-gray-100 text-[11px] font-extrabold uppercase tracking-wider text-[#64748B]">
+            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
 
-              <th className="px-3 pb-3">
+              <th className="px-4 py-4">
                 Fecha
               </th>
 
-              <th className="px-3 pb-3">
+              <th className="px-4 py-4">
                 Empresa / RUC
               </th>
 
-              <th className="px-3 pb-3">
+              <th className="px-4 py-4">
                 Persona de Contacto
               </th>
 
-              <th className="px-3 pb-3">
+              <th className="px-4 py-4">
                 Interés Capacitación
               </th>
 
-              <th className="px-3 pb-3 text-center">
+              <th className="px-4 py-4 text-center">
                 Estado
               </th>
 
-              <th className="w-[70px] px-3 pb-3 text-center">
+              <th className="w-[70px] px-4 py-4 text-center">
                 Acciones
               </th>
 
@@ -497,7 +497,7 @@ export default function TablaSolicitudesEmpresas() {
           </thead>
 
 
-          <tbody className="divide-y divide-gray-50 text-xs font-medium text-[#0F2851]">
+          <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
 
             {cargando ? (
 
@@ -548,7 +548,7 @@ export default function TablaSolicitudesEmpresas() {
                         }
                       </p>
 
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[13px] text-[#64748B]">
                         RUC:{" "}
                         {
                           item.ruc
@@ -568,7 +568,7 @@ export default function TablaSolicitudesEmpresas() {
                         }
                       </p>
 
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[13px] text-[#64748B]">
                         {
                           item.correo
                         }{" "}
@@ -583,7 +583,7 @@ export default function TablaSolicitudesEmpresas() {
 
                     {/* INTERÉS */}
 
-                    <td className="max-w-[280px] px-3 py-4 font-semibold text-[#0F2851]">
+                    <td className="max-w-[280px] px-3 py-4 font-semibold text-[#64748B]">
 
                       <p
                         className="truncate"
@@ -659,7 +659,7 @@ export default function TablaSolicitudesEmpresas() {
                                 "Pendiente"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[12px] font-semibold transition hover:bg-amber-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-amber-50 ${
                               item.estado ===
                               "Pendiente"
                                 ? "bg-amber-50 text-amber-700"
@@ -688,7 +688,7 @@ export default function TablaSolicitudesEmpresas() {
                                 "Atendido"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[12px] font-semibold transition hover:bg-emerald-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-emerald-50 ${
                               item.estado ===
                               "Atendido"
                                 ? "bg-emerald-50 text-emerald-700"
@@ -717,7 +717,7 @@ export default function TablaSolicitudesEmpresas() {
                                 "Cancelado"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[12px] font-semibold transition hover:bg-red-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-red-50 ${
                               item.estado ===
                               "Cancelado"
                                 ? "bg-red-50 text-red-600"

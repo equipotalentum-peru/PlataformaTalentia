@@ -79,7 +79,7 @@ export default function LoginForm() {
           break;
 
         case "Administrador":
-          router.push("/administrador/perfil");
+          router.push("/administrador/dashboard");
           break;
 
         default:

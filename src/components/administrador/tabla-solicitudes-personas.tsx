@@ -432,28 +432,28 @@ const [
     switch (estado) {
       case "Pendiente":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200/80 text-xs font-semibold rounded-full">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200/80 text-[13px] font-semibold rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
             Pendiente
           </span>
         );
       case "Contactado":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 text-sky-700 border border-sky-200/80 text-xs font-semibold rounded-full">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 text-sky-700 border border-sky-200/80 text-[13px] font-semibold rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
             Contactado
           </span>
         );
       case "Matriculado":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-semibold rounded-full">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[13px] font-semibold rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Matriculado
           </span>
         );
       case "Cancelado":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 text-xs font-medium rounded-full">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 text-[13px] font-semibold rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
             Cancelado
           </span>
@@ -585,10 +585,10 @@ const [
       {/* Encabezado y buscador */}
      <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#0F2851]">
+          <h2 className="text-sm font-bold text-[#0F2851]">
             Listado de Registros Personales
           </h2>
-          <p className="text-sm text-[#6F83A5]">
+          <p className="text-sm text-[#64748B]">
             Interesados desde el formulario público web
           </p>
         </div>
@@ -598,7 +598,7 @@ const [
             type="button"
             onClick={exportarExcelPersonas}
             disabled={solicitudes.length === 0}
-            className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#16A085] px-5 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#138a73] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               viewBox="0 0 24 24"
@@ -631,22 +631,22 @@ const [
       <div className="overflow-x-auto min-h-[320px]">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-100 text-xs font-bold text-[#6F83A5] uppercase tracking-wider">
-              <th className="py-3 px-4">Fecha</th>
-              <th className="py-3 px-4">Postulante / DNI</th>
-              <th className="py-3 px-4">Contacto</th>
-              <th className="py-3 px-4">Tipo de Alumno</th>
-              <th className="py-3 px-4">Interés</th>
-              <th className="py-3 px-4">Estado</th>
-              <th className="py-3 px-4 text-center">Acciones</th>
+            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+              <th className="py-4 px-4">Fecha</th>
+              <th className="py-4 px-4">Postulante / DNI</th>
+              <th className="py-4 px-4">Contacto</th>
+              <th className="py-4 px-4">Tipo de Alumno</th>
+              <th className="py-4 px-4">Interés</th>
+              <th className="py-4 px-4">Estado</th>
+              <th className="py-4 px-4 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50 text-sm">
+          <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
             {cargando ? (
   <tr>
     <td
       colSpan={7}
-      className="text-center py-8 text-[#6F83A5]"
+      className="text-center py-8 text-[#64748B]"
     >
       Cargando solicitudes...
     </td>
@@ -654,36 +654,36 @@ const [
 ) : solicitudesFiltradas.length > 0 ? (
               solicitudesFiltradas.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/60 transition">
-                  <td className="py-4 px-4 text-[#6F83A5] whitespace-nowrap">
+                  <td className="py-4 px-4 text-[#64748B] whitespace-nowrap">
                     {item.fecha}
                   </td>
                   <td className="py-4 px-4 whitespace-nowrap">
                     <p className="font-bold text-[#0F2851]">{item.nombre}</p>
-                    <p className="text-xs text-[#6F83A5]">DNI: {item.dni}</p>
+                    <p className="text-[13px] text-[#64748B]">DNI: {item.dni}</p>
                   </td>
                   <td className="py-4 px-4 whitespace-nowrap">
-                    <p className="text-[#0F2851] font-medium">{item.email}</p>
-                    <p className="text-xs text-[#6F83A5]">{item.telefono}</p>
+                    <p className="text-[#64748B] font-semibold">{item.email}</p>
+                    <p className="text-[13px] text-[#64748B]">{item.telefono}</p>
                   </td>
                   <td className="py-4 px-4 whitespace-nowrap">
                     {item.tipoAlumno === "Convenio" ? (
                       <div>
-                        <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full">
+                        <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[13px] font-bold rounded-full">
                           Alumno con Convenio
                         </span>
                         {item.empresa && (
-                          <p className="text-xs text-[#2D97E8] font-semibold mt-1">
+                          <p className="text-[13px] text-[#2D97E8] font-semibold mt-1">
                             {item.empresa}
                           </p>
                         )}
                       </div>
                     ) : (
-                      <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                      <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[13px] font-semibold rounded-full">
                         Alumno Externo
                       </span>
                     )}
                   </td>
-                  <td className="py-4 px-4 text-[#0F2851] font-medium whitespace-nowrap">
+                  <td className="py-4 px-4 text-[#0F2851] font-semibold whitespace-nowrap">
                     {item.interes}
                   </td>
                   
@@ -698,7 +698,7 @@ const [
                       <button
                         type="button"
                         onClick={() => toggleMenu(item.id)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F4F7FC] hover:bg-slate-200 text-[#0F2851] text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-200/60"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F4F7FC] hover:bg-slate-200 text-[#0F2851] text-[13px] font-bold rounded-xl transition-all cursor-pointer border border-slate-200/60"
                       >
                         <span>Acciones</span>
                         <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${menuAbiertoId === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -712,7 +712,7 @@ const [
                           <button
                             type="button"
                             onClick={() => abrirModalDetalles(item)}
-                            className="w-full text-left px-4 py-2 text-xs font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
+                            className="w-full text-left px-4 py-2 text-[13px] font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
                           >
                             <svg className="w-4 h-4 text-[#2D97E8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -724,7 +724,7 @@ const [
                           <button
   type="button"
   onClick={() => enviarInvitacion(item)}
-  className="w-full text-left px-4 py-2 text-xs font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
+  className="w-full text-left px-4 py-2 text-[13px] font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
 >
   <svg
     className="w-4 h-4 text-[#2D97E8]"
@@ -747,7 +747,7 @@ const [
                             <button
                               type="button"
                               onClick={() => abrirModalEmpresa(item)}
-                              className="w-full text-left px-4 py-2 text-xs font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
+                              className="w-full text-left px-4 py-2 text-[13px] font-semibold text-[#0F2851] hover:bg-[#F4F7FC] flex items-center gap-2.5 transition"
                             >
                               <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0a2 2 0 100-4 2 2 0 000 4z" />
@@ -761,7 +761,7 @@ const [
                           <button
                             type="button"
                             onClick={() => handleEliminar(item.id)}
-                            className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition"
+                            className="w-full text-left px-4 py-2 text-[13px] font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition"
                           >
                             <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -776,7 +776,7 @@ const [
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-[#6F83A5]">
+                <td colSpan={7} className="text-center py-8 text-[#64748B]">
                   No se encontraron registros.
                 </td>
               </tr>
