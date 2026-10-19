@@ -26,6 +26,7 @@ INSERT INTO actividades (
   calificada,
   estado
 )
+
 SELECT
   cc.id,
   cc.descripcion,

@@ -943,15 +943,15 @@ export default function TeacherGradesPage() {
     return (
       <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
         <header className="mb-5">
-          <p className="text-[9px] font-medium uppercase text-gray-500">
+          <p className="text-[11px] font-medium uppercase text-gray-500">
             {formatearFechaLarga()}
           </p>
 
-          <h1 className="mt-1 text-[31px] font-semibold tracking-[-0.8px] text-gray-950">
-            Calificaciones por Curso
+          <h1 className="mt-1 text-[35px] font-semibold tracking-[-0.8px] text-gray-950">
+           Calificaciones por Curso
           </h1>
 
-          <p className="mt-1 text-[10px] text-gray-700">
+          <p className="mt-1 text-[15px] text-gray-700">
             Cargando información desde la base de datos...
           </p>
         </header>
@@ -963,16 +963,16 @@ export default function TeacherGradesPage() {
     <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
       {/* CABECERA */}
       <header className="mb-5">
-        <p className="text-[9px] font-medium uppercase text-gray-500">
+        <p className="text-[11px] font-medium uppercase text-gray-500">
           {formatearFechaLarga()}
         </p>
 
-        <h1 className="mt-1 text-[31px] font-semibold tracking-[-0.8px] text-gray-950">
-          Calificaciones por Curso
+        <h1 className="mt-1 text-[35px] font-semibold tracking-[-0.8px] text-gray-950">
+         Calificaciones por Curso
         </h1>
 
-        <p className="mt-1 text-[10px] text-gray-700">
-          Selecciona un curso y registra la nota individual de cada alumno.
+        <p className="mt-2 text-[15px] text-gray-700">
+         Selecciona un curso y registra la nota individual de cada alumno.
         </p>
       </header>
 
@@ -993,7 +993,7 @@ export default function TeacherGradesPage() {
       <section className="mb-4">
         <label
           htmlFor="curso-calificaciones"
-          className="mb-1 block text-[10px] font-semibold text-[#3186d8]"
+          className="mb-1 block text-[15px] font-semibold text-[#3186d8]"
         >
           Curso
         </label>
@@ -1017,7 +1017,7 @@ export default function TeacherGradesPage() {
               0 ||
             cargando
           }
-          className="h-9 w-[320px] rounded-md border border-[#70a9dd] bg-white px-3 text-[10px] text-[#3186d8] outline-none disabled:opacity-60"
+          className="h-10 w-[360px] rounded-md border border-[#70a9dd] bg-white px-3 text-[14px] text-[#3186d8] outline-none disabled:opacity-60"
         >
           {cursos.length ===
           0 ? (
@@ -1059,13 +1059,13 @@ export default function TeacherGradesPage() {
           </div>
 
           <div>
-            <p className="text-[26px] font-bold leading-none text-[#1554a0]">
+            <p className="text-[28px] font-bold leading-none text-[#1554a0]">
               {
                 resumen.alumnos
               }
             </p>
 
-            <p className="text-[9px] text-gray-700">
+            <p className="mt-1 text-[15px] text-gray-700">
               Alumnos del curso
             </p>
           </div>
@@ -1077,13 +1077,13 @@ export default function TeacherGradesPage() {
           </div>
 
           <div>
-            <p className="text-[26px] font-bold leading-none text-[#199441]">
+            <p className="text-[28px] font-bold leading-none text-[#199441]">
               {
                 resumen.conCalificacion
               }
             </p>
 
-            <p className="text-[9px] text-gray-700">
+            <p className="mt-1 text-[15px] text-gray-700">
               Con calificación
             </p>
           </div>
@@ -1095,13 +1095,13 @@ export default function TeacherGradesPage() {
           </div>
 
           <div>
-            <p className="text-[26px] font-bold leading-none text-[#d89200]">
+            <p className="text-[28px] font-bold leading-none text-[#d89200]">
               {
                 resumen.pendientes
               }
             </p>
 
-            <p className="text-[9px] text-gray-700">
+            <p className="mt-1 text-[15px] text-gray-700">
               Pendientes por calificar
             </p>
           </div>
@@ -1113,7 +1113,7 @@ export default function TeacherGradesPage() {
           </div>
 
           <div>
-            <p className="text-[26px] font-bold leading-none text-[#8c40b7]">
+            <p className="text-[28px] font-bold leading-none text-[#8c40b7]">
               {resumen.promedioMasAlto ===
               null
                 ? "—"
@@ -1122,7 +1122,7 @@ export default function TeacherGradesPage() {
                   )}
             </p>
 
-            <p className="text-[9px] text-gray-700">
+            <p className="mt-1 text-[15px] text-gray-700">
               Promedio más alto del curso
             </p>
           </div>
@@ -1131,7 +1131,7 @@ export default function TeacherGradesPage() {
 
       {/* INFORMACIÓN DEL CURSO */}
       {selectedCourseObject && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px] text-gray-500">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[15px] text-gray-500">
           <span className="rounded-full bg-[#eef6ff] px-3 py-1 font-semibold text-[#3186d8]">
             {
               selectedCourseObject.codigo
@@ -1157,7 +1157,7 @@ export default function TeacherGradesPage() {
       )}
 
       {/* BUSCADOR */}
-      <div className="mb-3 flex h-9 w-[250px] items-center rounded-md border border-gray-300 bg-white px-3">
+      <div className="mb-4 flex h-10 w-[280px] items-center rounded-md border border-gray-300 bg-white px-3">
         <svg
           className="mr-2 h-4 w-4 text-gray-800"
           viewBox="0 0 24 24"
@@ -1187,17 +1187,17 @@ export default function TeacherGradesPage() {
             setPage(1);
           }}
           placeholder="Buscar alumno por nombre"
-          className="w-full bg-transparent text-[10px] outline-none"
+          className="w-full bg-transparent text-[15px] outline-none"
         />
       </div>
 
       {/* TABLA */}
       <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse text-[13px]">
+          <table className="w-full min-w-[900px] border-collapse text-[15px]">
             <thead>
               <tr className="bg-[#eceef2]">
-                <th className="px-5 py-4 text-left text-[13px] font-semibold">
+                <th className="px-5 py-4 text-left text-[15px] font-semibold">
                   Alumno
                 </th>
 
@@ -1209,7 +1209,7 @@ export default function TeacherGradesPage() {
                       key={
                         componente.id
                       }
-                      className="min-w-[132px] px-4 py-4 text-center text-[12px] font-semibold"
+                      className="min-w-[132px] px-4 py-4 text-center text-[14px] font-semibold"
                       title={nombreCortoComponente(
                         componente
                       )}
@@ -1222,7 +1222,7 @@ export default function TeacherGradesPage() {
 
                       {componente.porcentaje !==
                         null && (
-                        <span className="mt-1 block text-[9px] font-normal text-gray-500">
+                        <span className="mt-1 block text-[12px] font-normal text-gray-500">
                           {
                             componente.porcentaje
                           }
@@ -1233,7 +1233,7 @@ export default function TeacherGradesPage() {
                   )
                 )}
 
-                <th className="min-w-[100px] px-4 py-4 text-center text-[13px] font-semibold">
+                <th className="min-w-[100px] px-4 py-4 text-center text-[15px] font-semibold">
                   Promedio
                 </th>
               </tr>
@@ -1250,7 +1250,7 @@ export default function TeacherGradesPage() {
                   >
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3186d8] text-[8px] font-semibold text-white">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3186d8] text-[12px] font-semibold text-white">
                           {
                             getInitials(
                               row.alumno
@@ -1258,7 +1258,7 @@ export default function TeacherGradesPage() {
                           }
                         </div>
 
-                        <span className="text-[13px] font-medium text-gray-800">
+                        <span className="text-[15px] font-medium text-gray-800">
                           {
                             row.alumno
                           }
@@ -1342,13 +1342,13 @@ export default function TeacherGradesPage() {
                                       .value
                                   );
                                 }}
-                                className={`w-[70px] bg-transparent px-2 text-center text-[13px] font-semibold outline-none disabled:opacity-60 ${getGradeClasses(
+                                className={`w-[70px] bg-transparent px-2 text-center text-[15px] font-semibold outline-none disabled:opacity-60 ${getGradeClasses(
                                   grade
                                 )}`}
                                 aria-label={`${row.alumno} ${componente.nombre}`}
                               />
 
-                              <span className="flex w-[30px] items-center justify-center border-l border-current/30 text-[10px] font-medium">
+                              <span className="flex w-[30px] items-center justify-center border-l border-current/30 text-[15px] font-medium">
                                 {isSaving
                                   ? "..."
                                   : "Pts"}
@@ -1361,7 +1361,7 @@ export default function TeacherGradesPage() {
 
                     <td className="px-4 py-2 text-center">
                       <span
-                        className={`inline-flex min-w-[64px] justify-center rounded-md px-3 py-2 text-[13px] font-semibold ${getGradeClasses(
+                        className={`inline-flex min-w-[64px] justify-center rounded-md px-3 py-2 text-[15px] font-semibold ${getGradeClasses(
                           row.promedio
                         )}`}
                       >
@@ -1382,7 +1382,7 @@ export default function TeacherGradesPage() {
 
         {componentes.length ===
           0 && (
-          <div className="border-t border-gray-200 px-6 py-10 text-center text-[11px] text-gray-500">
+          <div className="border-t border-gray-200 px-6 py-10 text-center text-[13px] text-gray-500">
             Este curso todavía no tiene componentes de calificación configurados en la base de datos. Las notas se podrán registrar cuando existan componentes asociados a la oferta del curso.
           </div>
         )}
@@ -1391,7 +1391,7 @@ export default function TeacherGradesPage() {
           0 &&
           visibleRows.length ===
             0 && (
-            <div className="py-10 text-center text-[11px] text-gray-500">
+            <div className="py-10 text-center text-[13px] text-gray-500">
               {grades.length ===
               0
                 ? "Este curso no tiene alumnos matriculados actualmente."
@@ -1402,7 +1402,7 @@ export default function TeacherGradesPage() {
 
       {/* PAGINACIÓN */}
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[10px] text-gray-600">
+        <p className="text-[14px] text-gray-600">
           Mostrando{" "}
           {
             visibleRows.length
@@ -1462,7 +1462,7 @@ export default function TeacherGradesPage() {
                     pageNumber
                   )
                 }
-                className={`h-7 min-w-7 rounded border px-2 text-[9px] ${
+                className={`h-7 min-w-7 rounded border px-2 text-[13px] ${
                   page ===
                   pageNumber
                     ? "border-[#3186d8] bg-[#3186d8] text-white"
@@ -1501,7 +1501,7 @@ export default function TeacherGradesPage() {
         </div>
       </div>
 
-      <p className="mt-2 text-[9px] text-gray-500">
+      <p className="mt-2 text-[13px] text-gray-500">
         Curso seleccionado:{" "}
         {
           selectedCourseObject?.nombre ??
