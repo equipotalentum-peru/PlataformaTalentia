@@ -78,17 +78,17 @@ export default function CreateAnnouncementModal({
         }
       }}
     >
-      <div className="w-full max-w-[460px] rounded-xl bg-white px-6 py-5 shadow-2xl">
+      <div className="w-full max-w-[460px] rounded-xl bg-talentia-surface px-6 py-5 shadow-2xl">
 
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-[#3186d8]">
+          <h2 className="text-[16px] font-bold text-talentia-primary">
             Crear nuevo anuncio:
           </h2>
 
           <button
             type="button"
             onClick={close}
-            className="text-[22px] leading-none text-gray-500 hover:text-black"
+            className="text-[22px] leading-none text-talentia-muted hover:text-talentia-primary"
             aria-label="Cerrar"
           >
             ×
@@ -98,7 +98,7 @@ export default function CreateAnnouncementModal({
         <div className="space-y-3">
 
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-[#3186d8]">
+            <span className="mb-1 block text-[10px] font-semibold text-talentia-blue">
               Título:
             </span>
 
@@ -108,12 +108,12 @@ export default function CreateAnnouncementModal({
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[10px] outline-none"
+              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[10px] outline-none"
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-[#3186d8]">
+            <span className="mb-1 block text-[10px] font-semibold text-talentia-blue">
               Contenido:
             </span>
 
@@ -122,14 +122,14 @@ export default function CreateAnnouncementModal({
               onChange={(event) =>
                 setContent(event.target.value)
               }
-              className="h-[120px] w-full resize-none rounded-md bg-[#eeeeee] p-3 text-[10px] outline-none"
+              className="h-[120px] w-full resize-none rounded-md bg-talentia-surface p-3 text-[10px] outline-none"
             />
           </label>
 
           {error && (
             <p
               role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[10px] text-red-700"
+              className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[10px] text-talentia-danger"
             >
               {error}
             </p>
@@ -141,7 +141,7 @@ export default function CreateAnnouncementModal({
             type="button"
             onClick={close}
             disabled={saving}
-            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700 disabled:opacity-60"
+            className="rounded-md bg-talentia-surface px-4 py-2 text-[10px] font-medium text-talentia-primary disabled:opacity-60 border border-talentia-border"
           >
             Cancelar
           </button>
@@ -150,7 +150,7 @@ export default function CreateAnnouncementModal({
             type="button"
             onClick={() => void submit("Borrador")}
             disabled={saving}
-            className="rounded-md bg-[#eeeeee] px-4 py-2 text-[10px] font-medium text-gray-700 disabled:opacity-60"
+            className="rounded-md bg-talentia-surface px-4 py-2 text-[10px] font-medium text-talentia-primary disabled:opacity-60"
           >
             {saving ? "Guardando..." : "Guardar borrador"}
           </button>
@@ -159,7 +159,7 @@ export default function CreateAnnouncementModal({
             type="button"
             onClick={() => void submit("Publicado")}
             disabled={saving}
-            className="rounded-md bg-[#3186d8] px-4 py-2 text-[10px] font-semibold text-white disabled:opacity-60"
+            className="rounded-md bg-talentia-action px-4 py-2 text-[10px] font-semibold text-white disabled:opacity-60"
           >
             {saving ? "Publicando..." : "Publicar anuncio"}
           </button>

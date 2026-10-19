@@ -292,43 +292,43 @@ export default function TeacherDashboardPage() {
       label: "Cursos asignados",
       value: String(datos?.resumen.cursosAsignados ?? 0),
       type: "courses" as const,
-      box: "bg-[#eec5ff]",
-      icon: "bg-[#e1a8fa] text-[#7e43b1]",
-      number: "text-[#7e43b1]",
+      box: "bg-talentia-purple-soft",
+      icon: "bg-talentia-purple-soft text-talentia-purple",
+      number: "text-talentia-purple",
     },
     {
       label: "Alumnos",
       value: String(datos?.resumen.alumnos ?? 0),
       type: "students" as const,
-      box: "bg-[#adffc9]",
-      icon: "bg-[#80efac] text-[#16a349]",
-      number: "text-[#16a349]",
+      box: "bg-talentia-success-bg",
+      icon: "bg-talentia-success-bg text-talentia-success",
+      number: "text-talentia-success",
     },
     {
       label: "Actividades por calificar",
       value: String(datos?.resumen.actividadesPorCalificar ?? 0),
       type: "activities" as const,
-      box: "bg-[#ffe3a5]",
-      icon: "bg-[#ffd27c] text-[#d89200]",
-      number: "text-[#d89200]",
+      box: "bg-talentia-warning-bg",
+      icon: "bg-talentia-warning-bg text-talentia-warning",
+      number: "text-talentia-warning",
     },
     {
       label: "Evaluaciones próximas",
       value: String(datos?.resumen.evaluacionesProximas ?? 0),
       type: "evaluations" as const,
-      box: "bg-[#9fd9ff]",
-      icon: "bg-[#71c3f6] text-[#2677bb]",
-      number: "text-[#2677bb]",
+      box: "bg-talentia-selected",
+      icon: "bg-talentia-selected text-talentia-blue",
+      number: "text-talentia-blue",
     },
   ];
 
   if (cargando) {
     return (
       <div className="min-h-screen w-full px-[24px] py-[22px] lg:px-[30px]">
-        <h1 className="text-[34px] font-semibold text-gray-950">
+        <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
           Dashboard del docente
         </h1>
-        <p className="mt-8 text-[14px] text-gray-500">
+        <p className="mt-8 text-[14px] text-talentia-muted">
           Cargando dashboard...
         </p>
       </div>
@@ -338,10 +338,10 @@ export default function TeacherDashboardPage() {
   if (error) {
     return (
       <div className="min-h-screen w-full px-[24px] py-[22px] lg:px-[30px]">
-        <h1 className="text-[34px] font-semibold text-gray-950">
+        <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
           Dashboard del docente
         </h1>
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-[14px] text-red-700">
+        <div className="mt-8 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-4 text-[14px] text-talentia-danger">
           {error}
         </div>
       </div>
@@ -352,15 +352,15 @@ export default function TeacherDashboardPage() {
     <main className="min-h-screen px-[24px] py-[22px] lg:px-[30px]">
       {/* ENCABEZADO */}
       <header className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-[#3186d8]">
-          {formatearFechaLarga()}
-        </p>
-
-        <h1 className="mt-1 text-[38px] font-semibold tracking-[-0.7px] text-[#3186d8]">
+        <h1 className="teacher-page-title text-[38px] font-semibold tracking-[-0.7px] text-talentia-primary">
           Bienvenida {datos?.docente.nombres || "Docente"}
         </h1>
 
-        <p className="mt-1 text-[14px] text-[#3186d8]">
+        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.6px] text-talentia-blue">
+          {formatearFechaLarga()}
+        </p>
+
+        <p className="mt-1 text-[14px] text-talentia-blue">
           Tienes {datos?.resumen.actividadesPorCalificar ?? 0} actividades pendientes de calificar
         </p>
       </header>
@@ -385,7 +385,7 @@ export default function TeacherDashboardPage() {
                 {item.value}
               </p>
 
-              <p className="mt-1 text-[13px] font-medium text-gray-700">
+              <p className="mt-1 text-[13px] font-medium text-talentia-primary">
                 {item.label}
               </p>
             </div>
@@ -396,20 +396,20 @@ export default function TeacherDashboardPage() {
       {/* CONTENIDO PRINCIPAL */}
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr]">
         {/* PENDIENTES */}
-        <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
+        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-[18px] font-semibold text-[#3186d8]">
+            <h2 className="text-[18px] font-semibold text-talentia-primary">
               Pendientes de revisión
             </h2>
 
-            <span className="rounded-full bg-[#eef6ff] px-3 py-1 text-[10px] font-semibold text-[#3186d8]">
+            <span className="rounded-full bg-talentia-selected px-3 py-1 text-[10px] font-semibold text-talentia-blue">
               {datos?.resumen.revisionesPendientes ?? 0} pendientes
             </span>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-talentia-border">
             {pendientesRevision.length === 0 ? (
-              <div className="py-7 text-center text-[12px] text-gray-500">
+              <div className="py-7 text-center text-[12px] text-talentia-muted">
                 No tienes entregas pendientes de revisión.
               </div>
             ) : (
@@ -417,15 +417,15 @@ export default function TeacherDashboardPage() {
                 <Link
                   key={`${item.tipo}-${item.id}-${item.cursoId}`}
                   href="/docente/calificaciones"
-                  className="block py-2.5 transition hover:bg-gray-50"
+                  className="block py-2.5 transition hover:bg-talentia-hover"
                 >
                   <span
                     className={`inline-block rounded-full px-3 py-1 text-[10px] font-medium ${
                       item.tipo === "Examen"
-                        ? "bg-[#eadcff] text-[#8752bb]"
+                        ? "bg-talentia-purple-soft text-talentia-purple"
                         : item.tipo === "Evaluación"
-                          ? "bg-[#e8f4ff] text-[#2b7cc3]"
-                          : "bg-[#f9cbd4] text-[#c84262]"
+                          ? "bg-talentia-selected text-talentia-blue"
+                          : "bg-talentia-danger-bg text-talentia-danger"
                     }`}
                   >
                     {item.tipo}
@@ -433,16 +433,16 @@ export default function TeacherDashboardPage() {
 
                   <div className="mt-1 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[11px] font-semibold text-[#3186d8]">
+                      <p className="truncate text-[11px] font-semibold text-talentia-blue">
                         {item.titulo}
                       </p>
 
-                      <p className="text-[11px] text-gray-500">
+                      <p className="text-[11px] text-talentia-muted">
                         {item.curso} - {item.pendientes} pendientes
                       </p>
                     </div>
 
-                    <span className="shrink-0 text-xl text-gray-700">›</span>
+                    <span className="shrink-0 text-xl text-talentia-primary">›</span>
                   </div>
                 </Link>
               ))
@@ -451,14 +451,14 @@ export default function TeacherDashboardPage() {
         </article>
 
         {/* MIS CURSOS */}
-        <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-[18px] font-semibold text-[#3186d8]">
+        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-[18px] font-semibold text-talentia-primary">
             Mis cursos
           </h2>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-talentia-border">
             {cursos.length === 0 ? (
-              <div className="py-7 text-center text-[12px] text-gray-500">
+              <div className="py-7 text-center text-[12px] text-talentia-muted">
                 No tienes cursos asignados actualmente.
               </div>
             ) : (
@@ -466,7 +466,7 @@ export default function TeacherDashboardPage() {
                 <Link
                   key={course.codigo}
                   href={`/docente/cursos/${course.id}`}
-                  className="flex items-center gap-3 py-2 transition hover:bg-gray-50"
+                  className="flex items-center gap-3 py-2 transition hover:bg-talentia-hover"
                 >
                   
                 <img
@@ -490,20 +490,20 @@ export default function TeacherDashboardPage() {
                 />
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[11px] font-semibold text-[#3186d8]">
+                    <p className="truncate text-[11px] font-semibold text-talentia-blue">
                       {course.nombre}
                     </p>
 
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-talentia-muted">
                       {course.codigo}
                     </p>
 
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-talentia-muted">
                       {course.alumnos} alumnos
                     </p>
                   </div>
 
-                  <span className="text-xl text-gray-700">›</span>
+                  <span className="text-xl text-talentia-primary">›</span>
                 </Link>
               ))
             )}
@@ -514,8 +514,8 @@ export default function TeacherDashboardPage() {
       {/* PARTE INFERIOR */}
       <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* RESUMEN ALUMNOS */}
-        <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-center text-[20px] font-semibold text-[#3186d8]">
+        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-center text-[20px] font-semibold text-talentia-primary">
             Resumen de alumnos
           </h2>
 
@@ -531,7 +531,7 @@ export default function TeacherDashboardPage() {
                   cy="70"
                   r={CIRCULO_RADIO}
                   fill="none"
-                  stroke="#eeeeee"
+                  stroke="var(--talentia-border)"
                   strokeWidth="12"
                 />
 
@@ -541,7 +541,7 @@ export default function TeacherDashboardPage() {
                     cy="70"
                     r={CIRCULO_RADIO}
                     fill="none"
-                    stroke="#c76dff"
+                    stroke="var(--talentia-purple)"
                     strokeWidth="12"
                     strokeLinecap="round"
                     strokeDasharray={`${arcoAlDia} ${Math.max(0, CIRCUNFERENCIA - arcoAlDia)}`}
@@ -555,7 +555,7 @@ export default function TeacherDashboardPage() {
                     cy="70"
                     r={CIRCULO_RADIO}
                     fill="none"
-                    stroke="#55d3d3"
+                    stroke="var(--talentia-teal)"
                     strokeWidth="12"
                     strokeLinecap="round"
                     strokeDasharray={`${arcoPendientes} ${Math.max(0, CIRCUNFERENCIA - arcoPendientes)}`}
@@ -569,7 +569,7 @@ export default function TeacherDashboardPage() {
                     cy="70"
                     r={CIRCULO_RADIO}
                     fill="none"
-                    stroke="#f3b44f"
+                    stroke="var(--talentia-warning)"
                     strokeWidth="12"
                     strokeLinecap="round"
                     strokeDasharray={`${arcoBajoRendimiento} ${Math.max(0, CIRCUNFERENCIA - arcoBajoRendimiento)}`}
@@ -579,56 +579,56 @@ export default function TeacherDashboardPage() {
               </svg>
 
               <div className="text-center">
-                <p className="text-[30px] font-bold text-[#3186d8]">
+                <p className="text-[30px] font-bold text-talentia-blue">
                   {totalAlumnos}
                 </p>
 
-                <p className="text-[11px] font-medium text-[#3186d8]">
+                <p className="text-[11px] font-medium text-talentia-blue">
                   Alumnos
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2.5 text-[11px] text-gray-600">
+            <div className="space-y-2.5 text-[11px] text-talentia-primary">
               <p>
-                <span className="mr-1 text-[#c76dff]">●</span>
+                <span className="mr-1 text-talentia-purple">●</span>
                 Al día: {resumenAlumnos.alDia}
               </p>
               <p>
-                <span className="mr-1 text-[#55d3d3]">●</span>
+                <span className="mr-1 text-talentia-blue">●</span>
                 Con pendientes: {resumenAlumnos.conPendientes}
               </p>
               <p>
-                <span className="mr-1 text-[#f3b44f]">●</span>
+                <span className="mr-1 text-talentia-warning">●</span>
                 Bajo rendimiento: {resumenAlumnos.bajoRendimiento}
               </p>
             </div>
           </div>
 
-          <p className="mt-3 text-center text-[9px] leading-relaxed text-gray-400">
+          <p className="mt-3 text-center text-[9px] leading-relaxed text-talentia-muted">
             Se considera "al día" a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. "Bajo rendimiento" se marca cuando el promedio registrado es menor a 11.
           </p>
         </article>
 
         {/* EVALUACIONES */}
-        <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-[20px] font-semibold text-[#3186d8]">
+        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-[20px] font-semibold text-talentia-primary">
             Próximas evaluaciones
           </h2>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-talentia-border">
             {evaluaciones.length === 0 ? (
-              <div className="py-7 text-center text-[11px] text-gray-500">
+              <div className="py-7 text-center text-[11px] text-talentia-muted">
                 No hay evaluaciones próximas.
               </div>
             ) : (
               evaluaciones.map((evaluation) => (
                 <div key={evaluation.id} className="py-2">
-                  <p className="text-[10px] font-semibold text-[#3186d8]">
+                  <p className="text-[10px] font-semibold text-talentia-blue">
                     {evaluation.titulo}
                   </p>
 
-                  <div className="flex justify-between gap-2 text-[10px] text-gray-500">
+                  <div className="flex justify-between gap-2 text-[10px] text-talentia-muted">
                     <span className="truncate">{evaluation.curso}</span>
 
                     <span className="shrink-0">
@@ -642,14 +642,14 @@ export default function TeacherDashboardPage() {
         </article>
 
         {/* ACTIVIDAD RECIENTE */}
-        <article className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-[20px] font-semibold text-[#3186d8]">
+        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-[20px] font-semibold text-talentia-primary">
             Actividad reciente
           </h2>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-talentia-border">
             {actividadReciente.length === 0 ? (
-              <div className="py-7 text-center text-[11px] text-gray-500">
+              <div className="py-7 text-center text-[11px] text-talentia-muted">
                 No hay actividad reciente registrada.
               </div>
             ) : (
@@ -658,11 +658,11 @@ export default function TeacherDashboardPage() {
                   key={`${activity.tipo}-${activity.fecha}-${index}`}
                   className="py-2.5"
                 >
-                  <p className="text-[10px] text-gray-700">
+                  <p className="text-[10px] text-talentia-primary">
                     {activity.texto}
                   </p>
 
-                  <p className="mt-1 text-right text-[10px] text-gray-400">
+                  <p className="mt-1 text-right text-[10px] text-talentia-muted">
                     {formatearFechaHora(activity.fecha)}
                   </p>
                 </div>

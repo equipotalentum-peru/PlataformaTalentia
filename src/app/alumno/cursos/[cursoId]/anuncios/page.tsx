@@ -115,17 +115,10 @@ export default function AnnouncementsPage({
           {/* VOLVER */}
           <Link
             href="/alumno/cursos"
-            className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]"
+            className="app-back-link mb-3"
           >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+          <span aria-hidden="true">{"<"}</span>
+
 
             Volver a cursos
           </Link>
@@ -142,13 +135,13 @@ export default function AnnouncementsPage({
           <CourseTabs role="alumno" courseId={courseId} active="anuncios" />
 
           {/* CABECERA */}
-          <section className="mt-2 rounded-xl bg-white px-5 py-4 shadow-sm">
+          <section className="mt-2 rounded-xl bg-talentia-surface px-5 py-4 shadow-sm">
             <div className="flex items-center gap-4">
 
               {/* ICONO */}
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
                 <svg
-                  className="h-8 w-8 text-black"
+                  className="h-8 w-8 text-talentia-primary"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -161,11 +154,11 @@ export default function AnnouncementsPage({
               </div>
 
               <div>
-                <h2 className="text-[14px] font-bold text-gray-900">
+                <h2 className="text-[14px] font-bold text-talentia-primary">
                   Anuncios
                 </h2>
 
-                <p className="mt-1 text-[11px] leading-snug text-gray-500">
+                <p className="mt-1 text-[11px] leading-snug text-talentia-muted">
                   Mantente al día con las novedades, recordatorios o
                   comunicados hechos por el docente del curso.
                 </p>
@@ -174,13 +167,13 @@ export default function AnnouncementsPage({
           </section>
 
           {error && (
-            <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+            <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[11px] text-talentia-danger">
               <span>{error}</span>
               <button type="button" onClick={() => window.location.reload()} className="shrink-0 font-semibold underline">Reintentar</button>
             </div>
           )}
           {loading && announcements.length === 0 && (
-            <div className="mt-2 rounded-lg bg-white px-4 py-6 text-center text-[11px] text-gray-500">Cargando anuncios...</div>
+            <div className="mt-2 rounded-lg bg-talentia-surface px-4 py-6 text-center text-[11px] text-talentia-muted">Cargando anuncios...</div>
           )}
 
           {/* FILTROS */}
@@ -193,8 +186,8 @@ export default function AnnouncementsPage({
                   onClick={() => setFilter(item)}
                   className={`rounded-full px-4 py-1.5 text-[10px] font-medium transition ${
                     filter === item
-                      ? "bg-[#3186d8] text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
+                      ? "bg-talentia-action text-white"
+                      : "bg-talentia-surface text-talentia-primary hover:bg-talentia-primary"
                   }`}
                 >
                   {item}
@@ -209,9 +202,9 @@ export default function AnnouncementsPage({
               (announcement) => (
                 <article
                   key={announcement.id}
-                  className={`rounded-lg bg-white px-5 py-3 shadow-sm ${
+                  className={`rounded-lg bg-talentia-surface px-5 py-3 shadow-sm ${
                     !announcement.read
-                      ? "border-l-4 border-[#3186d8]"
+                      ? "border-l-4 border-talentia-blue"
                       : ""
                   }`}
                 >
@@ -221,9 +214,9 @@ export default function AnnouncementsPage({
                     <div className="flex min-w-0 items-center gap-4">
 
                       {/* ICONO */}
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
                         <svg
-                          className="h-7 w-7 text-black"
+                          className="h-7 w-7 text-talentia-primary"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -237,16 +230,16 @@ export default function AnnouncementsPage({
 
                       <div className="min-w-0">
 
-                        <h3 className="text-[14px] font-bold text-gray-900">
+                        <h3 className="text-[14px] font-bold text-talentia-primary">
                           {announcement.title}
                         </h3>
 
-                        <p className="mt-0.5 text-[10px] text-gray-400">
+                        <p className="mt-0.5 text-[10px] text-talentia-muted">
                           {announcement.date}
                         </p>
 
                         {/* 2 LÍNEAS + ... */}
-                        <p className="mt-1 line-clamp-2 max-w-[620px] text-[11px] leading-snug text-gray-700">
+                        <p className="mt-1 line-clamp-2 max-w-[620px] text-[11px] leading-snug text-talentia-primary">
                           {announcement.content}
                         </p>
                       </div>
@@ -259,7 +252,7 @@ export default function AnnouncementsPage({
                         onClick={() =>
                           openAnnouncement(announcement)
                         }
-                        className="flex items-center gap-2 rounded-md bg-[#3186d8] px-4 py-1.5 text-[10px] font-medium text-white transition hover:bg-[#2777c1]"
+                        className="flex items-center gap-2 rounded-md bg-talentia-action px-4 py-1.5 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
                       >
                         Ver detalles
 
@@ -283,7 +276,7 @@ export default function AnnouncementsPage({
 
           {/* SIN RESULTADOS */}
           {!loading && !error && filteredAnnouncements.length === 0 && (
-            <div className="rounded-xl bg-white py-10 text-center text-[12px] text-gray-500">
+            <div className="rounded-xl bg-talentia-surface py-10 text-center text-[12px] text-talentia-muted">
               No hay anuncios en esta categoría.
             </div>
           )}
@@ -305,16 +298,16 @@ export default function AnnouncementsPage({
             role="dialog"
             aria-modal="true"
             aria-labelledby="announcement-title"
-            className="relative w-full max-w-[650px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="relative w-full max-w-[650px] overflow-hidden rounded-2xl bg-talentia-surface shadow-2xl"
           >
 
             {/* CABECERA MODAL */}
-            <div className="flex items-start justify-between border-b border-gray-200 px-6 py-4">
+            <div className="flex items-start justify-between border-b border-talentia-border px-6 py-4">
 
               <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
                   <svg
-                    className="h-6 w-6 text-black"
+                    className="h-6 w-6 text-talentia-primary"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -328,12 +321,12 @@ export default function AnnouncementsPage({
                 <div>
                   <h2
                     id="announcement-title"
-                    className="text-[16px] font-bold text-gray-900"
+                    className="text-[16px] font-bold text-talentia-primary"
                   >
                     {selectedAnnouncement.title}
                   </h2>
 
-                  <p className="mt-1 text-[10px] text-gray-400">
+                  <p className="mt-1 text-[10px] text-talentia-muted">
                     {selectedAnnouncement.date}
                   </p>
                 </div>
@@ -345,7 +338,7 @@ export default function AnnouncementsPage({
                 onClick={() =>
                   setSelectedAnnouncement(null)
                 }
-                className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-talentia-muted transition hover:bg-talentia-hover hover:text-talentia-primary"
               >
                 <svg
                   className="h-5 w-5"
@@ -362,19 +355,19 @@ export default function AnnouncementsPage({
 
             {/* CONTENIDO MODAL */}
             <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
-              <p className="whitespace-pre-line text-[13px] leading-relaxed text-gray-700">
+              <p className="whitespace-pre-line text-[13px] leading-relaxed text-talentia-primary">
                 {selectedAnnouncement.content}
               </p>
             </div>
 
             {/* PIE */}
-            <div className="flex justify-end border-t border-gray-200 px-6 py-3">
+            <div className="flex justify-end border-t border-talentia-border px-6 py-3">
               <button
                 type="button"
                 onClick={() =>
                   setSelectedAnnouncement(null)
                 }
-                className="rounded-md bg-[#3186d8] px-5 py-2 text-[11px] font-medium text-white transition hover:bg-[#2777c1]"
+                className="rounded-md bg-talentia-action px-5 py-2 text-[11px] font-medium text-white transition hover:bg-talentia-primary"
               >
                 Cerrar
               </button>

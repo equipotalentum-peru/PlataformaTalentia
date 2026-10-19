@@ -100,20 +100,20 @@ export default function ChatCourseList({
     }, [courses, search]);
 
   return (
-    <main className="min-h-screen bg-[#eef2f8] px-2 py-2 lg:px-3">
-      <div className="flex min-h-[calc(100vh-16px)] w-full flex-col overflow-hidden rounded-lg border border-[#d4d9e2] bg-white">
+    <main className="min-h-screen bg-talentia-surface px-2 py-2 lg:px-3">
+      <div className="flex min-h-[calc(100vh-16px)] w-full flex-col overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface">
 
-        <div className="border-b border-gray-300 px-3 py-4 sm:px-5 sm:py-5">
-          <h1 className="text-[24px] font-semibold text-[#18407c] sm:text-[28px]">
+        <div className="border-b border-talentia-border px-3 py-4 sm:px-5 sm:py-5">
+          <h1 className="student-page-title teacher-page-title text-[24px] font-semibold text-talentia-primary sm:text-[28px]">
             Chat
           </h1>
 
-          <p className="mt-2 text-[12px] text-gray-700">
+          <p className="mt-2 text-[13px] text-talentia-primary">
             Comunícate con tus compañeros y docentes.
           </p>
 
-          <div className="mt-3 flex h-9 w-full items-center sm:w-[250px] rounded-md border border-gray-300 px-3">
-            <span className="mr-2 text-[#1f61b4]">
+          <div className="mt-3 flex h-9 w-full items-center sm:w-[250px] rounded-md border border-talentia-border px-3">
+            <span className="mr-2 text-talentia-blue">
               ⌕
             </span>
 
@@ -125,17 +125,17 @@ export default function ChatCourseList({
                 )
               }
               placeholder="Buscar cursos"
-              className="w-full bg-transparent text-[12px] outline-none"
+              className="w-full bg-transparent text-[13px] outline-none"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="flex flex-1 items-center justify-center text-[12px] text-gray-500">
+          <div className="flex flex-1 items-center justify-center text-[13px] text-talentia-muted">
             Cargando cursos...
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-[12px] text-red-600">
+          <div className="p-8 text-center text-[13px] text-talentia-danger">
             {error}
           </div>
         ) : (
@@ -146,7 +146,7 @@ export default function ChatCourseList({
                 <Link
                   key={course.id}
                   href={`/${basePath}/chat/${course.id}`}
-                  className="flex min-h-[78px] items-center justify-between gap-3 border-b border-gray-300 px-3 py-2 hover:bg-[#f5f8fc] sm:px-6"
+                  className="flex min-h-[78px] items-center justify-between gap-3 border-b border-talentia-border px-3 py-2 hover:bg-talentia-hover sm:px-6"
                 >
                   <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <ChatAvatar
@@ -157,21 +157,21 @@ export default function ChatCourseList({
                       }
                       initials={course.initials}
                       name={course.nombre}
-                      className="h-11 w-11 bg-[#2f80d8] text-[13px] sm:h-14 sm:w-14"
+                      className="h-11 w-11 bg-talentia-blue text-[13px] sm:h-14 sm:w-14"
                     />
 
                     <div className="min-w-0">
-                      <h2 className="break-words text-[14px] font-bold">
+                      <h2 className="break-words text-[15px] font-bold">
                         {course.nombre}
                       </h2>
 
-                      <p className="mt-1 text-[11px] text-gray-600">
+                      <p className="mt-1 text-[13px] text-talentia-primary">
                         {course.codigo}
                       </p>
                     </div>
                   </div>
 
-                  <span className="shrink-0 text-right text-[11px]">
+                  <span className="shrink-0 text-right text-[13px]">
                     {course.miembros} miembros
                   </span>
                 </Link>
@@ -179,7 +179,7 @@ export default function ChatCourseList({
             )}
 
             {!filteredCourses.length && (
-              <p className="p-10 text-center text-[12px] text-gray-500">
+              <p className="p-10 text-center text-[13px] text-talentia-muted">
                 No se encontraron cursos.
               </p>
             )}

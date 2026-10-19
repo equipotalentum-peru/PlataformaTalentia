@@ -13,17 +13,17 @@ export default function RubricDetails({ rubrica, courseId, contentId }: {
 }) {
   if (!rubrica) return null;
   return (
-    <section className="my-5 border-y border-gray-200 py-4">
-      <h2 className="mb-3 font-semibold text-[#3186d8]">Rúbrica de evaluación</h2>
+    <section className="my-5 border-y border-talentia-border py-4">
+      <h2 className="mb-3 font-semibold text-talentia-primary">Rúbrica de evaluación</h2>
       {rubrica.ruta_archivo ? (
         <a href={`${API_URL}/actividades/${courseId}/${contentId}/rubrica`} target="_blank" rel="noreferrer"
-          className="break-all text-sm text-blue-700 underline">
+          className="break-all text-sm text-talentia-primary underline">
           Descargar {rubrica.nombre_archivo || "rúbrica PDF"}
         </a>
       ) : (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-talentia-border">
           {rubrica.criterios.map(criterion => (
-            <li key={criterion.id} className="py-2 text-sm text-gray-700">
+            <li key={criterion.id} className="py-2 text-sm text-talentia-primary">
               <div className="flex items-start justify-between gap-4">
                 <span className="min-w-0 break-words font-medium">{criterion.nombre}</span>
                 <span className="shrink-0">{Number(criterion.puntaje_maximo)} puntos</span>

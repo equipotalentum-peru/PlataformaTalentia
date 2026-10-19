@@ -202,16 +202,16 @@ function colorContinuidad(
   if (
     porcentaje < 65
   ) {
-    return "#FF6584";
+    return "var(--talentia-danger)";
   }
 
   if (
     porcentaje < 75
   ) {
-    return "#FFB800";
+    return "var(--talentia-warning)";
   }
 
-  return "#2D97E8";
+  return "var(--talentia-blue)";
 }
 
 
@@ -399,16 +399,16 @@ export default function AdministradorDashboardPage() {
             .total <= 0
         ) {
           return (
-            "conic-gradient(#E5E7EB 0 100%)"
+            "conic-gradient(var(--talentia-border) 0 100%)"
           );
         }
 
 
         return `
           conic-gradient(
-            #2D97E8 0 ${aprobados}%,
-            #A259FF ${aprobados}% ${finDesaprobados}%,
-            #FF6584 ${finDesaprobados}% 100%
+            var(--talentia-blue) 0 ${aprobados}%,
+            var(--talentia-purple) ${aprobados}% ${finDesaprobados}%,
+            var(--talentia-danger) ${finDesaprobados}% 100%
           )
         `;
 
@@ -435,7 +435,7 @@ export default function AdministradorDashboardPage() {
           .enProgreso,
 
       color:
-        "#2D97E8",
+        "var(--talentia-blue)",
     },
 
     {
@@ -447,7 +447,7 @@ export default function AdministradorDashboardPage() {
           .aprobados,
 
       color:
-        "#34D399",
+        "var(--talentia-success)",
     },
 
     {
@@ -459,7 +459,7 @@ export default function AdministradorDashboardPage() {
           .desaprobados,
 
       color:
-        "#A259FF",
+        "var(--talentia-purple)",
     },
 
     {
@@ -471,7 +471,7 @@ export default function AdministradorDashboardPage() {
           .enRiesgo,
 
       color:
-        "#FF6584",
+        "var(--talentia-danger)",
     },
 
     {
@@ -483,7 +483,7 @@ export default function AdministradorDashboardPage() {
           .pendientes,
 
       color:
-        "#D1D5DB",
+        "var(--talentia-border)",
     },
   ].map(
     (
@@ -551,7 +551,7 @@ export default function AdministradorDashboardPage() {
 
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F8]">
+    <div className="flex min-h-screen bg-talentia-surface">
 
       {/* ==========================================
           ÁREA PRINCIPAL DEL DASHBOARD
@@ -559,7 +559,7 @@ export default function AdministradorDashboardPage() {
 
       <main className="flex-1 overflow-y-auto p-8">
 
-        <h1 className="mb-8 text-3xl font-extrabold text-[#0F2851]">
+        <h1 className="mb-8 text-3xl font-extrabold text-talentia-primary">
           Dashboard administrativo
         </h1>
 
@@ -567,7 +567,7 @@ export default function AdministradorDashboardPage() {
         {/* ESTADO DE CARGA */}
 
         {cargando && (
-          <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-[#1E66C5]">
+          <div className="mb-6 rounded-xl border border-talentia-border bg-talentia-selected px-4 py-3 text-sm text-talentia-blue">
             Cargando información
             administrativa...
           </div>
@@ -579,7 +579,7 @@ export default function AdministradorDashboardPage() {
         {error && (
           <div
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm text-talentia-danger"
           >
             {error}
           </div>
@@ -596,14 +596,14 @@ export default function AdministradorDashboardPage() {
               APROBADOS VS DESAPROBADOS
           ============================== */}
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-5">
+          <div className="rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm xl:col-span-5">
 
-            <h2 className="text-sm font-bold text-[#0F2851]">
+            <h2 className="text-sm font-bold text-talentia-primary">
               Aprobados vs
               desaprobados
             </h2>
 
-            <p className="mb-6 text-[13px] text-[#6F83A5]">
+            <p className="mb-6 text-[13px] text-talentia-muted">
               Resultado académico
               general de los alumnos.
             </p>
@@ -620,11 +620,11 @@ export default function AdministradorDashboardPage() {
                     donutBackground,
                 }}
               >
-                <div className="absolute inset-[14px] flex items-center justify-center rounded-full bg-white">
+                <div className="absolute inset-[14px] flex items-center justify-center rounded-full bg-talentia-surface">
 
                   <div className="text-center">
 
-                    <span className="block text-xl font-extrabold text-[#0F2851]">
+                    <span className="block text-xl font-extrabold text-talentia-primary">
                       {dashboard
                         .resumenAcademico
                         .total
@@ -633,7 +633,7 @@ export default function AdministradorDashboardPage() {
                         )}
                     </span>
 
-                    <span className="text-[13px] text-[#6F83A5]">
+                    <span className="text-[13px] text-talentia-muted">
                       alumnos
                     </span>
 
@@ -651,15 +651,15 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <span className="h-3 w-3 shrink-0 rounded-full bg-[#2D97E8]" />
+                  <span className="h-3 w-3 shrink-0 rounded-full bg-talentia-blue" />
 
                   <div>
 
-                    <span className="font-bold text-[#0F2851]">
+                    <span className="font-bold text-talentia-primary">
                       Aprobados{" "}
                     </span>
 
-                    <span className="font-extrabold text-[#0F2851]">
+                    <span className="font-extrabold text-talentia-primary">
                       {dashboard
                         .resumenAcademico
                         .aprobados
@@ -667,7 +667,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[13px] text-[#6F83A5]">
+                    <p className="text-[13px] text-talentia-muted">
                       {dashboard
                         .resumenAcademico
                         .aprobados
@@ -687,15 +687,15 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <span className="h-3 w-3 shrink-0 rounded-full bg-[#A259FF]" />
+                  <span className="h-3 w-3 shrink-0 rounded-full bg-talentia-purple-soft" />
 
                   <div>
 
-                    <span className="font-bold text-[#0F2851]">
+                    <span className="font-bold text-talentia-primary">
                       Desaprobados{" "}
                     </span>
 
-                    <span className="font-extrabold text-[#0F2851]">
+                    <span className="font-extrabold text-talentia-primary">
                       {dashboard
                         .resumenAcademico
                         .desaprobados
@@ -703,7 +703,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[13px] text-[#6F83A5]">
+                    <p className="text-[13px] text-talentia-muted">
                       {dashboard
                         .resumenAcademico
                         .desaprobados
@@ -723,15 +723,15 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <span className="h-3 w-3 shrink-0 rounded-full bg-[#FF6584]" />
+                  <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--talentia-danger)]" />
 
                   <div>
 
-                    <span className="font-bold text-[#0F2851]">
+                    <span className="font-bold text-talentia-primary">
                       En riesgo{" "}
                     </span>
 
-                    <span className="font-extrabold text-[#0F2851]">
+                    <span className="font-extrabold text-talentia-primary">
                       {dashboard
                         .resumenAcademico
                         .enRiesgo
@@ -739,7 +739,7 @@ export default function AdministradorDashboardPage() {
                       %
                     </span>
 
-                    <p className="text-[13px] text-[#6F83A5]">
+                    <p className="text-[13px] text-talentia-muted">
                       {dashboard
                         .resumenAcademico
                         .enRiesgo
@@ -765,18 +765,18 @@ export default function AdministradorDashboardPage() {
               ACTIVIDAD DE MATRÍCULAS
           ============================== */}
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-7">
+          <div className="rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm xl:col-span-7">
 
             <div className="mb-1 flex items-start justify-between">
 
               <div>
 
-                <h2 className="text-sm font-bold text-[#0F2851]">
+                <h2 className="text-sm font-bold text-talentia-primary">
                   Actividad de
                   matrículas
                 </h2>
 
-                <p className="text-[13px] text-[#6F83A5]">
+                <p className="text-[13px] text-talentia-muted">
                   Nuevas matrículas
                   por mes y tendencia.
                 </p>
@@ -784,19 +784,19 @@ export default function AdministradorDashboardPage() {
               </div>
 
 
-              <span className="text-[13px] font-semibold text-[#2D97E8]">
+              <span className="text-[13px] font-semibold text-talentia-blue">
                 Últimos 6 meses
               </span>
 
             </div>
 
 
-            <div className="mt-6 flex h-44 items-end justify-between border-b border-gray-100 px-4 pb-2 text-[13px] text-[#6F83A5]">
+            <div className="mt-6 flex h-44 items-end justify-between border-b border-talentia-border px-4 pb-2 text-[13px] text-talentia-muted">
 
               {matriculasMes.length ===
               0 ? (
 
-                <div className="flex h-full w-full items-center justify-center text-[13px] text-gray-400">
+                <div className="flex h-full w-full items-center justify-center text-[13px] text-talentia-muted">
                   No hay matrículas
                   registradas.
                 </div>
@@ -832,7 +832,7 @@ export default function AdministradorDashboardPage() {
                         className="flex flex-col items-center gap-2"
                       >
 
-                        <span className="text-[13px] font-bold text-[#2D97E8]">
+                        <span className="text-[13px] font-bold text-talentia-blue">
                           {
                             item.cantidad
                           }
@@ -840,7 +840,7 @@ export default function AdministradorDashboardPage() {
 
 
                         <div
-                          className="w-8 rounded-t-lg bg-[#80C3F8] transition-all"
+                          className="w-8 rounded-t-lg bg-talentia-blue transition-all"
                           style={{
                             height:
                               `${altura}px`,
@@ -866,7 +866,7 @@ export default function AdministradorDashboardPage() {
 
             <div className="mt-3 flex flex-wrap justify-center gap-6 text-[13px]">
 
-              <span className="flex items-center gap-1.5 text-[#2D97E8]">
+              <span className="flex items-center gap-1.5 text-talentia-blue">
                 ● Nuevas matrículas
               </span>
 
@@ -875,8 +875,8 @@ export default function AdministradorDashboardPage() {
                 className={
                   diferenciaMatriculas >=
                   0
-                    ? "flex items-center gap-1.5 text-[#7F32D9]"
-                    : "flex items-center gap-1.5 text-[#FF6584]"
+                    ? "flex items-center gap-1.5 text-talentia-purple"
+                    : "flex items-center gap-1.5 text-[var(--talentia-danger)]"
                 }
               >
                 {diferenciaMatriculas >
@@ -910,17 +910,17 @@ export default function AdministradorDashboardPage() {
               ALUMNOS DESTACADOS
           ============================== */}
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-6">
+          <div className="rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm xl:col-span-6">
 
             <div className="mb-4 flex items-center justify-between">
 
               <div>
 
-                <h2 className="text-sm font-bold text-[#0F2851]">
+                <h2 className="text-sm font-bold text-talentia-primary">
                   Alumnos destacados
                 </h2>
 
-                <p className="text-[13px] text-[#6F83A5]">
+                <p className="text-[13px] text-talentia-muted">
                   Mejores promedios
                   del período.
                 </p>
@@ -930,7 +930,7 @@ export default function AdministradorDashboardPage() {
 
               <button
                 type="button"
-                className="text-[13px] font-semibold text-[#2D97E8] hover:underline"
+                className="text-[13px] font-semibold text-talentia-blue hover:underline"
               >
                 Ver todos
               </button>
@@ -941,7 +941,7 @@ export default function AdministradorDashboardPage() {
             {destacados.length ===
             0 ? (
 
-              <div className="flex min-h-[170px] items-center justify-center text-[13px] text-gray-400">
+              <div className="flex min-h-[170px] items-center justify-center text-[13px] text-talentia-muted">
                 Aún no existen
                 calificaciones
                 suficientes para
@@ -956,14 +956,14 @@ export default function AdministradorDashboardPage() {
 
                 <div className="flex flex-col items-center">
 
-                  <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-[#B2DAFC] text-[13px] font-bold text-[#2D97E8]">
+                  <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-talentia-selected text-[13px] font-bold text-talentia-blue">
                     2
                   </div>
 
-                  <div className="w-28 rounded-2xl bg-[#EBF4FE] p-3 text-center">
+                  <div className="w-28 rounded-2xl bg-talentia-selected p-3 text-center">
 
                     <p
-                      className="truncate text-[13px] font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-talentia-primary"
                       title={
                         top2?.nombre ??
                         ""
@@ -973,7 +973,7 @@ export default function AdministradorDashboardPage() {
                         "—"}
                     </p>
 
-                    <p className="mt-1 text-[13px] font-extrabold text-[#0F2851]">
+                    <p className="mt-1 text-[13px] font-extrabold text-talentia-primary">
                       {top2
                         ? formatearPromedio(
                             top2.promedio
@@ -994,10 +994,10 @@ export default function AdministradorDashboardPage() {
                     1
                   </div>
 
-                  <div className="w-32 rounded-2xl bg-[#FFF9E6] p-4 text-center">
+                  <div className="w-32 rounded-2xl bg-talentia-warning-bg p-4 text-center">
 
                     <p
-                      className="truncate text-[13px] font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-talentia-primary"
                       title={
                         top1?.nombre ??
                         ""
@@ -1007,7 +1007,7 @@ export default function AdministradorDashboardPage() {
                         "—"}
                     </p>
 
-                    <p className="mt-1 text-sm font-extrabold text-[#0F2851]">
+                    <p className="mt-1 text-sm font-extrabold text-talentia-primary">
                       {top1
                         ? formatearPromedio(
                             top1.promedio
@@ -1028,10 +1028,10 @@ export default function AdministradorDashboardPage() {
                     3
                   </div>
 
-                  <div className="w-28 rounded-2xl bg-[#F6EBFD] p-3 text-center">
+                  <div className="w-28 rounded-2xl bg-talentia-purple-soft p-3 text-center">
 
                     <p
-                      className="truncate text-[13px] font-bold text-[#0F2851]"
+                      className="truncate text-[13px] font-bold text-talentia-primary"
                       title={
                         top3?.nombre ??
                         ""
@@ -1041,7 +1041,7 @@ export default function AdministradorDashboardPage() {
                         "—"}
                     </p>
 
-                    <p className="mt-1 text-[13px] font-extrabold text-[#0F2851]">
+                    <p className="mt-1 text-[13px] font-extrabold text-talentia-primary">
                       {top3
                         ? formatearPromedio(
                             top3.promedio
@@ -1064,14 +1064,14 @@ export default function AdministradorDashboardPage() {
               CURSOS CON BAJA CONTINUIDAD
           ============================== */}
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:col-span-6">
+          <div className="rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm xl:col-span-6">
 
-            <h2 className="text-sm font-bold text-[#0F2851]">
+            <h2 className="text-sm font-bold text-talentia-primary">
               Cursos con baja
               continuidad
             </h2>
 
-            <p className="mb-6 text-[13px] text-[#6F83A5]">
+            <p className="mb-6 text-[13px] text-talentia-muted">
               Alumnos que siguen
               activos por curso.
             </p>
@@ -1084,7 +1084,7 @@ export default function AdministradorDashboardPage() {
                 .length ===
               0 ? (
 
-                <p className="py-8 text-center text-[13px] text-gray-400">
+                <p className="py-8 text-center text-[13px] text-talentia-muted">
                   No hay información
                   suficiente de
                   continuidad.
@@ -1106,13 +1106,13 @@ export default function AdministradorDashboardPage() {
                         className="flex items-center justify-between"
                       >
 
-                        <span className="w-4 shrink-0 font-bold text-[#0F2851]">
+                        <span className="w-4 shrink-0 font-bold text-talentia-primary">
                           {index + 1}
                         </span>
 
 
                         <span
-                          className="ml-2 flex-1 truncate font-bold text-[#0F2851]"
+                          className="ml-2 flex-1 truncate font-bold text-talentia-primary"
                           title={`${curso.codigo} - ${curso.nombre}`}
                         >
                           {
@@ -1121,7 +1121,7 @@ export default function AdministradorDashboardPage() {
                         </span>
 
 
-                        <div className="mr-3 h-2.5 w-32 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                        <div className="mr-3 h-2.5 w-32 shrink-0 overflow-hidden rounded-full bg-talentia-border">
 
                           <div
                             className="h-full transition-all"
@@ -1145,7 +1145,7 @@ export default function AdministradorDashboardPage() {
                         </div>
 
 
-                        <span className="w-10 shrink-0 text-right font-extrabold text-[#0F2851]">
+                        <span className="w-10 shrink-0 text-right font-extrabold text-talentia-primary">
                           {
                             curso.porcentaje
                           }
@@ -1169,13 +1169,13 @@ export default function AdministradorDashboardPage() {
             DISTRIBUCIÓN ACADÉMICA
         ====================================== */}
 
-        <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm">
 
-          <h2 className="text-sm font-bold text-[#0F2851]">
+          <h2 className="text-sm font-bold text-talentia-primary">
             Distribución académica
           </h2>
 
-          <p className="mb-4 text-[13px] text-[#6F83A5]">
+          <p className="mb-4 text-[13px] text-talentia-muted">
             Estado general de los
             alumnos.
           </p>
@@ -1199,7 +1199,7 @@ export default function AdministradorDashboardPage() {
                     className={
                       item.nombre ===
                       "Pendientes"
-                        ? "overflow-hidden whitespace-nowrap text-gray-700 transition-all"
+                        ? "overflow-hidden whitespace-nowrap text-talentia-primary transition-all"
                         : "overflow-hidden whitespace-nowrap text-white transition-all"
                     }
                     style={{
@@ -1223,7 +1223,7 @@ export default function AdministradorDashboardPage() {
 
           ) : (
 
-            <div className="mb-4 flex h-6 w-full items-center justify-center rounded-xl bg-gray-200 text-[13px] text-gray-500">
+            <div className="mb-4 flex h-6 w-full items-center justify-center rounded-xl bg-talentia-border text-[13px] text-talentia-muted">
               Sin datos académicos
             </div>
 
@@ -1256,13 +1256,13 @@ export default function AdministradorDashboardPage() {
 
                   <div>
 
-                    <p className="font-bold text-[#0F2851]">
+                    <p className="font-bold text-talentia-primary">
                       {
                         item.nombre
                       }
                     </p>
 
-                    <p className="text-[13px] text-[#6F83A5]">
+                    <p className="text-[13px] text-talentia-muted">
                       {item.cantidad.toLocaleString(
                         "es-PE"
                       )}{" "}

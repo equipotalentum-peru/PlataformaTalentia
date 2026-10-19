@@ -20,7 +20,7 @@ export default function CourseContentIcon({
         width="56"
         height="56"
         viewBox="0 0 56 56"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h56v56H0z" fill="none" />
 
@@ -40,7 +40,7 @@ export default function CourseContentIcon({
         width="56"
         height="56"
         viewBox="0 0 56 56"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h56v56H0z" fill="none" />
 
@@ -60,7 +60,7 @@ export default function CourseContentIcon({
         width="24"
         height="24"
         viewBox="0 0 24 24"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h24v24H0z" fill="none" />
 
@@ -93,7 +93,7 @@ export default function CourseContentIcon({
         width="48"
         height="48"
         viewBox="0 0 48 48"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h48v48H0z" fill="none" />
 
@@ -120,7 +120,7 @@ export default function CourseContentIcon({
         width="512"
         height="512"
         viewBox="0 0 512 512"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h512v512H0z" fill="none" />
 
@@ -145,7 +145,7 @@ export default function CourseContentIcon({
         width="32"
         height="32"
         viewBox="0 0 32 32"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h32v32H0z" fill="none" />
 
@@ -165,7 +165,7 @@ export default function CourseContentIcon({
         width="2048"
         height="2048"
         viewBox="0 0 2048 2048"
-        className={`${className} text-[#65717f]`}
+        className={`${className} text-talentia-muted`}
       >
         <path d="M0 0h2048v2048H0z" fill="none" />
 

@@ -385,7 +385,7 @@ export default function TablaSolicitudesEmpresas() {
       "Atendido"
     ) {
       return (
-        <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[13px] font-extrabold text-emerald-700">
+        <span className="inline-block rounded-full border border-talentia-success/20 bg-talentia-success-bg px-3 py-1 text-[13px] font-extrabold text-talentia-success">
           Atendido
         </span>
       );
@@ -397,7 +397,7 @@ export default function TablaSolicitudesEmpresas() {
       "Cancelado"
     ) {
       return (
-        <span className="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[13px] font-extrabold text-red-600">
+        <span className="inline-block rounded-full border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-1 text-[13px] font-extrabold text-talentia-danger">
           Cancelado
         </span>
       );
@@ -405,7 +405,7 @@ export default function TablaSolicitudesEmpresas() {
 
 
     return (
-      <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-extrabold text-amber-700">
+      <span className="inline-block rounded-full border border-talentia-warning/20 bg-talentia-warning-bg px-3 py-1 text-[13px] font-extrabold text-talentia-warning">
         Pendiente
       </span>
     );
@@ -413,17 +413,17 @@ export default function TablaSolicitudesEmpresas() {
 
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm xl:p-8 2xl:max-w-[1560px]">
+    <div className="mx-auto w-full max-w-[1500px] rounded-3xl border border-talentia-border bg-talentia-surface p-6 shadow-sm xl:p-8 2xl:max-w-[1560px]">
 
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
 
-          <h2 className="text-sm font-extrabold text-[#0F2851]">
-            Solicitudes Corporativas (B2B)
+          <h2 className="text-sm font-extrabold text-talentia-primary">
+            Solicitudes Corporativas
           </h2>
 
-          <p className="mt-0.5 text-[13px] font-semibold text-[#64748B]">
+          <p className="mt-0.5 text-[13px] font-semibold text-talentia-muted">
             Empresas interesadas en capacitaciones masivas o convenios
           </p>
 
@@ -439,7 +439,7 @@ export default function TablaSolicitudesEmpresas() {
             solicitudes.length ===
             0
           }
-          className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-[44px] items-center justify-center gap-2 rounded-xl bg-talentia-action px-5 text-sm font-bold text-white shadow-sm transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             viewBox="0 0 24 24"
@@ -466,7 +466,7 @@ export default function TablaSolicitudesEmpresas() {
 
           <thead>
 
-            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+            <tr className="bg-talentia-table-header text-talentia-primary text-[13px] font-extrabold border-b border-talentia-border">
 
               <th className="px-4 py-4">
                 Fecha
@@ -497,7 +497,7 @@ export default function TablaSolicitudesEmpresas() {
           </thead>
 
 
-          <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
+          <tbody className="divide-y divide-talentia-border text-[13px] font-semibold text-talentia-muted">
 
             {cargando ? (
 
@@ -507,7 +507,7 @@ export default function TablaSolicitudesEmpresas() {
                   colSpan={
                     6
                   }
-                  className="py-10 text-center text-[#64748B]"
+                  className="py-10 text-center text-talentia-muted"
                 >
                   Cargando solicitudes...
                 </td>
@@ -526,12 +526,12 @@ export default function TablaSolicitudesEmpresas() {
                     key={
                       item.id
                     }
-                    className="transition hover:bg-[#F8FAFC]"
+                    className="transition hover:bg-talentia-hover"
                   >
 
                     {/* FECHA */}
 
-                    <td className="px-3 py-4 font-semibold text-[#64748B]">
+                    <td className="px-3 py-4 font-semibold text-talentia-muted">
                       {
                         item.fecha
                       }
@@ -542,13 +542,13 @@ export default function TablaSolicitudesEmpresas() {
 
                     <td className="px-3 py-4">
 
-                      <p className="font-bold text-[#0F2851]">
+                      <p className="font-bold text-talentia-primary">
                         {
                           item.empresa
                         }
                       </p>
 
-                      <p className="text-[13px] text-[#64748B]">
+                      <p className="text-[13px] text-talentia-muted">
                         RUC:{" "}
                         {
                           item.ruc
@@ -568,7 +568,7 @@ export default function TablaSolicitudesEmpresas() {
                         }
                       </p>
 
-                      <p className="text-[13px] text-[#64748B]">
+                      <p className="text-[13px] text-talentia-muted">
                         {
                           item.correo
                         }{" "}
@@ -583,7 +583,7 @@ export default function TablaSolicitudesEmpresas() {
 
                     {/* INTERÉS */}
 
-                    <td className="max-w-[280px] px-3 py-4 font-semibold text-[#64748B]">
+                    <td className="max-w-[280px] px-3 py-4 font-semibold text-talentia-muted">
 
                       <p
                         className="truncate"
@@ -629,7 +629,7 @@ export default function TablaSolicitudesEmpresas() {
                                 : item.id
                           )
                         }
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[22px] font-bold leading-none text-[#64748B] transition hover:bg-[#EEF2F7] hover:text-[#0F2851] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[22px] font-bold leading-none text-talentia-muted transition hover:bg-talentia-hover hover:text-talentia-primary disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label={`Cambiar estado de ${item.empresa}`}
                       >
                         {actualizandoId ===
@@ -642,7 +642,7 @@ export default function TablaSolicitudesEmpresas() {
                       {menuAbiertoId ===
                         item.id && (
 
-                        <div className="absolute right-3 top-[50px] z-50 w-[155px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 text-left shadow-xl">
+                        <div className="absolute right-3 top-[50px] z-50 w-[155px] overflow-hidden rounded-xl border border-talentia-border bg-talentia-surface py-1 text-left shadow-xl">
 
 
                           {/* PENDIENTE */}
@@ -659,15 +659,15 @@ export default function TablaSolicitudesEmpresas() {
                                 "Pendiente"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-amber-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-talentia-warning-bg ${
                               item.estado ===
                               "Pendiente"
-                                ? "bg-amber-50 text-amber-700"
-                                : "text-[#0F2851]"
+                                ? "bg-talentia-warning-bg text-talentia-warning"
+                                : "text-talentia-primary"
                             }`}
                           >
 
-                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-talentia-warning" />
 
                             Pendiente
 
@@ -688,15 +688,15 @@ export default function TablaSolicitudesEmpresas() {
                                 "Atendido"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-emerald-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-talentia-success-bg ${
                               item.estado ===
                               "Atendido"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "text-[#0F2851]"
+                                ? "bg-talentia-success-bg text-talentia-success"
+                                : "text-talentia-primary"
                             }`}
                           >
 
-                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-talentia-success" />
 
                             Atendido
 
@@ -717,15 +717,15 @@ export default function TablaSolicitudesEmpresas() {
                                 "Cancelado"
                               )
                             }
-                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-red-50 ${
+                            className={`flex w-full items-center gap-2 px-4 py-2.5 text-[13px] font-semibold transition hover:bg-talentia-danger-bg ${
                               item.estado ===
                               "Cancelado"
-                                ? "bg-red-50 text-red-600"
-                                : "text-red-600"
+                                ? "bg-talentia-danger-bg text-talentia-danger"
+                                : "text-talentia-danger"
                             }`}
                           >
 
-                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-talentia-danger" />
 
                             Cancelar
 
@@ -750,7 +750,7 @@ export default function TablaSolicitudesEmpresas() {
                   colSpan={
                     6
                   }
-                  className="py-10 text-center text-[#64748B]"
+                  className="py-10 text-center text-talentia-muted"
                 >
                   No se encontraron solicitudes de empresas.
                 </td>

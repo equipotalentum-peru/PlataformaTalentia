@@ -16,8 +16,8 @@ export default function AnnouncementCard({
 }: AnnouncementCardProps) {
   return (
     <article
-      className={`rounded-lg bg-white px-5 py-3 shadow-sm ${
-        unread ? "border-l-4 border-[#3186d8]" : ""
+      className={`rounded-lg bg-talentia-surface px-5 py-3 shadow-sm ${
+        unread ? "border-l-4 border-talentia-blue" : ""
       }`}
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -25,9 +25,9 @@ export default function AnnouncementCard({
         <div className="flex min-w-0 items-center gap-4">
 
           {/* ICONO */}
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
             <svg
-              className="h-7 w-7 text-black"
+              className="h-7 w-7 text-talentia-primary"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -40,15 +40,15 @@ export default function AnnouncementCard({
           </div>
 
           <div className="min-w-0">
-            <h3 className="text-[14px] font-bold text-gray-900">
+            <h3 className="text-[14px] font-bold text-talentia-primary">
               {announcement.title}
             </h3>
 
-            <p className="mt-0.5 text-[10px] text-gray-400">
+            <p className="mt-0.5 text-[10px] text-talentia-muted">
               {announcement.date}
             </p>
 
-            <p className="mt-1 line-clamp-2 max-w-[650px] text-[11px] leading-snug text-gray-700">
+            <p className="mt-1 line-clamp-2 max-w-[650px] text-[11px] leading-snug text-talentia-primary">
               {announcement.content}
             </p>
           </div>

@@ -18,7 +18,7 @@ type CursoDocenteApi = {
 const IMAGEN_POR_DEFECTO =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
 
-const COLORES = ["#54d6d8", "#b765d9", "#ee9acb", "#55d3d3", "#3186d8"];
+const COLORES = ["var(--talentia-teal)", "var(--talentia-purple)", "var(--talentia-blue)", "var(--talentia-teal)", "var(--talentia-blue)"];
 
 export default function TeacherCoursesPage() {
   const router = useRouter();
@@ -113,16 +113,16 @@ export default function TeacherCoursesPage() {
         {/* CABECERA */}
         <header className="mb-[30px] flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 
-          <h1 className="text-[29px] font-semibold tracking-[-0.7px] text-[#18407c]">
+          <h1 className="teacher-page-title text-[29px] font-semibold tracking-[-0.7px] text-talentia-primary">
             Mis cursos
           </h1>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 
             {/* BUSCADOR */}
-            <div className="flex h-[38px] w-full min-w-[230px] items-center rounded-full bg-[#ececec] px-3 sm:w-[300px]">
+            <div className="flex h-[38px] w-full min-w-[230px] items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3 sm:w-[300px]">
               <svg
-                className="mr-2 h-5 w-5 text-gray-500"
+                className="mr-2 h-5 w-5 text-talentia-muted"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -139,15 +139,15 @@ export default function TeacherCoursesPage() {
                   setSearch(event.target.value)
                 }
                 placeholder="Buscar Curso..."
-                className="w-full bg-transparent text-[12px] text-gray-800 outline-none placeholder:text-gray-500"
+                className="w-full bg-transparent text-[12px] text-talentia-primary outline-none placeholder:text-talentia-placeholder"
               />
             </div>
 
             {/* PERIODO */}
-            <div className="flex h-[38px] items-center rounded-full bg-[#ececec] px-3">
+            <div className="flex h-[38px] items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3">
 
               <svg
-                className="mr-2 h-5 w-5 text-gray-800"
+                className="mr-2 h-5 w-5 text-talentia-primary"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -165,7 +165,7 @@ export default function TeacherCoursesPage() {
                 <path d="M3 9h18" />
               </svg>
 
-              <span className="mr-2 text-[12px] font-semibold text-gray-800">
+              <span className="mr-2 text-[12px] font-semibold text-talentia-primary">
                 Periodo
               </span>
 
@@ -174,7 +174,7 @@ export default function TeacherCoursesPage() {
                 onChange={(event) =>
                   setPeriod(event.target.value)
                 }
-                className="bg-transparent text-[11px] font-medium text-gray-800 outline-none"
+                className="bg-transparent text-[11px] font-medium text-talentia-primary outline-none"
               >
                 <option value="Todos">Todos</option>
                 <option value="2026">2026</option>
@@ -189,7 +189,7 @@ export default function TeacherCoursesPage() {
         {error && (
           <div
             role="alert"
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700"
+            className="mb-4 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[12px] text-talentia-danger"
           >
             {error}
           </div>
@@ -197,7 +197,7 @@ export default function TeacherCoursesPage() {
 
         {/* CURSOS */}
         {loading ? (
-          <div className="rounded-xl bg-white px-6 py-12 text-center text-[13px] text-gray-500 shadow-sm">
+          <div className="rounded-xl bg-talentia-surface px-6 py-12 text-center text-[13px] text-talentia-muted shadow-sm">
             Cargando cursos...
           </div>
         ) : filteredCourses.length > 0 ? (
@@ -212,8 +212,8 @@ export default function TeacherCoursesPage() {
           </section>
         ) : (
           !error && (
-            <div className="rounded-xl bg-white px-6 py-12 text-center shadow-sm">
-              <p className="text-[13px] text-gray-500">
+            <div className="rounded-xl bg-talentia-surface px-6 py-12 text-center shadow-sm">
+              <p className="text-[13px] text-talentia-muted">
                 No tienes cursos asignados todavía.
               </p>
             </div>

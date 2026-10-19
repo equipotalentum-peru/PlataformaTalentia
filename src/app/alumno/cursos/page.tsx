@@ -82,29 +82,29 @@ export default function MisCursosPage() {
   return (
     <div className="min-h-screen px-[52px] py-[33px]">
       <header className="mb-[31px]">
-        <h1 className="text-[29px] font-semibold tracking-[-0.7px] text-gray-900">
+        <h1 className="student-page-title text-[29px] font-semibold tracking-[-0.7px] text-talentia-primary">
           Mis cursos
         </h1>
       </header>
 
       {cargando ? (
         <section className="flex min-h-[180px] max-w-[980px] items-center justify-center">
-          <p className="text-[14px] text-gray-500">
+          <p className="text-[14px] text-talentia-muted">
             Cargando tus cursos...
           </p>
         </section>
       ) : error ? (
-        <section className="max-w-[980px] rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <section className="max-w-[980px] rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] text-talentia-danger">
           {error}
         </section>
       ) : cursos.length === 0 ? (
-        <section className="flex min-h-[180px] max-w-[980px] items-center justify-center rounded-lg bg-white shadow-sm">
-          <p className="text-[14px] text-gray-500">
+        <section className="flex min-h-[180px] max-w-[980px] items-center justify-center rounded-lg bg-talentia-surface shadow-sm">
+          <p className="text-[14px] text-talentia-muted">
             No tienes cursos matriculados actualmente.
           </p>
         </section>
       ) : (
-        <section className="grid max-w-[980px] grid-cols-1 gap-[18px] md:grid-cols-2">
+        <section className="grid w-full grid-cols-1 gap-[18px] md:grid-cols-2">
           {cursos.map((curso) => {
             const imagen = resolverImagenPortadaCurso(curso.imagen, curso.id, IMAGEN_POR_DEFECTO);
 
@@ -125,7 +125,7 @@ export default function MisCursosPage() {
                     `/alumno/cursos/${curso.id}`
                   )
                 }
-                className="group relative block h-[164px] overflow-hidden rounded-[13px] bg-white text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
+                className="group relative block h-[164px] overflow-hidden rounded-[13px] bg-talentia-surface text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
               >
                 <img
                   src={imagen}
@@ -153,9 +153,9 @@ export default function MisCursosPage() {
                     </span>
                   </div>
 
-                  <div className="h-[17px] overflow-hidden rounded-full bg-white">
+                  <div className="h-[17px] overflow-hidden rounded-full bg-talentia-surface">
                     <div
-                      className="h-full rounded-full bg-[#2c8ee8]"
+                      className="h-full rounded-full bg-talentia-teal"
                       style={{
                         width: `${progreso}%`,
                       }}

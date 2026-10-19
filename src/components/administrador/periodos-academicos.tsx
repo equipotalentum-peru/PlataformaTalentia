@@ -326,10 +326,10 @@ export default function PeriodosAcademicos() {
     <div className="w-full space-y-6">
       <header className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-[#0F2851]">
+          <h1 className="text-3xl font-extrabold tracking-tight text-talentia-primary">
             Periodos académicos
           </h1>
-          <p className="mt-1 text-sm font-semibold text-[#64748B]">
+          <p className="mt-1 text-sm font-semibold text-talentia-muted">
             Administra los calendarios que utilizarán las ofertas de cursos y las matrículas.
           </p>
         </div>
@@ -337,26 +337,26 @@ export default function PeriodosAcademicos() {
         <button
           type="button"
           onClick={abrirFormularioNuevo}
-          className="self-start rounded-2xl bg-[#3B82F6] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#2563EB] sm:self-auto"
+          className="self-start rounded-2xl bg-talentia-action px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-talentia-primary sm:self-auto"
         >
           {mostrarFormulario ? "Cerrar formulario" : "Registrar periodo"}
         </button>
       </header>
 
       {error && !mostrarFormulario && (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
+        <p role="alert" className="rounded-xl bg-talentia-danger-bg p-3 text-sm font-semibold text-talentia-danger">
           {error}
         </p>
       )}
       {mensaje && (
-        <p role="status" className="rounded-xl bg-green-50 p-3 text-sm font-semibold text-green-700">
+        <p role="status" className="rounded-xl bg-talentia-success-bg p-3 text-sm font-semibold text-talentia-success">
           {mensaje}
         </p>
       )}
 
       {mostrarFormulario && (
-        <section className="space-y-6 rounded-3xl border border-gray-100/80 bg-white p-8 shadow-sm">
-          <h2 className="text-xl font-extrabold text-[#0F2851]">
+        <section className="space-y-6 rounded-3xl border border-talentia-border/80 bg-talentia-surface p-8 shadow-sm">
+          <h2 className="text-xl font-extrabold text-talentia-primary">
             {editandoId ? "Editar periodo" : "Registrar periodo"}
           </h2>
 
@@ -365,7 +365,7 @@ export default function PeriodosAcademicos() {
               <div className="md:col-span-2">
                 <label
                   htmlFor="nombrePeriodo"
-                  className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+                  className="mb-2 block text-xs font-extrabold text-talentia-primary"
                 >
                   Nombre del periodo *
                 </label>
@@ -381,14 +381,14 @@ export default function PeriodosAcademicos() {
                     }))
                   }
                   placeholder="Ej. Agosto - Diciembre 2026"
-                  className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                  className="w-full rounded-2xl border border-talentia-border bg-talentia-surface px-4 py-3.5 text-sm text-talentia-primary placeholder-talentia-placeholder transition focus:bg-talentia-surface focus:outline-none focus:ring-2 focus:ring-talentia-blue"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="fechaInicio"
-                  className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+                  className="mb-2 block text-xs font-extrabold text-talentia-primary"
                 >
                   Fecha de inicio *
                 </label>
@@ -403,14 +403,14 @@ export default function PeriodosAcademicos() {
                       fechaInicio: event.target.value,
                     }))
                   }
-                  className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-sm text-[#0F2851] transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                  className="w-full rounded-2xl border border-talentia-border bg-talentia-surface px-4 py-3.5 text-sm text-talentia-primary transition focus:bg-talentia-surface focus:outline-none focus:ring-2 focus:ring-talentia-blue"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="fechaFin"
-                  className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+                  className="mb-2 block text-xs font-extrabold text-talentia-primary"
                 >
                   Fecha de fin *
                 </label>
@@ -426,13 +426,13 @@ export default function PeriodosAcademicos() {
                       fechaFin: event.target.value,
                     }))
                   }
-                  className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-sm text-[#0F2851] transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                  className="w-full rounded-2xl border border-talentia-border bg-talentia-surface px-4 py-3.5 text-sm text-talentia-primary transition focus:bg-talentia-surface focus:outline-none focus:ring-2 focus:ring-talentia-blue"
                 />
               </div>
             </div>
 
             {error && (
-              <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p role="alert" className="rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm text-talentia-danger">
                 {error}
               </p>
             )}
@@ -441,7 +441,7 @@ export default function PeriodosAcademicos() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-2xl bg-[#3B82F6] px-8 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-2xl bg-talentia-action px-8 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {guardando
                   ? "Guardando..."
@@ -453,7 +453,7 @@ export default function PeriodosAcademicos() {
                 type="button"
                 onClick={limpiarFormulario}
                 disabled={guardando}
-                className="rounded-2xl border border-gray-200 bg-white px-10 py-3 text-sm font-bold text-[#312E81] shadow-sm transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-2xl border border-talentia-border bg-talentia-surface px-10 py-3 text-sm font-bold text-talentia-primary shadow-sm transition-all hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -462,7 +462,7 @@ export default function PeriodosAcademicos() {
         </section>
       )}
 
-      <div className="overflow-x-auto rounded-3xl border border-gray-100/80 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-3xl border border-talentia-border/80 bg-talentia-surface shadow-sm">
         <table className="w-full min-w-[1000px] table-fixed border-collapse text-left">
           <colgroup>
             <col />
@@ -472,7 +472,7 @@ export default function PeriodosAcademicos() {
             <col className="w-24" />
           </colgroup>
           <thead>
-            <tr className="border-b border-gray-100 bg-[#F5F3FF] text-[13px] font-extrabold text-[#6B21A8]">
+            <tr className="border-b border-talentia-border bg-talentia-table-header text-[13px] font-extrabold text-talentia-primary">
               <th className="px-6 py-4">Periodo</th>
               <th className="px-4 py-4">Fecha de inicio</th>
               <th className="px-4 py-4">Fecha de fin</th>
@@ -480,16 +480,16 @@ export default function PeriodosAcademicos() {
               <th className="px-4 py-4 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
+          <tbody className="divide-y divide-talentia-border text-[13px] font-semibold text-talentia-muted">
             {cargando ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-[#64748B]">
+                <td colSpan={5} className="px-6 py-8 text-center text-talentia-muted">
                   Cargando periodos...
                 </td>
               </tr>
             ) : periodos.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-[13px] text-[#64748B]">
+                <td colSpan={5} className="px-6 py-8 text-center text-[13px] text-talentia-muted">
                   Aún no hay periodos académicos. Usa «Registrar periodo» para crear el primero.
                 </td>
               </tr>
@@ -499,22 +499,22 @@ export default function PeriodosAcademicos() {
                   eliminandoId === periodo.id || cambiandoEstadoId === periodo.id;
 
                 return (
-                  <tr key={periodo.id} className="transition-colors hover:bg-gray-50/50">
-                    <td className="break-words px-6 py-4 font-bold text-[#0F2851]">
+                  <tr key={periodo.id} className="transition-colors hover:bg-talentia-hover/50">
+                    <td className="break-words px-6 py-4 font-bold text-talentia-primary">
                       {periodo.nombre}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-[#64748B]">
+                    <td className="whitespace-nowrap px-4 py-4 text-talentia-muted">
                       {formatearFecha(periodo.fechaInicio)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-[#64748B]">
+                    <td className="whitespace-nowrap px-4 py-4 text-talentia-muted">
                       {formatearFecha(periodo.fechaFin)}
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`inline-block whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-extrabold ${
                           periodo.activo
-                            ? "bg-[#BBF7D0] text-[#166534]"
-                            : "bg-[#E2E8F0] text-[#475569]"
+                            ? "bg-talentia-success-bg text-talentia-success"
+                            : "bg-talentia-surface text-talentia-muted"
                         }`}
                       >
                         {periodo.activo ? "Activo" : "Inactivo"}
@@ -547,7 +547,7 @@ export default function PeriodosAcademicos() {
                             ),
                           });
                         }}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-talentia-muted transition hover:bg-talentia-hover disabled:opacity-50"
                       >
                         ⋮
                       </button>
@@ -567,13 +567,13 @@ export default function PeriodosAcademicos() {
           role="menu"
           aria-label={`Acciones de ${menu.periodo.nombre}`}
           style={{ top: menu.top, left: menu.left }}
-          className="fixed z-50 w-56 rounded-lg border border-slate-100 bg-white py-1 text-[13px] text-[#0F2851] shadow-lg"
+          className="fixed z-50 w-56 rounded-lg border border-talentia-border bg-talentia-surface py-1 text-[13px] text-talentia-primary shadow-lg"
         >
           <button
             type="button"
             role="menuitem"
             onClick={() => editarPeriodo(menu.periodo)}
-            className="block w-full px-4 py-3 text-left hover:bg-slate-50"
+            className="block w-full px-4 py-3 text-left hover:bg-talentia-hover"
           >
             Editar
           </button>
@@ -582,7 +582,7 @@ export default function PeriodosAcademicos() {
             role="menuitem"
             disabled={cambiandoEstadoId === menu.periodo.id}
             onClick={() => void cambiarEstado(menu.periodo)}
-            className="block w-full px-4 py-3 text-left hover:bg-slate-50 disabled:opacity-50"
+            className="block w-full px-4 py-3 text-left hover:bg-talentia-hover disabled:opacity-50"
           >
             {cambiandoEstadoId === menu.periodo.id
               ? "Actualizando..."
@@ -595,7 +595,7 @@ export default function PeriodosAcademicos() {
             role="menuitem"
             disabled={eliminandoId === menu.periodo.id}
             onClick={() => void eliminarPeriodo(menu.periodo)}
-            className="block w-full border-t border-slate-100 px-4 py-3 text-left text-red-600 hover:bg-red-50 disabled:opacity-50"
+            className="block w-full border-t border-talentia-border px-4 py-3 text-left text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
           >
             {eliminandoId === menu.periodo.id ? "Eliminando..." : "Eliminar"}
           </button>

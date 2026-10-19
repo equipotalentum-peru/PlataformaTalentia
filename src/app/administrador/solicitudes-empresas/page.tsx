@@ -7,11 +7,11 @@ export default function SolicitudesEmpresasPage() {
       <div className="mx-auto w-full max-w-[1380px] px-6 lg:px-8 xl:px-10 2xl:px-12">
 
         <div className="mb-7">
-          <h1 className="text-3xl font-extrabold tracking-tight text-[#0F2851]">
+          <h1 className="text-3xl font-extrabold tracking-tight text-talentia-primary">
             Solicitudes Empresas
           </h1>
 
-          <p className="mt-1 text-sm font-semibold text-[#64748B]">
+          <p className="mt-1 text-sm font-semibold text-talentia-muted">
             Registro de empresas interesadas en capacitación corporativa.
           </p>
         </div>

@@ -65,18 +65,18 @@ function getGradeClasses(
   value: number | null
 ) {
   if (value === null) {
-    return "bg-[#ededed] text-gray-700";
+    return "bg-talentia-surface text-talentia-primary";
   }
 
   if (value >= 14) {
-    return "bg-[#c6f2cf] text-[#15933a]";
+    return "bg-talentia-success-bg text-talentia-success";
   }
 
   if (value >= 11) {
-    return "bg-[#ffe5b2] text-[#ce8900]";
+    return "bg-talentia-warning-bg text-talentia-warning";
   }
 
-  return "bg-[#f7c5cc] text-[#bd4051]";
+  return "bg-talentia-danger-bg text-talentia-danger";
 }
 
 function getInitials(name: string) {
@@ -89,24 +89,6 @@ function getInitials(name: string) {
     )
     .join("")
     .toUpperCase();
-}
-
-function formatearFechaLarga() {
-  return new Intl.DateTimeFormat(
-    "es-PE",
-    {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  )
-    .format(new Date())
-    .replace(
-      /^./,
-      (letra) =>
-        letra.toUpperCase()
-    );
 }
 
 function getGrade(
@@ -943,15 +925,11 @@ export default function TeacherGradesPage() {
     return (
       <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
         <header className="mb-5">
-          <p className="text-[11px] font-medium uppercase text-gray-500">
-            {formatearFechaLarga()}
-          </p>
-
-          <h1 className="mt-1 text-[35px] font-semibold tracking-[-0.8px] text-gray-950">
+          <h1 className="teacher-page-title text-[35px] font-semibold tracking-[-0.8px] text-talentia-primary">
            Calificaciones por Curso
           </h1>
 
-          <p className="mt-1 text-[15px] text-gray-700">
+          <p className="mt-1 text-[15px] text-talentia-primary">
             Cargando información desde la base de datos...
           </p>
         </header>
@@ -963,28 +941,24 @@ export default function TeacherGradesPage() {
     <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
       {/* CABECERA */}
       <header className="mb-5">
-        <p className="text-[11px] font-medium uppercase text-gray-500">
-          {formatearFechaLarga()}
-        </p>
-
-        <h1 className="mt-1 text-[35px] font-semibold tracking-[-0.8px] text-gray-950">
+        <h1 className="teacher-page-title text-[35px] font-semibold tracking-[-0.8px] text-talentia-primary">
          Calificaciones por Curso
         </h1>
 
-        <p className="mt-2 text-[15px] text-gray-700">
+        <p className="mt-2 text-[15px] text-talentia-primary">
          Selecciona un curso y registra la nota individual de cada alumno.
         </p>
       </header>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[10px] text-red-700">
+        <div className="mb-4 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[10px] text-talentia-danger">
           {error}
         </div>
       )}
 
       {mensaje &&
         !error && (
-          <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-[10px] text-green-700">
+          <div className="mb-4 rounded-md border border-talentia-success/20 bg-talentia-success-bg px-4 py-3 text-[10px] text-talentia-success">
             {mensaje}
           </div>
         )}
@@ -993,7 +967,7 @@ export default function TeacherGradesPage() {
       <section className="mb-4">
         <label
           htmlFor="curso-calificaciones"
-          className="mb-1 block text-[15px] font-semibold text-[#3186d8]"
+          className="mb-1 block text-[15px] font-semibold text-talentia-blue"
         >
           Curso
         </label>
@@ -1017,7 +991,7 @@ export default function TeacherGradesPage() {
               0 ||
             cargando
           }
-          className="h-10 w-[360px] rounded-md border border-[#70a9dd] bg-white px-3 text-[14px] text-[#3186d8] outline-none disabled:opacity-60"
+          className="h-10 w-[360px] rounded-md border border-talentia-border bg-talentia-surface px-3 text-[14px] text-talentia-blue outline-none disabled:opacity-60"
         >
           {cursos.length ===
           0 ? (
@@ -1051,69 +1025,69 @@ export default function TeacherGradesPage() {
 
       {/* RESUMEN */}
       <section className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-[#9ce9ed] px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#73dce0] text-[#3186d8]">
+        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-selected px-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-selected text-talentia-blue">
             <span className="text-xl">
               👥
             </span>
           </div>
 
           <div>
-            <p className="text-[28px] font-bold leading-none text-[#1554a0]">
+            <p className="text-[28px] font-bold leading-none text-talentia-primary">
               {
                 resumen.alumnos
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-gray-700">
+            <p className="mt-1 text-[15px] text-talentia-primary">
               Alumnos del curso
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-[#b5efc0] px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#82e58f] text-[#1c9f43]">
+        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-success-bg px-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-success-bg text-talentia-success">
             ✓
           </div>
 
           <div>
-            <p className="text-[28px] font-bold leading-none text-[#199441]">
+            <p className="text-[28px] font-bold leading-none text-talentia-success">
               {
                 resumen.conCalificacion
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-gray-700">
+            <p className="mt-1 text-[15px] text-talentia-primary">
               Con calificación
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-[#ffe4ab] px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ffd379] text-[#df9600]">
+        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-warning-bg px-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-warning-bg text-talentia-warning">
             ◷
           </div>
 
           <div>
-            <p className="text-[28px] font-bold leading-none text-[#d89200]">
+            <p className="text-[28px] font-bold leading-none text-talentia-warning">
               {
                 resumen.pendientes
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-gray-700">
+            <p className="mt-1 text-[15px] text-talentia-primary">
               Pendientes por calificar
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-[#e1b7f8] px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#d092f3] text-[#8c40b7]">
+        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-purple-soft px-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-purple-soft text-talentia-purple">
             ▥
           </div>
 
           <div>
-            <p className="text-[28px] font-bold leading-none text-[#8c40b7]">
+            <p className="text-[28px] font-bold leading-none text-talentia-purple">
               {resumen.promedioMasAlto ===
               null
                 ? "—"
@@ -1122,7 +1096,7 @@ export default function TeacherGradesPage() {
                   )}
             </p>
 
-            <p className="mt-1 text-[15px] text-gray-700">
+            <p className="mt-1 text-[15px] text-talentia-primary">
               Promedio más alto del curso
             </p>
           </div>
@@ -1131,8 +1105,8 @@ export default function TeacherGradesPage() {
 
       {/* INFORMACIÓN DEL CURSO */}
       {selectedCourseObject && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-[15px] text-gray-500">
-          <span className="rounded-full bg-[#eef6ff] px-3 py-1 font-semibold text-[#3186d8]">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[15px] text-talentia-muted">
+          <span className="rounded-full bg-talentia-selected px-3 py-1 font-semibold text-talentia-blue">
             {
               selectedCourseObject.codigo
             }
@@ -1144,7 +1118,7 @@ export default function TeacherGradesPage() {
             }
           </span>
 
-          <span className="text-gray-400">
+          <span className="text-talentia-muted">
             · Promedio del curso:{" "}
             {resumen.promedioCurso ===
             null
@@ -1157,9 +1131,9 @@ export default function TeacherGradesPage() {
       )}
 
       {/* BUSCADOR */}
-      <div className="mb-4 flex h-10 w-[280px] items-center rounded-md border border-gray-300 bg-white px-3">
+      <div className="mb-4 flex h-10 w-[280px] items-center rounded-md border border-talentia-border bg-talentia-surface px-3">
         <svg
-          className="mr-2 h-4 w-4 text-gray-800"
+          className="mr-2 h-4 w-4 text-talentia-primary"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -1192,11 +1166,11 @@ export default function TeacherGradesPage() {
       </div>
 
       {/* TABLA */}
-      <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <section className="overflow-hidden rounded-xl border border-talentia-border bg-talentia-surface">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-[15px]">
             <thead>
-              <tr className="bg-[#eceef2]">
+              <tr className="bg-talentia-surface">
                 <th className="px-5 py-4 text-left text-[15px] font-semibold">
                   Alumno
                 </th>
@@ -1222,7 +1196,7 @@ export default function TeacherGradesPage() {
 
                       {componente.porcentaje !==
                         null && (
-                        <span className="mt-1 block text-[12px] font-normal text-gray-500">
+                        <span className="mt-1 block text-[12px] font-normal text-talentia-muted">
                           {
                             componente.porcentaje
                           }
@@ -1246,11 +1220,11 @@ export default function TeacherGradesPage() {
                     key={
                       row.matriculaId
                     }
-                    className="border-t border-gray-200"
+                    className="border-t border-talentia-border"
                   >
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3186d8] text-[12px] font-semibold text-white">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-talentia-action text-[12px] font-semibold text-white">
                           {
                             getInitials(
                               row.alumno
@@ -1258,7 +1232,7 @@ export default function TeacherGradesPage() {
                           }
                         </div>
 
-                        <span className="text-[15px] font-medium text-gray-800">
+                        <span className="text-[15px] font-medium text-talentia-primary">
                           {
                             row.alumno
                           }
@@ -1382,7 +1356,7 @@ export default function TeacherGradesPage() {
 
         {componentes.length ===
           0 && (
-          <div className="border-t border-gray-200 px-6 py-10 text-center text-[13px] text-gray-500">
+          <div className="border-t border-talentia-border px-6 py-10 text-center text-[13px] text-talentia-muted">
             Este curso todavía no tiene componentes de calificación configurados en la base de datos. Las notas se podrán registrar cuando existan componentes asociados a la oferta del curso.
           </div>
         )}
@@ -1391,7 +1365,7 @@ export default function TeacherGradesPage() {
           0 &&
           visibleRows.length ===
             0 && (
-            <div className="py-10 text-center text-[13px] text-gray-500">
+            <div className="py-10 text-center text-[13px] text-talentia-muted">
               {grades.length ===
               0
                 ? "Este curso no tiene alumnos matriculados actualmente."
@@ -1402,7 +1376,7 @@ export default function TeacherGradesPage() {
 
       {/* PAGINACIÓN */}
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[14px] text-gray-600">
+        <p className="text-[14px] text-talentia-primary">
           Mostrando{" "}
           {
             visibleRows.length
@@ -1433,7 +1407,7 @@ export default function TeacherGradesPage() {
               page ===
               1
             }
-            className="flex h-7 w-7 items-center justify-center rounded border border-gray-200 bg-white disabled:opacity-40"
+            className="flex h-7 w-7 items-center justify-center rounded border border-talentia-border bg-talentia-surface disabled:opacity-40"
           >
             ‹
           </button>
@@ -1465,8 +1439,8 @@ export default function TeacherGradesPage() {
                 className={`h-7 min-w-7 rounded border px-2 text-[13px] ${
                   page ===
                   pageNumber
-                    ? "border-[#3186d8] bg-[#3186d8] text-white"
-                    : "border-gray-200 bg-white text-gray-700"
+                    ? "border-talentia-blue bg-talentia-action text-white"
+                    : "border-talentia-border bg-talentia-surface text-talentia-primary"
                 }`}
               >
                 {
@@ -1494,14 +1468,14 @@ export default function TeacherGradesPage() {
               page ===
               totalPages
             }
-            className="flex h-7 w-7 items-center justify-center rounded border border-gray-200 bg-white disabled:opacity-40"
+            className="flex h-7 w-7 items-center justify-center rounded border border-talentia-border bg-talentia-surface disabled:opacity-40"
           >
             ›
           </button>
         </div>
       </div>
 
-      <p className="mt-2 text-[13px] text-gray-500">
+      <p className="mt-2 text-[13px] text-talentia-muted">
         Curso seleccionado:{" "}
         {
           selectedCourseObject?.nombre ??

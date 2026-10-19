@@ -202,16 +202,16 @@ const [
     <div className="min-h-screen w-full px-[30px] py-[32px] lg:px-[45px]">
       {/* TÍTULO */}
       <header className="mb-[30px]">
-        <h1 className="text-[34px] font-semibold tracking-[-0.8px] text-gray-900">
+        <h1 className="student-page-title text-[34px] font-semibold tracking-[-0.8px] text-talentia-primary">
           Mis certificados
         </h1>
       </header>
 
       {/* FILTROS */}
-      <section className="mb-7 grid grid-cols-1 gap-4 md:grid-cols-[1fr_220px]">
+      <section className="mb-7 grid w-full max-w-[680px] grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_200px]">
         <div className="relative">
           <svg
-            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-talentia-muted"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -226,14 +226,14 @@ const [
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
             placeholder="Buscar por nombre"
-            className="h-[54px] w-full rounded-[10px] border border-[#d5dce5] bg-white pl-12 pr-4 text-[15px] text-gray-800 outline-none transition focus:border-[#2d97e8] focus:ring-2 focus:ring-[#2d97e8]/10"
+            className="h-10 w-full rounded-[8px] border border-talentia-border bg-talentia-surface pl-10 pr-3 text-[14px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/10"
           />
         </div>
 
         <select
           value={orden}
           onChange={(event) => setOrden(event.target.value)}
-          className="h-[54px] rounded-[10px] border border-[#d5dce5] bg-white px-4 text-[14px] text-gray-700 outline-none"
+          className="h-10 min-w-0 rounded-[8px] border border-talentia-border bg-talentia-surface px-3 text-[14px] text-talentia-primary outline-none"
         >
           <option value="todos">Todos</option>
           <option value="nombre">Ordenar por nombre</option>
@@ -245,7 +245,7 @@ const [
         {certificadosFiltrados.map((certificado) => (
           <article
             key={certificado.id}
-            className="overflow-hidden rounded-[16px] border border-[#d9e0e8] bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+            className="overflow-hidden rounded-[16px] border border-talentia-border bg-talentia-surface shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
           >
             {/* IMAGEN */}
             <div className="relative h-[165px] overflow-hidden">
@@ -257,22 +257,22 @@ const [
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
-              <span className="absolute left-4 top-4 rounded-full bg-[#dcfce7] px-3 py-1.5 text-[12px] font-semibold text-[#15803d] shadow-sm">
+              <span className="absolute left-4 top-4 rounded-full bg-talentia-success-bg px-3 py-1.5 text-[12px] font-semibold text-talentia-success shadow-sm">
                 {certificado.estado}
               </span>
             </div>
 
             {/* INFO */}
             <div className="p-5">
-              <p className="text-[12px] font-medium uppercase tracking-[0.5px] text-gray-400">
+              <p className="text-[12px] font-medium uppercase tracking-[0.5px] text-talentia-muted">
                 Curso
               </p>
 
-              <h2 className="mt-1 text-[20px] font-semibold text-gray-900">
+              <h2 className="mt-1 text-[20px] font-semibold text-talentia-primary">
                 {certificado.curso}
               </h2>
 
-              <div className="mt-4 flex items-center justify-between text-[13px] text-gray-500">
+              <div className="mt-4 flex items-center justify-between text-[13px] text-talentia-muted">
                 <span>{certificado.codigo}</span>
                 <span>{certificado.fecha}</span>
               </div>
@@ -281,7 +281,7 @@ const [
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <Link
                   href={`/alumno/certificados/${certificado.id}`}
-                  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] border border-[#2d97e8] text-[13px] font-semibold text-[#2d97e8] transition hover:bg-blue-50"
+                  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] border border-talentia-blue text-[13px] font-semibold text-talentia-blue transition hover:bg-talentia-hover"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -306,7 +306,7 @@ const [
     `certificado-${certificado.codigo}.pdf`
   }
 
-  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] bg-[#2d97e8] text-[13px] font-semibold text-white transition hover:bg-[#2188d6] disabled:cursor-not-allowed disabled:opacity-60"
+  className="flex h-[44px] items-center justify-center gap-2 rounded-[8px] bg-talentia-action text-[13px] font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60"
 />
               </div>
             </div>
@@ -316,12 +316,12 @@ const [
 
       {/* SIN RESULTADOS */}
       {certificadosFiltrados.length === 0 && (
-        <div className="mt-10 rounded-[14px] border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
-          <p className="text-[16px] font-medium text-gray-700">
+        <div className="mt-10 rounded-[14px] border border-dashed border-talentia-border bg-talentia-surface px-6 py-14 text-center">
+          <p className="text-[16px] font-medium text-talentia-primary">
             No se encontraron certificados.
           </p>
 
-          <p className="mt-2 text-[13px] text-gray-500">
+          <p className="mt-2 text-[13px] text-talentia-muted">
             Prueba buscando otro curso.
           </p>
         </div>
@@ -329,15 +329,15 @@ const [
 
       {/* PAGINACIÓN */}
       <div className="mt-8 flex justify-center gap-2">
-        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-[#2d97e8] text-white">
+        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-talentia-action text-white">
           ‹
         </button>
 
-        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-[#2d97e8] text-white">
+        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-talentia-action text-white">
           1
         </button>
 
-        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-[#2d97e8] text-white">
+        <button className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-talentia-action text-white">
           ›
         </button>
       </div>

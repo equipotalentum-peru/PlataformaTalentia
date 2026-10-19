@@ -66,7 +66,7 @@ const EMPTY_FORM:
 
 
 const inputClass =
-  "w-full rounded-md border border-[#cfd9e6] bg-white px-3 py-2.5 text-sm text-gray-800 outline-none transition focus:border-[#3186d8] focus:ring-2 focus:ring-[#3186d8]/15";
+  "w-full rounded-md border border-talentia-border bg-talentia-surface px-3 py-2.5 text-sm text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15";
 
 
 function PencilIcon() {
@@ -727,9 +727,9 @@ export default function RubricEditorModal({
         overflow-hidden
         rounded-[14px]
         border-0
-        bg-white
+        bg-talentia-surface
         p-0
-        text-gray-800
+        text-talentia-primary
         shadow-2xl
         backdrop:bg-black/50
 
@@ -757,8 +757,8 @@ export default function RubricEditorModal({
             className={`font-bold ${
               type ===
               "criterios"
-                ? "text-[24px] text-[#102a56]"
-                : "text-lg text-[#3186d8]"
+                ? "text-[24px] text-talentia-primary"
+                : "text-lg text-talentia-primary"
             }`}
           >
             {type ===
@@ -774,7 +774,7 @@ export default function RubricEditorModal({
             onClick={
               onClose
             }
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-2xl text-gray-500 transition hover:bg-gray-100"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-2xl text-talentia-muted transition hover:bg-talentia-hover"
           >
             ×
           </button>
@@ -818,15 +818,15 @@ export default function RubricEditorModal({
                   file:mr-3
                   file:rounded-md
                   file:border-0
-                  file:bg-[#eff7ff]
+                  file:bg-talentia-selected
                   file:px-3
                   file:py-2
-                  file:text-[#3186d8]
+                  file:text-talentia-blue
                 `}
               />
 
 
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-talentia-muted">
                 Máximo 200 MB
               </p>
 
@@ -834,7 +834,7 @@ export default function RubricEditorModal({
               {checking && (
                 <p
                   role="status"
-                  className="mt-3 text-sm text-gray-600"
+                  className="mt-3 text-sm text-talentia-primary"
                 >
                   Validando PDF…
                 </p>
@@ -842,7 +842,7 @@ export default function RubricEditorModal({
 
 
               {file && (
-                <p className="mt-3 break-all text-sm text-gray-700">
+                <p className="mt-3 break-all text-sm text-talentia-primary">
                   Seleccionado:{" "}
                   {file.name}{" "}
                   (
@@ -869,8 +869,8 @@ export default function RubricEditorModal({
                   AGREGAR NUEVO CRITERIO
               ============================================= */}
 
-              <section className="rounded-[10px] border border-[#dce7f3] bg-[#f8fbff] p-4">
-                <h3 className="mb-4 text-[17px] font-bold text-[#102a56]">
+              <section className="rounded-[10px] border border-talentia-border bg-talentia-surface p-4">
+                <h3 className="mb-4 text-[17px] font-bold text-talentia-primary">
                   {editingId
                     ? "Editar criterio"
                     : "Agregar nuevo criterio"}
@@ -883,7 +883,7 @@ export default function RubricEditorModal({
                   <div className="min-w-0">
                     <label
                       htmlFor="criterion-name"
-                      className="mb-1.5 block text-[13px] text-[#334155]"
+                      className="mb-1.5 block text-[13px] text-talentia-primary"
                     >
                       Nombre
                     </label>
@@ -918,7 +918,7 @@ export default function RubricEditorModal({
                   <div className="min-w-0">
                     <label
                       htmlFor="criterion-description"
-                      className="mb-1.5 block text-[13px] text-[#334155]"
+                      className="mb-1.5 block text-[13px] text-talentia-primary"
                     >
                       Descripción
                     </label>
@@ -953,7 +953,7 @@ export default function RubricEditorModal({
                   <div>
                     <label
                       htmlFor="criterion-points"
-                      className="mb-1.5 block text-[13px] text-[#334155]"
+                      className="mb-1.5 block text-[13px] text-talentia-primary"
                     >
                       Puntos
                     </label>
@@ -1006,13 +1006,13 @@ export default function RubricEditorModal({
                       justify-center
                       gap-2
                       rounded-md
-                      bg-[#2584dc]
+                      bg-talentia-action
                       px-4
                       text-[13px]
                       font-semibold
                       text-white
                       transition
-                      hover:bg-[#1975c9]
+                      hover:bg-talentia-primary
                       disabled:cursor-not-allowed
                       disabled:opacity-50
                     "
@@ -1039,7 +1039,7 @@ export default function RubricEditorModal({
                       onClick={
                         clearCriterionForm
                       }
-                      className="text-[12px] font-medium text-gray-500 transition hover:text-gray-800"
+                      className="text-[12px] font-medium text-talentia-muted transition hover:text-talentia-primary"
                     >
                       Cancelar edición
                     </button>
@@ -1049,8 +1049,8 @@ export default function RubricEditorModal({
 
                 {/* AYUDA */}
 
-                <div className="mt-4 flex items-center gap-2 rounded-[7px] bg-[#eaf4ff] px-4 py-3 text-[12px] text-[#2469ad]">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#2d86dd] text-[12px] font-bold">
+                <div className="mt-4 flex items-center gap-2 rounded-[7px] bg-talentia-selected px-4 py-3 text-[12px] text-talentia-blue">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-talentia-blue text-[12px] font-bold">
                     i
                   </span>
 
@@ -1078,7 +1078,7 @@ export default function RubricEditorModal({
               {error && (
                 <p
                   role="alert"
-                  className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                  className="mt-4 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm text-talentia-danger"
                 >
                   {error}
                 </p>
@@ -1090,7 +1090,7 @@ export default function RubricEditorModal({
               ============================================= */}
 
               <div className="mb-3 mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-[19px] font-bold text-[#102a56]">
+                <h3 className="text-[19px] font-bold text-talentia-primary">
                   Criterios
                   agregados
                 </h3>
@@ -1101,8 +1101,8 @@ export default function RubricEditorModal({
                   className={`text-[16px] font-bold ${
                     total ===
                     maximum
-                      ? "text-[#167b6a]"
-                      : "text-[#102a56]"
+                      ? "text-talentia-success"
+                      : "text-talentia-primary"
                   }`}
                 >
                   Total:{" "}
@@ -1119,27 +1119,27 @@ export default function RubricEditorModal({
                   TABLA
               ============================================= */}
 
-              <div className="max-h-[310px] overflow-auto rounded-[9px] border border-[#dae3ed]">
+              <div className="max-h-[310px] overflow-auto rounded-[9px] border border-talentia-border">
                 <table className="w-full min-w-[760px] border-collapse text-[13px]">
-                  <thead className="sticky top-0 z-10 bg-[#f1f5f9]">
+                  <thead className="sticky top-0 z-10 bg-talentia-surface">
                     <tr>
-                      <th className="w-[65px] border-r border-[#dae3ed] px-4 py-3 text-center font-semibold text-[#45556c]">
+                      <th className="w-[65px] border-r border-talentia-border px-4 py-3 text-center font-semibold text-talentia-primary">
                         #
                       </th>
 
-                      <th className="w-[230px] border-r border-[#dae3ed] px-5 py-3 text-left font-semibold text-[#45556c]">
+                      <th className="w-[230px] border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                         Nombre
                       </th>
 
-                      <th className="border-r border-[#dae3ed] px-5 py-3 text-left font-semibold text-[#45556c]">
+                      <th className="border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                         Descripción
                       </th>
 
-                      <th className="w-[120px] border-r border-[#dae3ed] px-5 py-3 text-center font-semibold text-[#45556c]">
+                      <th className="w-[120px] border-r border-talentia-border px-5 py-3 text-center font-semibold text-talentia-primary">
                         Puntos
                       </th>
 
-                      <th className="w-[145px] px-5 py-3 text-center font-semibold text-[#45556c]">
+                      <th className="w-[145px] px-5 py-3 text-center font-semibold text-talentia-primary">
                         Acciones
                       </th>
                     </tr>
@@ -1154,7 +1154,7 @@ export default function RubricEditorModal({
                           colSpan={
                             5
                           }
-                          className="px-5 py-10 text-center text-[13px] text-gray-400"
+                          className="px-5 py-10 text-center text-[13px] text-talentia-muted"
                         >
                           Todavía no
                           agregaste
@@ -1171,11 +1171,11 @@ export default function RubricEditorModal({
                             key={
                               row.id
                             }
-                            className="border-t border-[#e4eaf1] bg-white"
+                            className="border-t border-talentia-border bg-talentia-surface"
                           >
                             {/* # */}
 
-                            <td className="border-r border-[#e4eaf1] px-4 py-4 text-center font-medium text-[#27364a]">
+                            <td className="border-r border-talentia-border px-4 py-4 text-center font-medium text-talentia-primary">
                               {index +
                                 1}
                             </td>
@@ -1183,7 +1183,7 @@ export default function RubricEditorModal({
 
                             {/* NOMBRE */}
 
-                            <td className="border-r border-[#e4eaf1] px-5 py-4 font-semibold text-[#27364a]">
+                            <td className="border-r border-talentia-border px-5 py-4 font-semibold text-talentia-primary">
                               {
                                 row.nombre
                               }
@@ -1192,7 +1192,7 @@ export default function RubricEditorModal({
 
                             {/* DESCRIPCIÓN */}
 
-                            <td className="border-r border-[#e4eaf1] px-5 py-4 text-[#475569]">
+                            <td className="border-r border-talentia-border px-5 py-4 text-talentia-muted">
                               {row.descripcion ||
                                 "—"}
                             </td>
@@ -1200,7 +1200,7 @@ export default function RubricEditorModal({
 
                             {/* PUNTOS */}
 
-                            <td className="border-r border-[#e4eaf1] px-5 py-4 text-center font-semibold text-[#27364a]">
+                            <td className="border-r border-talentia-border px-5 py-4 text-center font-semibold text-talentia-primary">
                               {
                                 row.puntos
                               }
@@ -1219,7 +1219,7 @@ export default function RubricEditorModal({
                                       row
                                     )
                                   }
-                                  className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-[#eaf4ff] text-[#2584dc] transition hover:bg-[#d9ebff]"
+                                  className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-talentia-selected text-talentia-blue transition hover:bg-talentia-hover"
                                 >
                                   <PencilIcon />
                                 </button>
@@ -1233,7 +1233,7 @@ export default function RubricEditorModal({
                                       row.id
                                     )
                                   }
-                                  className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-red-50 text-red-500 transition hover:bg-red-100"
+                                  className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-talentia-danger-bg text-talentia-danger transition hover:bg-talentia-danger-bg"
                                 >
                                   <TrashIcon />
                                 </button>
@@ -1255,7 +1255,7 @@ export default function RubricEditorModal({
                   0 &&
                 total !==
                   maximum && (
-                  <p className="mt-3 text-[12px] text-gray-500">
+                  <p className="mt-3 text-[12px] text-talentia-muted">
                     Faltan{" "}
                     {(
                       (
@@ -1284,7 +1284,7 @@ export default function RubricEditorModal({
             error && (
               <p
                 role="alert"
-                className="mt-4 text-sm text-red-600"
+                className="mt-4 text-sm text-talentia-danger"
               >
                 {error}
               </p>
@@ -1296,13 +1296,13 @@ export default function RubricEditorModal({
             BOTONES INFERIORES
         ================================================= */}
 
-        <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-[#d9e2ec] bg-white px-7 py-4 sm:px-8">
+        <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-talentia-border bg-talentia-surface px-7 py-4 sm:px-8">
           <button
             type="button"
             onClick={
               onClose
             }
-            className="min-h-10 rounded-md bg-[#efe6fa] px-5 py-2 text-sm font-medium text-[#4b5fa7] transition hover:bg-[#e7dcf4]"
+            className="min-h-10 rounded-md bg-talentia-surface px-5 py-2 text-sm font-medium text-talentia-primary transition hover:bg-talentia-border"
           >
             Cancelar
           </button>
@@ -1323,7 +1323,7 @@ export default function RubricEditorModal({
                 )
               )
             }
-            className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2777c1] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-70"
+            className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:bg-talentia-border disabled:opacity-70"
           >
             {type ===
             "pdf"

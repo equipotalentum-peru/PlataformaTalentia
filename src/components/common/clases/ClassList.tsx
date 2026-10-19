@@ -23,9 +23,9 @@ export default function ClassList({
   onJoin,
 }: ClassListProps) {
   return (
-    <section className="overflow-hidden rounded-xl bg-white shadow-sm">
+    <section className="overflow-hidden rounded-xl bg-talentia-surface shadow-sm">
       <div className="px-5 py-4">
-        <h2 className="text-[16px] font-bold text-gray-900">
+        <h2 className="text-[16px] font-bold text-talentia-primary">
           Todas las clases
         </h2>
       </div>

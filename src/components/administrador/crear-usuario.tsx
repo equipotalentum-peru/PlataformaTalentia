@@ -65,33 +65,34 @@ export default function CrearUsuarioForm() {
       {/* Botón Volver a usuarios */}
       <Link
         href="/administrador/usuarios"
-        className="inline-flex items-center gap-2 text-xs font-bold text-[#64748B] hover:text-[#0F2851] transition mb-4"
+        className="app-back-link mb-4"
       >
-        <span>←</span> Volver a usuarios
+          <span aria-hidden="true">{"<"}</span>
+         Volver a usuarios
       </Link>
 
       {/* Encabezado */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Crear usuario
         </h1>
-        <p className="text-sm text-[#6F83A5] mt-1 font-medium">
+        <p className="text-sm text-talentia-muted mt-1 font-medium">
           Alta de docente o administrador con acceso inicial.
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="mb-4 text-sm text-talentia-danger">{error}</p>}
         {/* Tarjeta del Formulario */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-12">
-          <h2 className="text-xl font-extrabold text-[#0F2851] mb-6">
+        <div className="bg-talentia-surface rounded-3xl p-8 shadow-sm border border-talentia-border/80 mb-12">
+          <h2 className="text-xl font-extrabold text-talentia-primary mb-6">
             Datos de la cuenta
           </h2>
 
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Nombre completo *
                 </label>
                 <input
@@ -100,12 +101,12 @@ export default function CrearUsuarioForm() {
                   value={formData.nombreCompleto}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Correo electrónico *
                 </label>
                 <input
@@ -114,14 +115,14 @@ export default function CrearUsuarioForm() {
                   value={formData.correoElectronico}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Rol *
                 </label>
                 <select
@@ -129,7 +130,7 @@ export default function CrearUsuarioForm() {
                   value={formData.rol}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition cursor-pointer"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition cursor-pointer"
                 >
                   <option value="Docente">Docente</option>
                   <option value="Administrador">Administrador</option>
@@ -137,7 +138,7 @@ export default function CrearUsuarioForm() {
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   DNI
                 </label>
                 <input
@@ -149,12 +150,12 @@ export default function CrearUsuarioForm() {
                   inputMode="numeric"
                   value={formData.dni}
                   onChange={handleChange}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition"
                 />
               </div>
 
               <div>
-                <label htmlFor="crear-usuario-telefono" className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label htmlFor="crear-usuario-telefono" className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Teléfono *
                 </label>
                 <input
@@ -166,7 +167,7 @@ export default function CrearUsuarioForm() {
                   required
                   maxLength={20}
                   autoComplete="tel"
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition"
                 />
               </div>
             </div>
@@ -179,7 +180,7 @@ export default function CrearUsuarioForm() {
           <button
             type="button"
             onClick={() => router.push("/administrador/usuarios")}
-            className="bg-white hover:bg-gray-50 text-[#312E81] border border-gray-200 font-bold px-10 py-3 rounded-2xl text-sm transition-all shadow-sm"
+            className="bg-talentia-surface hover:bg-talentia-border text-talentia-blue border border-talentia-border font-bold px-10 py-3 rounded-2xl text-sm transition-all shadow-sm"
           >
             Cancelar
           </button>
@@ -187,7 +188,7 @@ export default function CrearUsuarioForm() {
           <button
             type="submit"
             disabled={enviando}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {enviando ? "Enviando..." : "Crear usuario"}
           </button>

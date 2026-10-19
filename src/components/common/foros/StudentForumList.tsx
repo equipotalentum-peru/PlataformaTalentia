@@ -31,11 +31,11 @@ export default function StudentForumList({ courseId, ofertaId }: { courseId: num
   return <>
     <ForumHeader search={search} onSearchChange={setSearch} />
     <div className="flex flex-wrap gap-2">{['Todos', 'Sin responder', 'Respondidos'].map(item =>
-      <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-full px-4 py-1.5 text-[10px] font-medium ${filter === item ? 'bg-[#3186d8] text-white' : 'bg-white text-gray-700'}`}>{item}</button>)}</div>
-    {error && <p role="alert" className="text-[11px] text-red-600">{error} <button className="underline" onClick={() => setRevision(value => value + 1)}>Reintentar</button></p>}
-    {loading ? <p role="status" className="text-[11px] text-gray-600">Cargando foros...</p> :
+      <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-full px-4 py-1.5 text-[10px] font-medium ${filter === item ? 'bg-talentia-action text-white' : 'bg-talentia-surface text-talentia-primary'}`}>{item}</button>)}</div>
+    {error && <p role="alert" className="text-[11px] text-talentia-danger">{error} <button className="underline" onClick={() => setRevision(value => value + 1)}>Reintentar</button></p>}
+    {loading ? <p role="status" className="text-[11px] text-talentia-primary">Cargando foros...</p> :
       <ForumList forums={forums} courseId={courseId} basePath="alumno" renderMeta={forum =>
-        <div className="hidden text-right text-[11px] text-gray-700 sm:block"><div>{forum.repliesCount} {forum.repliesCount === 1 ? "respuesta" : "respuestas"}</div><p className="mt-1 text-[10px] text-gray-600">{forum.date}, {forum.time}{forum.status === 'Cerrado' ? ' · Cerrado' : ''}</p></div>} />}
-    {!loading && !error && !forums.length && <div className="rounded-lg bg-white px-5 py-10 text-center text-[11px] text-gray-500">No se encontraron foros.</div>}
+        <div className="hidden text-right text-[11px] text-talentia-primary sm:block"><div>{forum.repliesCount} {forum.repliesCount === 1 ? "respuesta" : "respuestas"}</div><p className="mt-1 text-[10px] text-talentia-primary">{forum.date}, {forum.time}{forum.status === 'Cerrado' ? ' · Cerrado' : ''}</p></div>} />}
+    {!loading && !error && !forums.length && <div className="rounded-lg bg-talentia-surface px-5 py-10 text-center text-[11px] text-talentia-muted">No se encontraron foros.</div>}
   </>;
 }

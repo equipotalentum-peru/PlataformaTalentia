@@ -68,16 +68,16 @@ export default function CreateClassModal({
         }
       }}
     >
-      <div className="w-full max-w-[380px] rounded-lg bg-white p-6 shadow-2xl">
+      <div className="w-full max-w-[380px] rounded-lg bg-talentia-surface p-6 shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-[19px] font-bold text-[#3186d8]">
+          <h2 className="text-[19px] font-bold text-talentia-primary">
             Crear Clase
           </h2>
 
           <button
             type="button"
             onClick={onClose}
-            className="text-[28px] leading-none text-gray-800"
+            className="text-[28px] leading-none text-talentia-primary"
             aria-label="Cerrar"
           >
             ×
@@ -86,7 +86,7 @@ export default function CreateClassModal({
 
         <div className="space-y-5">
           <label className="block">
-            <span className="mb-2 block text-[12px] font-semibold text-gray-800">
+            <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
               Título:
             </span>
 
@@ -96,12 +96,12 @@ export default function CreateClassModal({
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[11px] outline-none focus:ring-2 focus:ring-[#3186d8]/30"
+              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none focus:ring-2 focus:ring-talentia-blue/30"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-[12px] font-semibold text-gray-800">
+            <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
               Fecha:
             </span>
 
@@ -111,13 +111,13 @@ export default function CreateClassModal({
               onChange={(event) =>
                 setDate(event.target.value)
               }
-              className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[11px] outline-none focus:ring-2 focus:ring-[#3186d8]/30"
+              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none focus:ring-2 focus:ring-talentia-blue/30"
             />
           </label>
 
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
-              <span className="mb-2 block text-[12px] font-semibold text-gray-800">
+              <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
                 Hora de inicio:
               </span>
 
@@ -129,12 +129,12 @@ export default function CreateClassModal({
                     event.target.value
                   )
                 }
-                className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[11px] outline-none focus:ring-2 focus:ring-[#3186d8]/30"
+                className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none focus:ring-2 focus:ring-talentia-blue/30"
               />
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-[12px] font-semibold text-gray-800">
+              <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
                 Hora de término:
               </span>
 
@@ -146,19 +146,19 @@ export default function CreateClassModal({
                     event.target.value
                   )
                 }
-                className="h-9 w-full rounded-md bg-[#eeeeee] px-3 text-[11px] outline-none focus:ring-2 focus:ring-[#3186d8]/30"
+                className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none focus:ring-2 focus:ring-talentia-blue/30"
               />
             </label>
           </div>
 
-          <p className="text-[10px] text-gray-500">
+          <p className="text-[10px] text-talentia-muted">
             Zona horaria: Lima (GMT-5)
           </p>
 
           {endTime <= startTime &&
             startTime &&
             endTime && (
-              <p className="text-[10px] text-red-600">
+              <p className="text-[10px] text-talentia-danger">
                 La hora de término debe ser posterior
                 a la hora de inicio.
               </p>
@@ -169,7 +169,7 @@ export default function CreateClassModal({
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-md bg-[#1250ad] px-9 py-2 text-[14px] font-bold text-white hover:bg-[#0e4396]"
+            className="rounded-md bg-talentia-action px-9 py-2 text-[14px] font-bold text-white hover:bg-talentia-primary"
           >
             Guardar
           </button>

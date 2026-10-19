@@ -8,33 +8,33 @@ export default function CourseInfo({
   return (
     <aside className="order-first w-full xl:order-last xl:w-[220px] xl:shrink-0">
       <div className="mb-3">
-        <h3 className="text-[13px] font-semibold text-[#3c8edc]">
+        <h3 className="text-[13px] font-semibold text-talentia-primary">
           Información del curso
         </h3>
       </div>
 
       {/* PROGRESO */}
-      <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
+      <div className="mb-3 rounded-xl bg-talentia-surface p-3 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-[11px] font-medium text-[#3c8edc]">
+          <span className="text-[11px] font-medium text-talentia-blue">
             Progreso
           </span>
 
-          <span className="text-[9px] text-[#3c8edc]">
+          <span className="text-[9px] text-talentia-blue">
             {progress}% completado
           </span>
         </div>
 
-        <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
+        <div className="h-1.5 overflow-hidden rounded-full bg-talentia-border">
           <div
-            className="h-full rounded-full bg-[#3c8edc]"
+            className="h-full rounded-full bg-talentia-teal"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* INFORMACIÓN */}
-      <div className="rounded-xl bg-white p-3 shadow-sm">
+      <div className="rounded-xl bg-talentia-surface p-3 shadow-sm">
         <div className="space-y-4">
 
           <InfoItem
@@ -72,7 +72,7 @@ export default function CourseInfo({
 
       <a
         href="#"
-        className="mt-8 flex h-12 items-center justify-center rounded-lg bg-[#3186d8] text-[14px] font-semibold text-white transition hover:bg-[#2777c1]"
+        className="mt-8 flex h-12 items-center justify-center rounded-lg bg-talentia-action text-[14px] font-semibold text-white transition hover:bg-talentia-primary"
       >
         Ver Asistencia
       </a>
@@ -90,7 +90,7 @@ function InfoItem({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eaf4ff] text-[#3186d8]">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-talentia-selected text-talentia-blue">
         <svg
           className="h-5 w-5"
           viewBox="0 0 24 24"
@@ -104,8 +104,8 @@ function InfoItem({
       </div>
 
       <div>
-        <p className="text-[10px] text-gray-400">{label}</p>
-        <p className="text-[11px] font-medium text-[#3186d8]">{value}</p>
+        <p className="text-[10px] text-talentia-muted">{label}</p>
+        <p className="text-[11px] font-medium text-talentia-blue">{value}</p>
       </div>
     </div>
   );

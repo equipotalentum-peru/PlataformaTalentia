@@ -12,13 +12,13 @@ export default function ForumHeader({
   action,
 }: ForumHeaderProps) {
   return (
-    <section className="rounded-xl bg-white px-5 py-4 shadow-sm">
+    <section className="rounded-xl bg-talentia-surface px-5 py-4 shadow-sm">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#00b8b3]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
             <svg
-              className="h-8 w-8 text-black"
+              className="h-8 w-8 text-talentia-primary"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -29,11 +29,11 @@ export default function ForumHeader({
           </div>
 
           <div>
-            <h2 className="text-[15px] font-bold text-[#3186d8]">
+            <h2 className="text-[15px] font-bold text-talentia-primary">
               Foros del curso
             </h2>
 
-            <p className="text-[10px] leading-snug text-gray-600">
+            <p className="text-[10px] leading-snug text-talentia-primary">
               Crea espacios de discusión, modera las conversaciones
               y fomenta la participación.
             </p>
@@ -41,9 +41,9 @@ export default function ForumHeader({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-9 w-full min-w-[215px] items-center rounded-md border border-gray-300 px-3">
+          <div className="flex h-9 w-full min-w-[215px] items-center rounded-md border border-talentia-border px-3">
             <svg
-              className="mr-2 h-4 w-4 text-gray-400"
+              className="mr-2 h-4 w-4 text-talentia-muted"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

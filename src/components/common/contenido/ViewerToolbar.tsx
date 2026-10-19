@@ -96,7 +96,7 @@ export default function ViewerToolbar({
               rounded-lg
               text-lg font-semibold
               transition
-              hover:bg-white/10
+              hover:bg-talentia-surface/10
               disabled:cursor-not-allowed
               disabled:opacity-30
             "
@@ -133,7 +133,7 @@ export default function ViewerToolbar({
               rounded-lg
               text-lg font-semibold
               transition
-              hover:bg-white/10
+              hover:bg-talentia-surface/10
               disabled:cursor-not-allowed
               disabled:opacity-30
             "
@@ -142,7 +142,7 @@ export default function ViewerToolbar({
             ›
           </button>
 
-          <div className="mx-1 h-7 w-px bg-white/10" />
+          <div className="mx-1 h-7 w-px bg-talentia-surface/10" />
 
           {/* Zoom - */}
           <button
@@ -153,7 +153,7 @@ export default function ViewerToolbar({
               rounded-lg
               text-xl font-semibold
               transition
-              hover:bg-white/10
+              hover:bg-talentia-surface/10
             "
             aria-label="Reducir zoom"
           >
@@ -184,7 +184,7 @@ export default function ViewerToolbar({
               rounded-lg
               text-xl font-semibold
               transition
-              hover:bg-white/10
+              hover:bg-talentia-surface/10
             "
             aria-label="Aumentar zoom"
           >
@@ -206,14 +206,14 @@ export default function ViewerToolbar({
             items-center justify-center
             rounded-full
             border border-white/15
-            bg-white
-            text-[#202020]
+            bg-talentia-surface
+            text-talentia-primary
             shadow-[0_4px_14px_rgba(0,0,0,0.25)]
             transition-all
             duration-200
             hover:-translate-y-0.5
             hover:scale-105
-            hover:bg-[#f3f6f8]
+            hover:bg-talentia-hover
             active:scale-95
           "
         >

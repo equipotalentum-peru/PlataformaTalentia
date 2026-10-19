@@ -1,10 +1,98 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins/Poppins-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/poppins/Poppins-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/poppins/Poppins-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/poppins/Poppins-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/poppins/Poppins-ExtraBold.ttf") format("truetype");
+}
+
+@theme inline {
+  --color-talentia-primary: var(--talentia-primary);
+  --color-talentia-blue: var(--talentia-blue);
+  --color-talentia-action: var(--talentia-action);
+  --color-talentia-teal: var(--talentia-teal);
+  --color-talentia-purple: var(--talentia-purple);
+  --color-talentia-purple-soft: var(--talentia-purple-soft);
+  --color-talentia-background: var(--background);
+  --color-talentia-surface: var(--talentia-surface);
+  --color-talentia-border: var(--talentia-border);
+  --color-talentia-muted: var(--talentia-text-muted);
+  --color-talentia-placeholder: var(--talentia-placeholder);
+  --color-talentia-selected: var(--talentia-selected);
+  --color-talentia-table-header: var(--talentia-table-header);
+  --color-talentia-hover: var(--talentia-hover);
+  --color-talentia-success: var(--talentia-success);
+  --color-talentia-success-bg: var(--talentia-success-bg);
+  --color-talentia-warning: var(--talentia-warning);
+  --color-talentia-warning-bg: var(--talentia-warning-bg);
+  --color-talentia-danger: var(--talentia-danger);
+  --color-talentia-danger-bg: var(--talentia-danger-bg);
+  --color-talentia-disabled-text: var(--talentia-disabled-text);
+}
+
 :root {
-  --background: #eef2f8;
-  --foreground: #171717;
-  --talentia-blue: #3186d8;
-  --talentia-teal: #0fb4b7;
+  --background: #ffffff;
+  --foreground: #0b2a5b;
+
+  --talentia-primary: #0b2a5b;
+  --talentia-blue: #2e7dd7;
+  --talentia-action: color-mix(in srgb, var(--talentia-blue) 92%, var(--talentia-primary));
+  --talentia-teal: #00b3b3;
+  --talentia-purple: #6c3bd9;
+  --talentia-purple-soft: rgba(108, 59, 217, 0.1);
+
+  --talentia-surface: #ffffff;
+  --talentia-border: #e9eef5;
+  --talentia-text-muted: rgba(11, 42, 91, 0.65);
+  --talentia-placeholder: rgba(11, 42, 91, 0.45);
+
+  --talentia-selected: rgba(0, 179, 179, 0.14);
+  --talentia-table-header: rgba(0, 179, 179, 0.08);
+  --talentia-hover: rgba(0, 179, 179, 0.04);
+
+  --talentia-success: #166534;
+  --talentia-success-bg: #dcfce7;
+  --talentia-warning: #92400e;
+  --talentia-warning-bg: #fef3c7;
+  --talentia-danger: #b91c1c;
+  --talentia-danger-bg: #fee2e2;
+
+  --talentia-disabled-text: rgba(11, 42, 91, 0.4);
+
   --mobile-header-height: 64px;
   --sidebar-width: 247px;
   --admin-sidebar-width: 260px;
@@ -48,7 +136,7 @@ body {
   overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Poppins, Arial, Helvetica, sans-serif;
 }
 
 img,
@@ -89,7 +177,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid #3186d8;
+  outline: 3px solid var(--talentia-blue);
   outline-offset: 2px;
 }
 
@@ -101,6 +189,78 @@ a {
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
+  background: var(--talentia-surface);
+  color: var(--talentia-primary);
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+}
+
+.app-shell .font-sans {
+  font-family: inherit;
+}
+
+.app-layout-main .app-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--talentia-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.app-layout-main .app-back-link > span[aria-hidden] {
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.app-layout-main .app-back-link:hover {
+  color: var(--talentia-blue);
+}
+
+.app-shell--student .app-layout-main .student-page-title,
+.app-shell--teacher .app-layout-main .teacher-page-title {
+  font-size: 34px !important;
+  font-weight: 600;
+  line-height: 1.2 !important;
+  letter-spacing: 0;
+}
+
+@media (max-width: 600px) {
+  .app-shell--student .app-layout-main .student-page-title,
+  .app-shell--teacher .app-layout-main .teacher-page-title {
+    font-size: 26px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell--student .app-layout-main .student-page-title,
+  .app-shell--teacher .app-layout-main .teacher-page-title {
+    font-size: 24px !important;
+  }
+}
+
+@layer base {
+  .app-shell :where(input, select, textarea) {
+    color: var(--talentia-primary);
+    accent-color: var(--talentia-blue);
+  }
+
+  .app-shell :where(input, textarea)::placeholder {
+    color: var(--talentia-placeholder);
+  }
+
+}
+
+.app-shell :where(button, input[type="submit"]):disabled {
+  background-color: var(--talentia-border);
+  color: var(--talentia-disabled-text);
 }
 
 .app-main-column {
@@ -154,16 +314,16 @@ a {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border-right: 1px solid rgb(255 255 255 / 60%);
-  background: #d8e0ee;
-  color: #1f2937;
+  border-right: 1px solid var(--talentia-border);
+  background: var(--talentia-surface);
+  color: var(--talentia-primary);
 }
 
 .app-sidebar--admin {
   width: var(--admin-sidebar-width);
   padding: 24px;
-  background: #dde6f5;
-  border-right: 1px solid #c0d2ec;
+  background: var(--talentia-surface);
+  border-right: 1px solid var(--talentia-border);
 }
 
 .app-sidebar__brand {
@@ -174,7 +334,7 @@ a {
   gap: 12px;
   min-width: 0;
   padding: 12px 20px;
-  border-bottom: 1px solid rgb(255 255 255 / 70%);
+  border-bottom: 1px solid var(--talentia-border);
 }
 
 .app-sidebar--admin .app-sidebar__brand {
@@ -205,8 +365,8 @@ a {
   height: 40px;
   border: 0;
   border-radius: 10px;
-  background: rgb(255 255 255 / 70%);
-  color: #17375e;
+  background: var(--talentia-surface);
+  color: var(--talentia-primary);
   cursor: pointer;
 }
 
@@ -231,7 +391,7 @@ a {
   margin-bottom: 8px;
   padding: 10px 20px;
   border-radius: 10px;
-  color: #374151;
+  color: var(--talentia-primary);
   font-size: 16px;
   font-weight: 500;
   line-height: 1.3;
@@ -241,13 +401,13 @@ a {
 }
 
 .app-sidebar__link:hover {
-  background: rgb(255 255 255 / 42%);
+  background: var(--talentia-hover);
 }
 
 .app-sidebar__link.is-active {
-  background: #0fb4b7;
-  color: #082f35;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+  background: var(--talentia-selected);
+  color: var(--talentia-primary);
+  box-shadow: inset 4px 0 0 var(--talentia-teal);
 }
 
 .app-sidebar__link-icon {
@@ -275,13 +435,13 @@ a {
   margin-bottom: 8px;
   padding: 10px 12px;
   border-radius: 16px;
-  color: #4a607a;
+  color: var(--talentia-primary);
   font-size: 14px;
 }
 
 .app-sidebar--admin .app-sidebar__link.is-active {
-  background: #d1e0fa;
-  color: #0f2851;
+  background: var(--talentia-selected);
+  color: var(--talentia-primary);
   font-weight: 700;
 }
 
@@ -294,13 +454,13 @@ a {
   height: 28px;
   border-radius: 8px;
   background: transparent;
-  color: #2d97e8;
+  color: var(--talentia-blue);
   font-size: 12px;
   font-weight: 700;
 }
 
 .app-sidebar-admin-letter.is-active {
-  background: #2d97e8;
+  background: var(--talentia-blue);
   color: #fff;
 }
 
@@ -312,7 +472,7 @@ a {
 
 .app-sidebar--admin .app-sidebar__account {
   padding-top: 18px;
-  border-top: 1px solid #c0d2ec;
+  border-top: 1px solid var(--talentia-border);
 }
 
 .app-sidebar-account-link {
@@ -323,13 +483,13 @@ a {
   min-width: 0;
   min-height: 56px;
   padding: 8px 20px;
-  color: #1f2937;
+  color: var(--talentia-primary);
   text-decoration: none;
 }
 
 .app-sidebar-account-link:hover,
 .app-sidebar-account-link.is-active {
-  background: rgb(255 255 255 / 34%);
+  background: var(--talentia-hover);
 }
 
 .app-sidebar-account-avatar {
@@ -342,18 +502,18 @@ a {
   overflow: hidden;
   border: 1px solid #fff;
   border-radius: 999px;
-  background: #e8f1ff;
-  color: #516987;
+  background: var(--talentia-selected);
+  color: var(--talentia-text-muted);
 }
 
 .app-sidebar-account-avatar--teacher {
-  background: #eadcff;
-  color: #6f42a5;
+  background: var(--talentia-purple-soft);
+  color: var(--talentia-purple);
 }
 
 .app-sidebar-account-avatar--admin {
-  background: #c2daf8;
-  color: #183665;
+  background: var(--talentia-selected);
+  color: var(--talentia-primary);
   font-size: 14px;
   font-weight: 700;
 }
@@ -377,13 +537,13 @@ a {
 
 .app-sidebar-account-role {
   margin-top: 2px;
-  color: #6f83a5;
+  color: var(--talentia-text-muted);
   font-size: 12px;
 }
 
 .app-sidebar-account-arrow {
   flex: 0 0 auto;
-  color: #6f83a5;
+  color: var(--talentia-text-muted);
   font-size: 22px;
 }
 
@@ -395,9 +555,9 @@ a {
   min-height: 52px;
   padding: 10px 24px;
   border: 0;
-  border-top: 1px solid rgb(255 255 255 / 70%);
+  border-top: 1px solid var(--talentia-border);
   background: transparent;
-  color: #374151;
+  color: var(--talentia-primary);
   font-size: 15px;
   font-weight: 500;
   text-align: left;
@@ -405,7 +565,7 @@ a {
 }
 
 .app-sidebar-logout:hover {
-  background: rgb(255 255 255 / 30%);
+  background: var(--talentia-hover);
 }
 
 .app-sidebar-logout:disabled {
@@ -416,14 +576,14 @@ a {
 .app-sidebar-logout--admin {
   padding: 12px 4px 4px;
   border-top: 0;
-  color: #4a607a;
+  color: var(--talentia-primary);
   font-size: 14px;
 }
 
 .app-sidebar-error {
   margin: 0;
   padding: 8px 16px;
-  color: #b91c1c;
+  color: var(--talentia-danger);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
@@ -443,16 +603,16 @@ a {
   gap: 16px;
   min-width: 0;
   padding: 16px 28px;
-  border-top: 1px solid #dbe3ef;
-  background: rgb(255 255 255 / 62%);
-  color: #64748b;
+  border-top: 1px solid var(--talentia-border);
+  background: var(--talentia-surface);
+  color: var(--talentia-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .app-footer__descriptor {
   flex: 0 0 auto;
-  color: #3186d8;
+  color: var(--talentia-blue);
   font-weight: 600;
 }
 
@@ -536,7 +696,7 @@ a {
   padding: 0 var(--course-banner-px) var(--course-banner-pb);
   overflow: hidden;
   border-radius: 12px 12px 0 0;
-  background: #12395b;
+  background: var(--talentia-primary);
 }
 
 .course-banner__image {
@@ -589,8 +749,8 @@ a {
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  border-bottom: 1px solid #6b7280;
-  background: #eef2f8;
+  border-bottom: 1px solid var(--talentia-border);
+  background: var(--talentia-surface);
 }
 
 .course-tabs::-webkit-scrollbar {
@@ -603,7 +763,7 @@ a {
   align-items: center;
   padding: var(--course-tab-py) var(--course-tab-px);
   border-bottom: 3px solid transparent;
-  color: #374151;
+  color: var(--talentia-primary);
   font-size: var(--course-tab-size);
   line-height: 1.2;
   text-decoration: none;
@@ -612,19 +772,19 @@ a {
 }
 
 .course-tabs__item:hover {
-  color: #000;
+  color: var(--talentia-primary);
 }
 
 .course-tabs__item.is-active {
-  border-bottom-color: #000;
-  color: #111827;
+  border-bottom-color: var(--talentia-teal);
+  color: var(--talentia-primary);
   font-weight: 600;
 }
 
 /* Chat: altura exacta de la ventana descontando padding de página */
 .app-layout-main [class*="h-[calc(100vh-24px)]"] {
-  height: calc(100dvh - (var(--page-py) * 2)) !important;
-  min-height: 420px;
+  height: calc(var(--chat-viewport-height, 100dvh) - (var(--page-py) * 2)) !important;
+  min-height: 0;
 }
 
 /* =========================================================
@@ -651,13 +811,13 @@ a {
     width: 100%;
     height: var(--mobile-header-height);
     padding: 8px 20px;
-    border-bottom: 1px solid rgb(150 170 198 / 45%);
-    background: #d8e0ee;
+    border-bottom: 1px solid var(--talentia-border);
+    background: var(--talentia-surface);
     box-shadow: 0 2px 10px rgb(15 40 81 / 6%);
   }
 
   .app-mobile-header--admin {
-    background: #dde6f5;
+    background: var(--talentia-surface);
   }
 
   .app-mobile-header__menu {
@@ -669,10 +829,10 @@ a {
     min-width: 44px;
     min-height: 44px;
     padding: 8px 10px;
-    border: 1px solid rgb(81 105 135 / 18%);
+    border: 1px solid var(--talentia-border);
     border-radius: 10px;
-    background: rgb(255 255 255 / 72%);
-    color: #17375e;
+    background: var(--talentia-surface);
+    color: var(--talentia-primary);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -689,7 +849,7 @@ a {
   .app-mobile-header__role {
     min-width: 0;
     margin-left: auto;
-    color: #475569;
+    color: var(--talentia-text-muted);
     font-size: 13px;
     font-weight: 600;
     text-align: right;
@@ -787,7 +947,7 @@ a {
 
   .app-layout-main [class*="h-[calc(100vh-24px)]"] {
     height: calc(
-      100dvh - var(--mobile-header-height) - (var(--page-py) * 2)
+      var(--chat-viewport-height, 100dvh) - var(--mobile-header-height) - (var(--page-py) * 2)
     ) !important;
   }
 
@@ -1230,7 +1390,7 @@ a {
 
 .activity-page-root {
   width: 100%;
-  color: #172033;
+  color: var(--talentia-primary);
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -1246,28 +1406,28 @@ a {
 }
 
 .activity-page-root .activity-muted {
-  color: #737b87;
+  color: var(--talentia-text-muted);
 }
 
 .activity-page-root .activity-card {
   min-width: 0;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--talentia-surface);
   box-shadow: 0 1px 1px rgb(28 52 84 / 2%);
 }
 
 .activity-page-root .activity-primary {
-  background: #2499f3;
+  background: var(--talentia-blue);
   color: #ffffff;
   transition: background-color 150ms ease;
 }
 
 .activity-page-root .activity-primary:hover {
-  background: #1389e7;
+  background: var(--talentia-primary);
 }
 
 .activity-page-root .activity-link {
-  color: #1760be;
+  color: var(--talentia-blue);
 }
 
 .activity-page-root .activity-link:hover {
@@ -1282,25 +1442,25 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: #edf5ff;
-  color: #1975d2;
+  background: var(--talentia-selected);
+  color: var(--talentia-blue);
 }
 
 .activity-page-root .activity-info-callout {
   border-radius: 8px;
-  background: #8fc9f7;
-  color: #163f5f;
+  background: var(--talentia-selected);
+  color: var(--talentia-primary);
 }
 
 .activity-page-root .activity-success-callout {
   border-radius: 8px;
-  background: #c8e8ca;
-  color: #0ab52c;
+  background: var(--talentia-success-bg);
+  color: var(--talentia-success);
 }
 
 .activity-page-root .activity-card-title {
-  color: #1555b4;
-  font-size: 11px;
+  color: var(--talentia-primary);
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -1314,44 +1474,44 @@ a {
 
 .activity-page-root .activity-side-item p {
   margin: 0;
-  font-size: 10px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .activity-page-root .activity-input {
   width: 100%;
   min-width: 0;
-  border: 1px solid #9cb8e7;
+  border: 1px solid var(--talentia-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #283548;
+  background: var(--talentia-surface);
+  color: var(--talentia-primary);
   outline: none;
 }
 
 .activity-page-root .activity-input:focus {
-  border-color: #267cda;
+  border-color: var(--talentia-blue);
   box-shadow: 0 0 0 2px rgb(38 124 218 / 12%);
 }
 
 .activity-page-root .activity-table-row {
-  background: #ffffff;
+  background: var(--talentia-surface);
   transition: background-color 120ms ease;
 }
 
 .activity-page-root .activity-table-row:hover,
 .activity-page-root .activity-table-row.is-selected {
-  background: #f4f8ff;
+  background: var(--talentia-hover);
 }
 
 .activity-page-root .activity-table-row:focus-visible {
-  outline: 2px solid #3186d8;
+  outline: 2px solid var(--talentia-blue);
   outline-offset: -2px;
 }
 
 @media (min-width: 961px) {
   /* El prototipo usa sidebar de 232 px incluso en laptops de 995 px. */
   body:has(.activity-page-root) {
-    background: #e9eff7;
+    background: var(--talentia-surface);
   }
 
   .app-shell:has(.activity-page-root) {
@@ -1388,7 +1548,7 @@ a {
     height: 100dvh;
     transform: translateX(0);
     box-shadow: none;
-    background: #d5dce8;
+    background: var(--talentia-surface);
   }
 
   .app-shell:has(.activity-page-root) .app-sidebar__brand {
@@ -1406,14 +1566,14 @@ a {
     padding: 10px 14px 10px 25px;
     gap: 14px;
     border-radius: 8px;
-    color: #111827;
+    color: var(--talentia-primary);
     font-size: 16px;
     font-weight: 400;
   }
 
   .app-shell:has(.activity-page-root) .app-sidebar__link.is-active {
-    background: #00b4b7;
-    color: #031b25;
+    background: var(--talentia-selected);
+    color: var(--talentia-primary);
   }
 
   .app-shell:has(.activity-page-root) .app-sidebar__account {
@@ -1423,8 +1583,8 @@ a {
   .app-shell:has(.activity-page-root) .app-sidebar-account-link {
     min-height: 49px;
     padding: 4px 30px;
-    border-top: 1px solid rgb(255 255 255 / 65%);
-    border-bottom: 1px solid rgb(255 255 255 / 65%);
+    border-top: 1px solid var(--talentia-border);
+    border-bottom: 1px solid var(--talentia-border);
   }
 
   .app-shell:has(.activity-page-root) .app-sidebar-account-avatar {
@@ -1443,7 +1603,7 @@ a {
     padding-left: 43px;
     border-top: 0;
     font-size: 16px;
-    color: #101820;
+    color: var(--talentia-primary);
   }
 }
 
@@ -1506,6 +1666,7 @@ a {
   */
   .app-shell {
     zoom: 1.10;
+    --chat-viewport-height: 90.9091dvh;
 
     /*
       Compensación del zoom.
@@ -1568,6 +1729,7 @@ a {
 
   .app-shell {
     zoom: 1.14;
+    --chat-viewport-height: 87.7193dvh;
 
     /*
       100 / 1.14 = 87.7193
@@ -1618,6 +1780,7 @@ a {
 
   .app-shell {
     zoom: 1.18;
+    --chat-viewport-height: 84.7458dvh;
 
     /*
       100 / 1.18 = 84.7458

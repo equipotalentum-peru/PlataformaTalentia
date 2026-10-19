@@ -27,14 +27,14 @@ export default function AnnouncementModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-[650px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="relative w-full max-w-[650px] overflow-hidden rounded-2xl bg-talentia-surface shadow-2xl"
       >
-        <div className="flex items-start justify-between border-b border-gray-200 px-6 py-4">
+        <div className="flex items-start justify-between border-b border-talentia-border px-6 py-4">
 
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
               <svg
-                className="h-6 w-6 text-black"
+                className="h-6 w-6 text-talentia-primary"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -46,11 +46,11 @@ export default function AnnouncementModal({
             </div>
 
             <div>
-              <h2 className="text-[16px] font-bold text-gray-900">
+              <h2 className="text-[16px] font-bold text-talentia-primary">
                 {announcement.title}
               </h2>
 
-              <p className="mt-1 text-[10px] text-gray-400">
+              <p className="mt-1 text-[10px] text-talentia-muted">
                 {announcement.date}
               </p>
             </div>
@@ -59,7 +59,7 @@ export default function AnnouncementModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-[24px] leading-none text-gray-500 hover:text-black"
+            className="text-[24px] leading-none text-talentia-muted hover:text-talentia-primary"
             aria-label="Cerrar"
           >
             ×
@@ -67,16 +67,16 @@ export default function AnnouncementModal({
         </div>
 
         <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
-          <p className="whitespace-pre-line text-[13px] leading-relaxed text-gray-700">
+          <p className="whitespace-pre-line text-[13px] leading-relaxed text-talentia-primary">
             {announcement.content}
           </p>
         </div>
 
-        <div className="flex justify-end border-t border-gray-200 px-6 py-3">
+        <div className="flex justify-end border-t border-talentia-border px-6 py-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-[#3186d8] px-5 py-2 text-[11px] font-medium text-white"
+            className="rounded-md bg-talentia-action px-5 py-2 text-[11px] font-medium text-white"
           >
             Cerrar
           </button>

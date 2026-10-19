@@ -72,9 +72,9 @@ export default function StudentRubricModal({
         overflow-hidden
         rounded-[12px]
         border-0
-        bg-white
+        bg-talentia-surface
         p-0
-        text-gray-800
+        text-talentia-primary
         shadow-2xl
         backdrop:bg-black/55
       "
@@ -87,7 +87,7 @@ export default function StudentRubricModal({
         <div className="flex shrink-0 items-center justify-between px-6 pb-3 pt-6 sm:px-7">
           <h2
             id="student-rubric-title"
-            className="text-[24px] font-bold text-[#103763]"
+            className="text-[24px] font-bold text-talentia-primary"
           >
             Rúbrica de evaluación
           </h2>
@@ -108,9 +108,9 @@ export default function StudentRubricModal({
               rounded-md
               text-[26px]
               font-light
-              text-[#334155]
+              text-talentia-primary
               transition
-              hover:bg-gray-100
+              hover:bg-talentia-hover
             "
           >
             ×
@@ -125,12 +125,12 @@ export default function StudentRubricModal({
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 sm:px-7">
           {/* INFORMACIÓN */}
 
-          <div className="flex items-center gap-3 rounded-[8px] bg-[#dff0ff] px-4 py-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#1479d1] text-[13px] font-bold text-[#1479d1]">
+          <div className="flex items-center gap-3 rounded-[8px] bg-talentia-selected px-4 py-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-talentia-blue text-[13px] font-bold text-talentia-blue">
               i
             </span>
 
-            <p className="text-[12px] leading-[1.4] text-[#174d7c]">
+            <p className="text-[12px] leading-[1.4] text-talentia-primary">
               Esta actividad será
               evaluada con los
               siguientes criterios.
@@ -147,24 +147,24 @@ export default function StudentRubricModal({
               TABLA
           ========================= */}
 
-          <div className="mt-5 overflow-hidden rounded-[8px] border border-[#dae3ed]">
+          <div className="mt-5 overflow-hidden rounded-[8px] border border-talentia-border">
             <div className="max-h-[390px] overflow-auto">
               <table className="w-full min-w-[700px] border-collapse text-[12px]">
-                <thead className="sticky top-0 z-10 bg-[#f0f4f8]">
+                <thead className="sticky top-0 z-10 bg-talentia-surface">
                   <tr>
-                    <th className="w-[70px] border-r border-[#dce3eb] px-4 py-3 text-center font-semibold text-[#34445a]">
+                    <th className="w-[70px] border-r border-talentia-border px-4 py-3 text-center font-semibold text-talentia-primary">
                       #
                     </th>
 
-                    <th className="w-[205px] border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                    <th className="w-[205px] border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                       Criterio
                     </th>
 
-                    <th className="border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                    <th className="border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                       Descripción
                     </th>
 
-                    <th className="w-[120px] px-5 py-3 text-center font-semibold text-[#34445a]">
+                    <th className="w-[120px] px-5 py-3 text-center font-semibold text-talentia-primary">
                       Puntos
                     </th>
                   </tr>
@@ -179,7 +179,7 @@ export default function StudentRubricModal({
                         colSpan={
                           4
                         }
-                        className="px-6 py-10 text-center text-[13px] text-gray-400"
+                        className="px-6 py-10 text-center text-[13px] text-talentia-muted"
                       >
                         Esta rúbrica
                         todavía no tiene
@@ -196,25 +196,25 @@ export default function StudentRubricModal({
                           key={
                             criterio.id
                           }
-                          className="border-t border-[#dfe6ee] bg-white"
+                          className="border-t border-talentia-border bg-talentia-surface"
                         >
-                          <td className="border-r border-[#dfe6ee] px-4 py-4 text-center font-medium text-[#24364b]">
+                          <td className="border-r border-talentia-border px-4 py-4 text-center font-medium text-talentia-primary">
                             {index +
                               1}
                           </td>
 
-                          <td className="border-r border-[#dfe6ee] px-5 py-4 font-bold text-[#24364b]">
+                          <td className="border-r border-talentia-border px-5 py-4 font-bold text-talentia-primary">
                             {
                               criterio.nombre
                             }
                           </td>
 
-                          <td className="border-r border-[#dfe6ee] px-5 py-4 leading-[1.5] text-[#43546a]">
+                          <td className="border-r border-talentia-border px-5 py-4 leading-[1.5] text-talentia-muted">
                             {criterio.descripcion ||
                               "—"}
                           </td>
 
-                          <td className="px-5 py-4 text-center font-bold text-[#24364b]">
+                          <td className="px-5 py-4 text-center font-bold text-talentia-primary">
                             {Number(
                               criterio.puntaje_maximo
                             )}
@@ -231,12 +231,12 @@ export default function StudentRubricModal({
 
           {/* TOTAL */}
 
-          <div className="mt-2 flex items-center justify-between rounded-[7px] bg-[#e1f1ff] px-5 py-3">
-            <span className="text-[15px] font-bold text-[#1554a0]">
+          <div className="mt-2 flex items-center justify-between rounded-[7px] bg-talentia-selected px-5 py-3">
+            <span className="text-[15px] font-bold text-talentia-primary">
               Puntuación total
             </span>
 
-            <span className="text-[18px] font-bold text-[#1554a0]">
+            <span className="text-[18px] font-bold text-talentia-primary">
               {total ||
                 maxGrade}{" "}
               puntos
@@ -246,17 +246,17 @@ export default function StudentRubricModal({
 
           {/* IMPORTANTE */}
 
-          <div className="mt-2 flex gap-4 rounded-[8px] bg-[#dff0ff] px-5 py-4">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#1479d1] text-[13px] font-bold text-[#1479d1]">
+          <div className="mt-2 flex gap-4 rounded-[8px] bg-talentia-selected px-5 py-4">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-talentia-blue text-[13px] font-bold text-talentia-blue">
               i
             </span>
 
             <div>
-              <p className="text-[14px] font-bold text-[#145da8]">
+              <p className="text-[14px] font-bold text-talentia-blue">
                 Importante
               </p>
 
-              <p className="mt-1 text-[12px] leading-[1.45] text-[#315b7e]">
+              <p className="mt-1 text-[12px] leading-[1.45] text-talentia-primary">
                 Estos criterios serán
                 utilizados por el
                 docente para calificar
@@ -273,7 +273,7 @@ export default function StudentRubricModal({
             FOOTER
         ========================= */}
 
-        <div className="flex shrink-0 justify-end border-t border-[#e1e6ec] bg-white px-6 py-4 sm:px-7">
+        <div className="flex shrink-0 justify-end border-t border-talentia-border bg-talentia-surface px-6 py-4 sm:px-7">
           <button
             type="button"
             onClick={
@@ -282,14 +282,14 @@ export default function StudentRubricModal({
             className="
               min-h-10
               rounded-[6px]
-              bg-[#eee9ff]
+              bg-talentia-selected
               px-7
               py-2
               text-[13px]
               font-medium
-              text-[#5549b8]
+              text-talentia-blue
               transition
-              hover:bg-[#e3dcff]
+              hover:bg-talentia-hover
             "
           >
             Cerrar

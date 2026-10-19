@@ -32,12 +32,12 @@ export default function RubricTypeModal({
         event.preventDefault();
         onClose();
       }}
-      className="m-auto w-[90vw] max-w-md rounded-lg border-0 bg-white p-5 text-gray-800 shadow-xl backdrop:bg-black/50"
+      className="m-auto w-[90vw] max-w-md rounded-lg border-0 bg-talentia-surface p-5 text-talentia-primary shadow-xl backdrop:bg-black/50"
     >
       <div className="flex items-center justify-between gap-4">
         <h2
           id="rubric-type-title"
-          className="text-lg font-semibold text-[#3186d8]"
+          className="text-lg font-semibold text-talentia-primary"
         >
           Añadir rúbrica
         </h2>
@@ -45,7 +45,7 @@ export default function RubricTypeModal({
           type="button"
           aria-label="Cerrar selector de rúbrica"
           onClick={onClose}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-2xl hover:bg-gray-100"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-2xl hover:bg-talentia-hover"
         >
           ×
         </button>
@@ -55,23 +55,23 @@ export default function RubricTypeModal({
         <button
           type="button"
           onClick={() => onSelect("pdf")}
-          className="min-h-14 rounded-md border border-[#cfd9e6] px-4 py-3 text-sm font-medium hover:border-[#3186d8] hover:bg-[#eff7ff]"
+          className="min-h-14 rounded-md border border-talentia-border px-4 py-3 text-sm font-medium hover:border-talentia-blue hover:bg-talentia-hover"
         >
           Adjuntar PDF
         </button>
         <button
           type="button"
           onClick={() => onSelect("criterios")}
-          className="min-h-14 rounded-md border border-[#bce9ed] bg-[#e7f7f8] px-4 py-3 text-sm font-medium hover:bg-[#d5f0f2]"
+          className="min-h-14 rounded-md border border-talentia-border bg-talentia-selected px-4 py-3 text-sm font-medium hover:bg-talentia-hover"
         >
           Configurar criterios
         </button>
       </div>
-      <div className="mt-4 flex justify-end border-t border-[#d9e2ec] pt-4">
+      <div className="mt-4 flex justify-end border-t border-talentia-border pt-4">
         <button
           type="button"
           onClick={onSkip}
-          className="min-h-10 rounded-md bg-[#efe6fa] px-4 py-2 text-sm font-medium text-[#4b5fa7] hover:bg-[#e7dcf4]"
+          className="min-h-10 rounded-md bg-talentia-selected px-4 py-2 text-sm font-medium text-talentia-primary hover:bg-talentia-hover"
         >
           Continuar sin rúbrica
         </button>

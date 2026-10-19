@@ -308,8 +308,8 @@ export default function PerfilEditable({ rolEsperado }: Props) {
     }
   }
 
-  if (error) return <div className="p-8 text-red-600">{error}</div>;
-  if (!perfil) return <div className="p-8 text-gray-600">Cargando perfil...</div>;
+  if (error) return <div className="p-8 text-talentia-danger">{error}</div>;
+  if (!perfil) return <div className="p-8 text-talentia-primary">Cargando perfil...</div>;
 
   const nombreCompleto = perfil.nombres.toUpperCase()
   const iniciales = perfil.nombres
@@ -336,8 +336,8 @@ export default function PerfilEditable({ rolEsperado }: Props) {
           <div
             className={`mx-auto flex max-w-[1050px] items-start gap-3 rounded-md border px-4 py-3 text-sm ${
               errorFoto
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-[#bfdbfe] bg-[#eff6ff] text-[#2782df]"
+                ? "border-talentia-danger/20 bg-talentia-danger-bg text-talentia-danger"
+                : "border-talentia-border bg-talentia-selected text-talentia-blue"
             }`}
           >
             <p role={errorFoto ? "alert" : "status"} className="min-w-0 flex-1 break-words py-1.5">
@@ -393,16 +393,16 @@ export default function PerfilEditable({ rolEsperado }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-edicion-perfil"
-            className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
+            className="w-full max-w-lg rounded-lg bg-talentia-surface p-6 shadow-xl"
           >
-            <h2 id="titulo-edicion-perfil" className="text-xl font-semibold text-[#2782df]">
+            <h2 id="titulo-edicion-perfil" className="text-xl font-semibold text-talentia-primary">
               {secciones[seccion].titulo}
             </h2>
 
             <form onSubmit={guardarCambios} className="mt-5 space-y-4">
               {secciones[seccion].campos.map((campo) => (
                 <label key={campo.nombre} className="block">
-                  <span className="mb-1 block text-sm font-medium text-gray-800">
+                  <span className="mb-1 block text-sm font-medium text-talentia-primary">
                     {campo.etiqueta}
                   </span>
                   {campo.tipo === "textarea" ? (
@@ -412,7 +412,7 @@ export default function PerfilEditable({ rolEsperado }: Props) {
                       onChange={(event) =>
                         setDatosEdicion({ ...datosEdicion, [campo.nombre]: event.target.value })
                       }
-                      className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-[#2782df]"
+                      className="w-full resize-y rounded-md border border-talentia-border px-3 py-2 text-talentia-primary outline-none focus:border-talentia-blue"
                     />
                   ) : campo.tipo === "select" ? (
                     <select
@@ -420,7 +420,7 @@ export default function PerfilEditable({ rolEsperado }: Props) {
                       onChange={(event) =>
                         setDatosEdicion({ ...datosEdicion, [campo.nombre]: event.target.value })
                       }
-                      className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-gray-900 outline-none focus:border-[#2782df]"
+                      className="h-10 w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-talentia-primary outline-none focus:border-talentia-blue"
                     >
                       <option value="">Seleccionar</option>
                       <option value="M">Masculino</option>
@@ -435,14 +435,14 @@ export default function PerfilEditable({ rolEsperado }: Props) {
                       onChange={(event) =>
                         setDatosEdicion({ ...datosEdicion, [campo.nombre]: event.target.value })
                       }
-                      className="h-10 w-full rounded-md border border-gray-300 px-3 text-gray-900 outline-none focus:border-[#2782df]"
+                      className="h-10 w-full rounded-md border border-talentia-border px-3 text-talentia-primary outline-none focus:border-talentia-blue"
                     />
                   )}
                 </label>
               ))}
 
               {errorEdicion && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <p className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-sm text-talentia-danger">
                   {errorEdicion}
                 </p>
               )}
@@ -452,14 +452,14 @@ export default function PerfilEditable({ rolEsperado }: Props) {
                   type="button"
                   disabled={guardando}
                   onClick={() => setSeccion(null)}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                  className="rounded-md border border-talentia-border px-4 py-2 text-sm font-medium text-talentia-primary hover:bg-talentia-hover disabled:opacity-60"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={guardando}
-                  className="rounded-md bg-[#2782df] px-4 py-2 text-sm font-medium text-white hover:bg-[#1f6fbe] disabled:opacity-60"
+                  className="rounded-md bg-talentia-action px-4 py-2 text-sm font-medium text-white hover:bg-talentia-primary disabled:opacity-60"
                 >
                   {guardando ? "Guardando..." : "Guardar cambios"}
                 </button>

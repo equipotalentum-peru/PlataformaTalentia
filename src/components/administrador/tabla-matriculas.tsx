@@ -148,66 +148,66 @@ export default function TablaMatriculas() {
 
   const claseEstado = (estado: EstadoMatricula) => {
     if (estado === "Activa" || estado === "Completada") {
-      return "bg-[#BBF7D0] text-[#166534]";
+      return "bg-talentia-success-bg text-talentia-success";
     }
-    if (estado === "Pendiente") return "bg-[#FEF3C7] text-[#92400E]";
-    if (estado === "Retirada") return "bg-[#FBCFE8] text-[#9D174D]";
-    return "bg-[#E2E8F0] text-[#475569]";
+    if (estado === "Pendiente") return "bg-talentia-warning-bg text-talentia-warning";
+    if (estado === "Retirada") return "bg-talentia-danger-bg text-talentia-danger";
+    return "bg-talentia-surface text-talentia-muted";
   };
 
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
             Matrículas
           </h1>
-          <p className="text-sm font-semibold text-[#64748B] mt-1">
+          <p className="text-sm font-semibold text-talentia-muted mt-1">
             Gestiona alumnos inscritos por curso, cupos y cambios de estado.
           </p>
         </div>
         <button
           type="button"
           onClick={() => router.push("/administrador/matriculas/registrar")}
-          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-6 py-3 rounded-2xl text-sm transition shadow-sm whitespace-nowrap"
+          className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-6 py-3 rounded-2xl text-sm transition shadow-sm whitespace-nowrap"
         >
           Registrar matrícula
         </button>
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-talentia-muted">
           Buscar
           <input
             type="text"
             placeholder="Buscar alumno o curso"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
+            className="h-11 w-full rounded-lg border border-talentia-border bg-talentia-surface px-4 text-sm font-normal text-talentia-primary placeholder-talentia-placeholder outline-none transition-colors hover:border-talentia-border focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </label>
 
         <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
-          <span className="text-[13px] font-semibold text-[#64748B]">Estado</span>
+          <span className="text-[13px] font-semibold text-talentia-muted">Estado</span>
           <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("todos")}
-            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "todos" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "todos" ? "bg-talentia-selected text-talentia-blue" : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover border border-talentia-border"}`}
           >
             Curso
           </button>
           <button
             type="button"
             onClick={() => setFiltroEstado("activas")}
-            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "activas" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "activas" ? "bg-talentia-selected text-talentia-blue" : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover border border-talentia-border"}`}
           >
             Activas
           </button>
           <button
             type="button"
             onClick={() => setFiltroEstado("pendientes")}
-            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "pendientes" ? "bg-[#A5F3FC] text-[#0891B2]" : "bg-white text-[#64748B] hover:bg-gray-50 border border-gray-100"}`}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${filtroEstado === "pendientes" ? "bg-talentia-selected text-talentia-blue" : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover border border-talentia-border"}`}
           >
             Pendientes
           </button>
@@ -216,12 +216,12 @@ export default function TablaMatriculas() {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-700">
+        <p role="alert" className="rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] font-semibold text-talentia-danger">
           {error}
         </p>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden">
+      <div className="bg-talentia-surface rounded-3xl shadow-sm border border-talentia-border/80 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] table-fixed text-left border-collapse">
             <colgroup>
@@ -233,7 +233,7 @@ export default function TablaMatriculas() {
               <col className="w-24" />
             </colgroup>
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+              <tr className="bg-talentia-table-header text-talentia-primary text-[13px] font-extrabold border-b border-talentia-border">
                 <th className="py-4 px-6">Alumno</th>
                 <th className="py-4 px-4">Curso</th>
                 <th className="py-4 px-4">Código</th>
@@ -242,18 +242,18 @@ export default function TablaMatriculas() {
                 <th className="py-4 px-4 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-[13px]">
+            <tbody className="divide-y divide-talentia-border text-[13px]">
               {cargando ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-[#64748B]">Cargando matrículas...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-talentia-muted">Cargando matrículas...</td></tr>
               ) : matriculasFiltradas.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-[#64748B]">No se encontraron matrículas.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-[13px] text-talentia-muted">No se encontraron matrículas.</td></tr>
               ) : (
                 matriculasFiltradas.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-4 px-6 break-words font-bold text-[#0F2851]">{item.alumno}</td>
-                    <td className="py-4 px-4 break-words font-semibold text-[#64748B]">{item.curso}</td>
-                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-[#64748B]">{item.codigo}</td>
-                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-[#64748B]">{item.fecha}</td>
+                  <tr key={item.id} className="hover:bg-talentia-hover/50 transition">
+                    <td className="py-4 px-6 break-words font-bold text-talentia-primary">{item.alumno}</td>
+                    <td className="py-4 px-4 break-words font-semibold text-talentia-muted">{item.curso}</td>
+                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-talentia-muted">{item.codigo}</td>
+                    <td className="py-4 px-4 whitespace-nowrap font-semibold text-talentia-muted">{item.fecha}</td>
                     <td className="py-4 px-4">
                       <span className={`inline-block whitespace-nowrap px-4 py-1.5 rounded-full font-extrabold text-[13px] ${claseEstado(item.estado)}`}>
                         {item.estado}
@@ -270,14 +270,14 @@ export default function TablaMatriculas() {
                           actual === item.id ? null : item.id
                     )
                   }
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-2xl font-bold text-[#475569] transition hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-2xl font-bold text-talentia-muted transition hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     ⋮
                     </button>
                     
                     {menuAbierto === item.id && (
-                      <div className="absolute right-6 top-14 z-30 min-w-44 rounded-xl border border-gray-200 bg-white p-2 text-left shadow-lg">
-                        <p className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-[#94A3B8]">
+                      <div className="absolute right-6 top-14 z-30 min-w-44 rounded-xl border border-talentia-border bg-talentia-surface p-2 text-left shadow-lg">
+                        <p className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-talentia-placeholder">
                           Cambiar estado
                           </p>
                           
@@ -293,13 +293,13 @@ export default function TablaMatriculas() {
                             onClick={() => void guardarEstado(item, estado)}
                             className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-bold transition disabled:cursor-default ${
                               seleccionado
-                              ? "bg-[#F3E8FF] text-[#6B21A8]"
-                              : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F2851]"
+                              ? "bg-talentia-selected text-talentia-purple"
+                              : "text-talentia-muted hover:bg-talentia-hover hover:text-talentia-primary"
                             }`}
                             >
                               <span>{estado}</span>
                               {seleccionado && (
-                                <span aria-label="Estado actual" className="text-[#6B21A8]">
+                                <span aria-label="Estado actual" className="text-talentia-purple">
                                   ✓
                                   </span>
                                 )}
@@ -308,7 +308,7 @@ export default function TablaMatriculas() {
                                 })}
                                 
                                 {guardandoId === item.id && (
-                                  <p className="px-3 py-2 text-[11px] text-[#64748B]">
+                                  <p className="px-3 py-2 text-[11px] text-talentia-muted">
                                     Guardando estado...
                                     </p>
                                   )}

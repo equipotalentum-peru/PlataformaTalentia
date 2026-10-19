@@ -70,19 +70,10 @@ export default function ContentBackButton({
     <Link
       href={href}
       onClick={handleClick}
-      className="
-        flex items-center
-        gap-2
-        rounded
-        bg-[#3186d8]
-        px-4 py-2
-        text-[12px]
-        text-white
-        transition
-        hover:bg-[#2777c1]
-      "
+      className="app-back-link"
     >
-      ← Volver
+          <span aria-hidden="true">{"<"}</span>
+      Volver
     </Link>
   );
 }

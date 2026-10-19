@@ -61,10 +61,10 @@ function formatearFecha(fecha: string) {
 
 function estiloEvento(tipo: string) {
   if (tipo === "Evaluación") {
-    return "bg-[#fde4ea] text-[#d74b70]";
+    return "bg-talentia-danger-bg text-talentia-danger";
   }
 
-  return "bg-[#e7f4ff] text-[#2d7fe0]";
+  return "bg-talentia-selected text-talentia-blue";
 }
 
 export default function DashboardPage() {
@@ -200,28 +200,28 @@ export default function DashboardPage() {
 
   const estilosResumen = [
     {
-      borde: "border-[#cfe6ff]",
-      icono: "bg-[#e9f4ff] text-[#2d97e8]",
-      numero: "text-[#2d97e8]",
-      acento: "bg-[#2d97e8]",
+      borde: "border-talentia-border",
+      icono: "bg-talentia-selected text-talentia-blue",
+      numero: "text-talentia-blue",
+      acento: "bg-talentia-blue",
     },
     {
-      borde: "border-[#d8f3ef]",
-      icono: "bg-[#e5f9f6] text-[#13a89e]",
-      numero: "text-[#13a89e]",
-      acento: "bg-[#13a89e]",
+      borde: "border-talentia-border",
+      icono: "bg-talentia-selected text-talentia-blue",
+      numero: "text-talentia-blue",
+      acento: "bg-talentia-blue",
     },
     {
-      borde: "border-[#e9ddff]",
-      icono: "bg-[#f1eaff] text-[#8b5cf6]",
-      numero: "text-[#8b5cf6]",
-      acento: "bg-[#8b5cf6]",
+      borde: "border-talentia-border",
+      icono: "bg-talentia-selected text-talentia-blue",
+      numero: "text-talentia-blue",
+      acento: "bg-talentia-selected",
     },
     {
       borde: "border-[#ffe5c2]",
-      icono: "bg-[#fff3df] text-[#f59e0b]",
-      numero: "text-[#f59e0b]",
-      acento: "bg-[#f59e0b]",
+      icono: "bg-talentia-warning-bg text-talentia-warning",
+      numero: "text-talentia-warning",
+      acento: "bg-talentia-warning",
     },
   ];
 
@@ -232,10 +232,10 @@ export default function DashboardPage() {
   if (cargando) {
     return (
       <div className="min-h-screen w-full px-[30px] py-[28px] lg:px-[45px]">
-        <h1 className="text-[34px] font-semibold text-gray-950">
+        <h1 className="student-page-title text-[34px] font-semibold text-talentia-primary">
           Dashboard del estudiante
         </h1>
-        <p className="mt-8 text-[14px] text-gray-500">
+        <p className="mt-8 text-[14px] text-talentia-muted">
           Cargando dashboard...
         </p>
       </div>
@@ -245,10 +245,10 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="min-h-screen w-full px-[30px] py-[28px] lg:px-[45px]">
-        <h1 className="text-[34px] font-semibold text-gray-950">
+        <h1 className="student-page-title text-[34px] font-semibold text-talentia-primary">
           Dashboard del estudiante
         </h1>
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-[14px] text-red-700">
+        <div className="mt-8 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-4 text-[14px] text-talentia-danger">
           {error}
         </div>
       </div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen w-full px-[30px] py-[28px] lg:px-[45px]">
       <header className="mb-7">
-        <h1 className="text-[34px] font-semibold tracking-[-0.8px] text-gray-950">
+        <h1 className="student-page-title text-[34px] font-semibold tracking-[-0.8px] text-talentia-primary">
           Dashboard del estudiante
         </h1>
       </header>
@@ -270,7 +270,7 @@ export default function DashboardPage() {
           return (
             <article
               key={item.titulo}
-              className={`relative min-h-[118px] overflow-hidden rounded-[18px] border ${estilo.borde} bg-white px-6 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg`}
+              className={`relative min-h-[118px] overflow-hidden rounded-[18px] border ${estilo.borde} bg-talentia-surface px-6 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg`}
             >
               <div
                 className={`absolute left-0 top-0 h-[5px] w-full ${estilo.acento}`}
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                   >
                     {item.valor}
                   </p>
-                  <p className="mt-2 text-[14px] font-semibold text-gray-700">
+                  <p className="mt-2 text-[14px] font-semibold text-talentia-primary">
                     {item.titulo}
                   </p>
                 </div>
@@ -302,14 +302,14 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.65fr_1fr]">
         <div>
           <section>
-            <h2 className="mb-3 text-[22px] font-semibold text-[#2d7fe0]">
+            <h2 className="mb-3 text-[22px] font-semibold text-talentia-primary">
               Próximos eventos
             </h2>
 
             <div className="space-y-3">
               {eventos.length === 0 ? (
-                <div className="rounded-[13px] border border-gray-200 bg-white px-4 py-7 text-center shadow-sm">
-                  <p className="text-[13px] text-gray-500">
+                <div className="rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-7 text-center shadow-sm">
+                  <p className="text-[13px] text-talentia-muted">
                     No hay próximos eventos.
                   </p>
                 </div>
@@ -317,7 +317,7 @@ export default function DashboardPage() {
                 eventos.map((evento, index) => (
                   <article
                     key={`${evento.codigo}-${evento.fecha}-${index}`}
-                    className="grid grid-cols-[1fr_auto] items-center rounded-[13px] border border-gray-200 bg-white px-4 py-3 shadow-sm"
+                    className="grid grid-cols-[1fr_auto] items-center rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-3 shadow-sm"
                   >
                     <div>
                       <span
@@ -325,17 +325,17 @@ export default function DashboardPage() {
                       >
                         {evento.tipo}
                       </span>
-                      <p className="mt-2 text-[15px] font-medium text-[#1e73d8]">
+                      <p className="mt-2 text-[15px] font-medium text-talentia-blue">
                         {evento.titulo}
                       </p>
-                      <p className="mt-1 text-[12px] text-gray-500">
+                      <p className="mt-1 text-[12px] text-talentia-muted">
                         {evento.curso}
                       </p>
                     </div>
 
-                    <div className="ml-5 flex items-center gap-5 border-l border-[#a7c9f0] pl-5">
+                    <div className="ml-5 flex items-center gap-5 border-l border-talentia-border pl-5">
                       <div className="text-right">
-                        <p className="text-[10px] text-gray-500">
+                        <p className="text-[10px] text-talentia-muted">
                           {evento.codigo}
                         </p>
                         <div className="mt-2 flex items-center gap-2">
@@ -344,14 +344,14 @@ export default function DashboardPage() {
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="1.8"
-                            className="h-5 w-5 text-[#2d97e8]"
+                            className="h-5 w-5 text-talentia-blue"
                           >
                             <rect x="3" y="5" width="18" height="16" rx="2" />
                             <path d="M8 3v4" />
                             <path d="M16 3v4" />
                             <path d="M3 10h18" />
                           </svg>
-                          <span className="text-[14px] font-medium text-gray-700">
+                          <span className="text-[14px] font-medium text-talentia-primary">
                             {formatearFecha(evento.fecha)}
                           </span>
                         </div>
@@ -364,14 +364,14 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-6">
-            <h2 className="mb-3 text-[22px] font-semibold text-[#2d7fe0]">
+            <h2 className="mb-3 text-[22px] font-semibold text-talentia-primary">
               Anuncios
             </h2>
 
             <div className="space-y-3">
               {anuncios.length === 0 ? (
-                <div className="rounded-[13px] border border-gray-200 bg-white px-4 py-7 text-center shadow-sm">
-                  <p className="text-[13px] text-gray-500">
+                <div className="rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-7 text-center shadow-sm">
+                  <p className="text-[13px] text-talentia-muted">
                     No hay anuncios recientes.
                   </p>
                 </div>
@@ -380,17 +380,17 @@ export default function DashboardPage() {
                   <Link
                     key={anuncio.id}
                     href={`/alumno/cursos/${anuncio.curso_id}/anuncios`}
-                    className="block rounded-[13px] border border-gray-200 bg-white px-4 py-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#9bc8f2] hover:shadow-md"
+                    className="block rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-talentia-border hover:shadow-md"
                   >
-                    <p className="text-[10px] text-gray-400">
+                    <p className="text-[10px] text-talentia-muted">
                       {anuncio.codigo}
                     </p>
                     <div className="mt-2 flex items-center justify-between gap-4">
-                      <p className="text-[15px] font-medium text-[#1e73d8]">
+                      <p className="text-[15px] font-medium text-talentia-blue">
                         {anuncio.titulo}
                       </p>
                       <svg
-                        className="h-4 w-4 shrink-0 text-[#2d97e8]"
+                        className="h-4 w-4 shrink-0 text-talentia-blue"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -400,7 +400,7 @@ export default function DashboardPage() {
                         <path d="m9 18 6-6-6-6" />
                       </svg>
                     </div>
-                    <p className="mt-2 text-[10px] text-gray-500">
+                    <p className="mt-2 text-[10px] text-talentia-muted">
                       {formatearFecha(anuncio.fecha)}
                     </p>
                   </Link>
@@ -411,14 +411,14 @@ export default function DashboardPage() {
         </div>
 
         <aside>
-          <h2 className="mb-3 text-[22px] font-semibold text-[#2d7fe0]">
+          <h2 className="mb-3 text-[22px] font-semibold text-talentia-primary">
             Mis cursos
           </h2>
 
           <div className="space-y-3">
             {cursos.length === 0 ? (
-              <div className="rounded-[13px] border border-gray-200 bg-white px-4 py-7 text-center shadow-sm">
-                <p className="text-[13px] text-gray-500">
+              <div className="rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-7 text-center shadow-sm">
+                <p className="text-[13px] text-talentia-muted">
                   No tienes cursos matriculados.
                 </p>
               </div>
@@ -427,7 +427,7 @@ export default function DashboardPage() {
                 <Link
                   key={curso.id}
                   href={`/alumno/cursos/${curso.id}`}
-                  className="block rounded-[13px] border border-gray-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="block rounded-[13px] border border-talentia-border bg-talentia-surface p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex gap-3">
                     <img
@@ -453,24 +453,24 @@ export default function DashboardPage() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <p className="truncate text-[14px] font-medium text-gray-800">
+                        <p className="truncate text-[14px] font-medium text-talentia-primary">
                           {curso.nombre}
                         </p>
-                        <span className="text-[9px] text-gray-500">
+                        <span className="text-[9px] text-talentia-muted">
                           {curso.codigo}
                         </span>
                       </div>
 
                       <div className="mt-4">
-                        <div className="h-[7px] overflow-hidden rounded-full bg-gray-200">
+                        <div className="h-[7px] overflow-hidden rounded-full bg-talentia-border">
                           <div
-                            className="h-full rounded-full bg-[#2d8fe7]"
+                            className="h-full rounded-full bg-talentia-teal"
                             style={{
                               width: `${Math.min(100, Math.max(0, curso.progreso))}%`,
                             }}
                           />
                         </div>
-                        <p className="mt-1 text-[10px] text-gray-500">
+                        <p className="mt-1 text-[10px] text-talentia-muted">
                           {curso.progreso}% completado
                         </p>
                       </div>

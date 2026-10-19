@@ -26,8 +26,8 @@ export default function ConnectedForumDetail({ courseId, forumId }: { courseId: 
     });
     setRevision(value => value + 1);
   }
-  if (error) return <p role="alert" className="text-[11px] text-red-600">{error} <button onClick={() => setRevision(value => value + 1)} className="underline">Reintentar</button></p>;
-  if (!data) return <p role="status" className="text-[11px] text-gray-600">Cargando participaciones...</p>;
+  if (error) return <p role="alert" className="text-[11px] text-talentia-danger">{error} <button onClick={() => setRevision(value => value + 1)} className="underline">Reintentar</button></p>;
+  if (!data) return <p role="status" className="text-[11px] text-talentia-primary">Cargando participaciones...</p>;
   return <ForumDetail title={data.foro.titulo} description={data.foro.descripcion ?? ""}
     replies={mapReplies(data.respuestas)} onSubmitReply={reply} canReply={data.puede_responder}
     repliesVisible={data.respuestas_visibles} currentInitials={initials(data.usuario.nombre)}

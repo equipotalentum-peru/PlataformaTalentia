@@ -42,13 +42,7 @@ const deliveryTypes = [
   { label: "Video", key: "video", formats: ["MP4"] },
 ] as const;
 
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.9">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
+
 
 function PlusIcon() {
   return (
@@ -217,8 +211,9 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
   return (
     <div className="min-h-screen px-3 py-3 lg:px-5">
       <div className="mx-auto max-w-[1000px]">
-        <Link href={backHref} className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
-          <BackIcon />
+        <Link href={backHref} className="app-back-link mb-3">
+          <span aria-hidden="true">{"<"}</span>
+
           Volver a cursos
         </Link>
 
@@ -226,33 +221,33 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
 
         <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
 
-        <h1 className="mb-3 mt-5 text-2xl font-semibold text-gray-800">{editing ? "Editar actividad" : "Crear actividad"}</h1>
-        {loading && <p role="status" className="mb-3 text-sm text-gray-600">Cargando configuración...</p>}
-        {loadError && <p role="alert" className="mb-3 text-sm text-red-700">{loadError}</p>}
+        <h1 className="mb-3 mt-5 text-2xl font-semibold text-talentia-primary">{editing ? "Editar actividad" : "Crear actividad"}</h1>
+        {loading && <p role="status" className="mb-3 text-sm text-talentia-primary">Cargando configuración...</p>}
+        {loadError && <p role="alert" className="mb-3 text-sm text-talentia-danger">{loadError}</p>}
 
-        <fieldset disabled={busy} className="grid min-w-0 grid-cols-1 gap-5 border-t border-[#d9e2ec] bg-white p-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.95fr)]">
+        <fieldset disabled={busy} className="grid min-w-0 grid-cols-1 gap-5 border-t border-talentia-border bg-talentia-surface p-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.95fr)]">
           <section className="min-w-0">
-            <h2 className="mb-4 text-base font-semibold text-[#3186d8]">Información de la actividad</h2>
-            <label htmlFor="activity-title" className="block text-sm font-medium text-gray-700">Título:</label>
+            <h2 className="mb-4 text-base font-semibold text-talentia-primary">Información de la actividad</h2>
+            <label htmlFor="activity-title" className="block text-sm font-medium text-talentia-primary">Título:</label>
             <input
               id="activity-title"
               maxLength={200}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="mt-1.5 h-10 w-full rounded-md border border-[#cfd9e6] bg-white px-3 text-sm text-gray-800 outline-none focus:border-[#3186d8] focus:ring-2 focus:ring-[#3186d8]/15"
+              className="mt-1.5 h-10 w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-sm text-talentia-primary outline-none focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
             />
 
-            <label htmlFor="activity-description" className="mt-4 block text-sm font-medium text-gray-700">Descripción e Instrucciones:</label>
+            <label htmlFor="activity-description" className="mt-4 block text-sm font-medium text-talentia-primary">Descripción e Instrucciones:</label>
             <textarea
               id="activity-description"
               maxLength={20000}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="mt-1.5 h-40 w-full resize-y rounded-md border border-[#cfd9e6] bg-white p-3 text-sm text-gray-800 outline-none focus:border-[#3186d8] focus:ring-2 focus:ring-[#3186d8]/15"
+              className="mt-1.5 h-40 w-full resize-y rounded-md border border-talentia-border bg-talentia-surface p-3 text-sm text-talentia-primary outline-none focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
             />
 
-            <div className="mt-5 border-t border-[#d9e2ec] pt-4">
-              <h2 className="text-base font-semibold text-[#3186d8]">Entregas permitidas</h2>
+            <div className="mt-5 border-t border-talentia-border pt-4">
+              <h2 className="text-base font-semibold text-talentia-primary">Entregas permitidas</h2>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {deliveryTypes.map(({ label, key }) => {
                   const enabled = delivery[key];
@@ -262,9 +257,9 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
                       type="button"
                       onClick={() => setDelivery(current => ({ ...current, [key]: !current[key] }))}
                       aria-pressed={enabled}
-                      className={`flex h-11 min-w-0 items-center gap-2 rounded-md border px-2 text-left text-xs font-medium text-gray-800 transition focus-visible:outline-2 focus-visible:outline-[#0fb4b7] ${enabled ? "border-[#bce9ed] bg-[#e7f7f8] hover:bg-[#d5f0f2]" : "border-[#cfd9e6] bg-white hover:bg-gray-50"}`}
+                      className={`flex h-11 min-w-0 items-center gap-2 rounded-md border px-2 text-left text-xs font-medium text-talentia-primary transition focus-visible:outline-2 focus-visible:outline-talentia-blue ${enabled ? "border-talentia-border bg-talentia-selected hover:bg-talentia-hover" : "border-talentia-border bg-talentia-surface hover:bg-talentia-hover"}`}
                     >
-                      <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border text-xs ${enabled ? "border-[#0fb4b7] bg-[#0fb4b7] text-white" : "border-[#aebbc9] bg-white"}`}>{enabled ? "✓" : ""}</span>
+                      <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border text-xs ${enabled ? "border-talentia-blue bg-talentia-action text-white" : "border-talentia-border bg-talentia-surface"}`}>{enabled ? "✓" : ""}</span>
                       {label}
                     </button>
                   );
@@ -273,7 +268,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
             </div>
 
             {formatOptions.length > 0 && <div className="mt-4">
-              <div className="text-sm font-medium text-gray-700">Formatos permitidos:</div>
+              <div className="text-sm font-medium text-talentia-primary">Formatos permitidos:</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {formatOptions.map((format) => (
                   <button
@@ -281,18 +276,18 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
                     type="button"
                     onClick={() => toggleFormat(format)}
                     aria-pressed={formats.includes(format)}
-                    className={`flex h-9 items-center gap-1.5 rounded-md border px-2 text-xs transition focus-visible:outline-2 focus-visible:outline-[#3186d8] ${formats.includes(format) ? "border-[#cfd9e6] bg-[#f8fafc] text-gray-800 hover:border-[#3186d8]" : "border-[#e1e5e9] bg-white text-gray-500 hover:bg-gray-50"}`}
+                    className={`flex h-9 items-center gap-1.5 rounded-md border px-2 text-xs transition focus-visible:outline-2 focus-visible:outline-talentia-blue ${formats.includes(format) ? "border-talentia-border bg-talentia-surface text-talentia-primary hover:border-talentia-blue" : "border-talentia-border bg-talentia-surface text-talentia-muted hover:bg-talentia-hover"}`}
                   >
-                    <span aria-hidden="true" className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border text-[10px] ${formats.includes(format) ? "border-[#3186d8] bg-[#3186d8] text-white" : "border-[#aebbc9] bg-white"}`}>{formats.includes(format) ? "✓" : ""}</span>
+                    <span aria-hidden="true" className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border text-[10px] ${formats.includes(format) ? "border-talentia-blue bg-talentia-action text-white" : "border-talentia-border bg-talentia-surface"}`}>{formats.includes(format) ? "✓" : ""}</span>
                     {format}
                   </button>
                 ))}
               </div>
             </div>}
 
-            {formatOptions.length > 0 && <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-700">
+            {formatOptions.length > 0 && <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-talentia-primary">
               <label htmlFor="activity-max-file-size">Tamaño máximo por archivo:</label>
-              <div className="flex h-10 items-center overflow-hidden rounded-md border border-[#cfd9e6] bg-white focus-within:border-[#3186d8]">
+              <div className="flex h-10 items-center overflow-hidden rounded-md border border-talentia-border bg-talentia-surface focus-within:border-talentia-blue">
                 <input
                   id="activity-max-file-size"
                   type="number"
@@ -302,89 +297,89 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
                   onChange={(event) => setMaxFileSize(Math.max(1, Number(event.target.value) || 1))}
                   className="h-full w-16 bg-transparent px-2 text-center text-sm outline-none"
                 />
-                <span className="flex h-full items-center border-l border-[#cfd9e6] bg-[#f8fafc] px-3 text-xs">MB</span>
+                <span className="flex h-full items-center border-l border-talentia-border bg-talentia-surface px-3 text-xs">MB</span>
               </div>
             </div>}
           </section>
 
-          <aside className="min-w-0 space-y-4 lg:border-l lg:border-[#d9e2ec] lg:pl-5">
-            <div className="border-b border-[#d9e2ec] pb-4">
-              <h2 className="text-base font-semibold text-[#3186d8]">Fecha y condiciones de entrega</h2>
+          <aside className="min-w-0 space-y-4 lg:border-l lg:border-talentia-border lg:pl-5">
+            <div className="border-b border-talentia-border pb-4">
+              <h2 className="text-base font-semibold text-talentia-primary">Fecha y condiciones de entrega</h2>
 
-              <div className="mt-4 space-y-4 text-sm text-gray-700">
+              <div className="mt-4 space-y-4 text-sm text-talentia-primary">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="min-w-0">
                     <label htmlFor="activity-due-date" className="mb-1.5 block text-xs font-medium">Fecha de Entrega:</label>
-                    <div className="flex h-10 w-full min-w-0 items-center rounded-md border border-[#cfd9e6] bg-white px-2 focus-within:border-[#3186d8]">
+                    <div className="flex h-10 w-full min-w-0 items-center rounded-md border border-talentia-border bg-talentia-surface px-2 focus-within:border-talentia-blue">
                       <input id="activity-due-date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="min-w-0 w-full bg-transparent text-xs outline-none" />
                     </div>
                   </div>
 
                   <div className="min-w-0">
                     <label htmlFor="activity-due-time" className="mb-1.5 block text-xs font-medium">Hora de Entrega:</label>
-                    <input id="activity-due-time" type="time" value={dueTime} onChange={(event) => setDueTime(event.target.value)} className="h-10 w-full min-w-0 rounded-md border border-[#cfd9e6] bg-white px-2 text-xs outline-none focus:border-[#3186d8]" />
+                    <input id="activity-due-time" type="time" value={dueTime} onChange={(event) => setDueTime(event.target.value)} className="h-10 w-full min-w-0 rounded-md border border-talentia-border bg-talentia-surface px-2 text-xs outline-none focus:border-talentia-blue" />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="activity-attempts" className="mb-1.5 block text-xs font-medium">Intentos Permitidos:</label>
-                  <select id="activity-attempts" value={attempts} onChange={(event) => setAttempts(Number(event.target.value))} className="h-10 w-full rounded-md border border-[#cfd9e6] bg-white px-3 text-sm outline-none focus:border-[#3186d8]">
+                  <select id="activity-attempts" value={attempts} onChange={(event) => setAttempts(Number(event.target.value))} className="h-10 w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-sm outline-none focus:border-talentia-blue">
                     {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} {value === 1 ? "Intento" : "Intentos"}</option>)}
                   </select>
                 </div>
 
-                <h2 className="border-t border-[#d9e2ec] pt-4 text-base font-semibold text-[#3186d8]">Calificación</h2>
+                <h2 className="border-t border-talentia-border pt-4 text-base font-semibold text-talentia-primary">Calificación</h2>
                 <div className="flex items-center justify-between gap-3">
                   <span>Es una actividad calificada?</span>
-                  <button type="button" onClick={() => setGraded((value) => !value)} className="flex shrink-0 items-center gap-1.5 rounded focus-visible:outline-2 focus-visible:outline-[#0fb4b7]" aria-label="Actividad calificada" aria-pressed={graded}>
-                    <span className="text-xs text-gray-600">No</span>
-                    <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition ${graded ? "justify-end bg-[#0fb4b7]" : "justify-start bg-[#cfd9e6]"}`}>
-                      <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                  <button type="button" onClick={() => setGraded((value) => !value)} className="flex shrink-0 items-center gap-1.5 rounded focus-visible:outline-2 focus-visible:outline-talentia-blue" aria-label="Actividad calificada" aria-pressed={graded}>
+                    <span className="text-xs text-talentia-primary">No</span>
+                    <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition ${graded ? "justify-end bg-talentia-blue" : "justify-start bg-talentia-selected"}`}>
+                      <span className="h-5 w-5 rounded-full bg-talentia-surface shadow-sm" />
                     </span>
-                    <span className="text-xs text-gray-600">Sí</span>
+                    <span className="text-xs text-talentia-primary">Sí</span>
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
                   <span>Puntuación Máxima:</span>
-                  <div className="flex h-10 shrink-0 items-center overflow-hidden rounded-md border border-[#cfd9e6] bg-[#f8fafc]">
-                    <button type="button" aria-label="Disminuir puntuación máxima" onClick={() => setMaxGrade((value) => Math.max(0, value - 1))} className="h-full w-9 text-gray-600 hover:bg-[#e7eaed]">−</button>
-                    <span className="flex h-full w-10 items-center justify-center border-x border-[#cfd9e6] bg-white text-sm">{maxGrade}</span>
-                    <button type="button" aria-label="Aumentar puntuación máxima" onClick={() => setMaxGrade((value) => Math.min(100, value + 1))} className="h-full w-9 text-gray-600 hover:bg-[#e7eaed]">+</button>
+                  <div className="flex h-10 shrink-0 items-center overflow-hidden rounded-md border border-talentia-border bg-talentia-surface">
+                    <button type="button" aria-label="Disminuir puntuación máxima" onClick={() => setMaxGrade((value) => Math.max(0, value - 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">−</button>
+                    <span className="flex h-full w-10 items-center justify-center border-x border-talentia-border bg-talentia-surface text-sm">{maxGrade}</span>
+                    <button type="button" aria-label="Aumentar puntuación máxima" onClick={() => setMaxGrade((value) => Math.min(100, value + 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">+</button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="border-b border-[#d9e2ec] pb-4">
-              <h2 className="text-base font-semibold text-[#3186d8]">Rúbrica de evaluación (opcional)</h2>
-              <button type="button" onClick={() => setRubricModalOpen(true)} className="mt-3 flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-md border border-[#3186d8] bg-white px-4 py-2 text-sm font-medium text-[#3186d8] hover:bg-[#eff7ff]">
+            <div className="border-b border-talentia-border pb-4">
+              <h2 className="text-base font-semibold text-talentia-primary">Rúbrica de evaluación (opcional)</h2>
+              <button type="button" onClick={() => setRubricModalOpen(true)} className="mt-3 flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-md border border-talentia-blue bg-talentia-surface px-4 py-2 text-sm font-medium text-talentia-blue hover:bg-talentia-hover">
                 <PlusIcon />
                 {rubricDraft || storedPDF ? "Cambiar tipo de rúbrica" : "Añadir rúbrica"}
               </button>
               {(rubricDraft || storedPDF) && (
                 <div className="mt-3 min-w-0 text-sm">
-                  <p className="break-words text-gray-700">
+                  <p className="break-words text-talentia-primary">
                     {storedPDF ? `PDF guardado: ${storedPDF.nombre_archivo}` : rubricDraft?.tipo === "pdf" ? `PDF preparado: ${rubricDraft.archivo.name}` : `${rubricDraft?.tipo === "criterios" ? rubricDraft.criterios.length : 0} criterios ${editing && !rubricChanged ? "guardados" : "preparados"}`}
                   </p>
-                  {(!editing || rubricChanged) && <p className="mt-1 text-xs text-gray-500">Pendiente de guardar con la actividad</p>}
+                  {(!editing || rubricChanged) && <p className="mt-1 text-xs text-talentia-muted">Pendiente de guardar con la actividad</p>}
                   <div className="mt-2 flex flex-wrap gap-3">
-                    {storedPDF && <a href={`${API_URL}/actividades/${course.id}/${contentId}/rubrica`} target="_blank" rel="noreferrer" className="font-medium text-[#3186d8] hover:underline">Descargar PDF</a>}
-                    <button type="button" onClick={() => setRubricEditorType(storedPDF ? "pdf" : rubricDraft?.tipo ?? "pdf")} className="font-medium text-[#3186d8] hover:underline">
+                    {storedPDF && <a href={`${API_URL}/actividades/${course.id}/${contentId}/rubrica`} target="_blank" rel="noreferrer" className="font-medium text-talentia-blue hover:underline">Descargar PDF</a>}
+                    <button type="button" onClick={() => setRubricEditorType(storedPDF ? "pdf" : rubricDraft?.tipo ?? "pdf")} className="font-medium text-talentia-blue hover:underline">
                       {storedPDF || rubricDraft?.tipo === "pdf" ? "Reemplazar PDF" : "Editar criterios"}
                     </button>
-                    <button type="button" onClick={() => { setRubricDraft(null); setRubricChanged(true); }} className="font-medium text-red-600 hover:underline">Quitar rúbrica</button>
+                    <button type="button" onClick={() => { setRubricDraft(null); setRubricChanged(true); }} className="font-medium text-talentia-danger hover:underline">Quitar rúbrica</button>
                   </div>
                 </div>
               )}
             </div>
 
             <div>
-              <h2 className="text-base font-semibold text-[#3186d8]">Visibilidad</h2>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-700">
+              <h2 className="text-base font-semibold text-talentia-primary">Visibilidad</h2>
+              <div className="mt-3 flex flex-wrap gap-4 text-sm text-talentia-primary">
                 {(["Oculto", "Publicado"] as const).map((value) => (
                   <label key={value} className="flex cursor-pointer items-center gap-2">
-                    <input type="radio" name="activity-status" value={value} checked={status === value} onChange={() => setStatus(value)} className="h-4 w-4 accent-[#3186d8]" />
+                    <input type="radio" name="activity-status" value={value} checked={status === value} onChange={() => setStatus(value)} className="h-4 w-4 accent-talentia-blue" />
                     <span>{value}</span>
                   </label>
                 ))}
@@ -393,14 +388,14 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
           </aside>
         </fieldset>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-[#d9e2ec] bg-white p-4">
-          <Link href={backHref} aria-disabled={saving} onClick={event => { if (saving) event.preventDefault(); }} className="flex h-10 items-center justify-center rounded-md bg-[#efe6fa] px-4 text-sm font-semibold text-[#4b5fa7] hover:bg-[#e7dcf4]">Cancelar</Link>
+        <div className="flex flex-wrap items-center gap-3 border-t border-talentia-border bg-talentia-surface p-4">
+          <Link href={backHref} aria-disabled={saving} onClick={event => { if (saving) event.preventDefault(); }} className="flex h-10 items-center justify-center rounded-md bg-talentia-surface px-4 text-sm font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
           <div className="ml-auto flex flex-wrap gap-3">
             {editing ? (
-              <button type="button" disabled={busy} onClick={() => submit(status === "Publicado" ? "Publicado" : "Borrador")} className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2777c1] disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button>
+              <button type="button" disabled={busy} onClick={() => submit(status === "Publicado" ? "Publicado" : "Borrador")} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button>
             ) : <>
-              <button type="button" disabled={busy} onClick={() => submit("Borrador")} className="min-h-10 rounded-md border border-[#cfd9e6] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">{saving ? "Guardando…" : "Guardar como borrador"}</button>
-              <button type="button" disabled={busy || status !== "Publicado"} title={status === "Oculto" ? "Selecciona Publicado para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-[#3186d8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2777c1] disabled:opacity-50">Publicar</button>
+              <button type="button" disabled={busy} onClick={() => submit("Borrador")} className="min-h-10 rounded-md border border-talentia-border bg-talentia-surface px-4 py-2 text-sm font-medium text-talentia-primary hover:bg-talentia-hover disabled:opacity-50">{saving ? "Guardando…" : "Guardar como borrador"}</button>
+              <button type="button" disabled={busy || status !== "Publicado"} title={status === "Oculto" ? "Selecciona Publicado para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">Publicar</button>
             </>}
           </div>
         </div>
@@ -435,7 +430,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
       )}
 
       {notice && (
-        <div className="fixed bottom-5 right-5 z-[140] rounded-lg bg-[#163f66] px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">
+        <div className="fixed bottom-5 right-5 z-[140] rounded-lg bg-talentia-action px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">
           {notice}
         </div>
       )}

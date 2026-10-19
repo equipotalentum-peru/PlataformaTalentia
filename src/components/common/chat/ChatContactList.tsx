@@ -56,42 +56,32 @@ export default function ChatContactList({
 
   return (
     <aside
-      className={`${className} w-full shrink-0 flex-col bg-white min-[861px]:w-[255px] min-[861px]:border-r min-[861px]:border-gray-300`}
+      className={`${className} w-full shrink-0 flex-col bg-talentia-surface min-[861px]:w-[255px] min-[861px]:border-r min-[861px]:border-talentia-border`}
     >
-      <div className="border-b border-gray-300 px-4 py-4">
+      <div className="border-b border-talentia-border px-4 py-4">
         
         <Link
           href={backHref}
-          className="mb-3 inline-flex h-8 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-[#18407c] transition hover:bg-gray-100"
+          className="app-back-link mb-3"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <span aria-hidden="true">{"<"}</span>
+
           Volver a cursos
         </Link>
 
-        <h1 className="break-words text-[18px] leading-snug font-semibold text-[#18407c] sm:text-[20px]">
+        <h1 className="break-words text-[18px] leading-snug font-semibold text-talentia-primary sm:text-[20px]">
           {courseName}
         </h1>
 
-        <p className="mt-1 text-[11px] text-gray-700">
+        <p className="mt-1 text-[13px] text-talentia-primary">
           Comunícate con tus compañeros y docentes.
         </p>
 
-        <div className="mt-3 flex h-9 items-center rounded-md border border-gray-300 px-3">
+        <div className="mt-3 flex h-9 items-center rounded-md border border-talentia-border px-3">
 
           <svg
             viewBox="0 0 24 24"
-            className="mr-2 h-4 w-4 text-[#1f61b4]"
+            className="mr-2 h-4 w-4 text-talentia-blue"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -106,7 +96,7 @@ export default function ChatContactList({
               onSearchChange(event.target.value)
             }
             placeholder="Buscar por nombre"
-            className="w-full min-w-0 bg-transparent text-xs leading-normal outline-none placeholder:text-gray-500"
+            className="w-full min-w-0 bg-transparent text-[13px] leading-normal outline-none placeholder:text-talentia-placeholder"
           />
 
         </div>
@@ -132,7 +122,7 @@ export default function ChatContactList({
         ))}
 
         {!filteredContacts.length && (
-          <p className="p-8 text-center text-[11px] text-gray-500">
+          <p className="p-8 text-center text-[13px] text-talentia-muted">
             No se encontraron contactos.
           </p>
         )}

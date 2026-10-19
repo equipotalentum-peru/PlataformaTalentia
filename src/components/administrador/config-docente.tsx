@@ -58,32 +58,32 @@ export default function AsignarDocente() {
 
       {/* Encabezado */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Asignar docente
         </h1>
-        <p className="text-sm text-[#6F83A5] mt-1 font-medium">
+        <p className="text-sm text-talentia-muted mt-1 font-medium">
           Selecciona profesor responsable y horarios del curso.
         </p>
       </div>
 
       {/* Tarjeta Principal */}
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-8">
+      <div className="bg-talentia-surface rounded-3xl p-8 shadow-sm border border-talentia-border/80 mb-8">
         {/* Nombre del curso y Badges */}
         <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-2xl font-extrabold text-[#0F2851]">
+          <h2 className="text-2xl font-extrabold text-talentia-primary">
             Curso: Diseño UX
           </h2>
-          <span className="bg-[#F3E8FF] text-[#6B21A8] px-4 py-1.5 rounded-full text-xs font-bold">
+          <span className="bg-talentia-purple-soft text-talentia-purple px-4 py-1.5 rounded-full text-xs font-bold">
             Borrador
           </span>
-          <span className="bg-[#FEF08A] text-[#854D0E] px-4 py-1.5 rounded-full text-xs font-bold">
+          <span className="bg-talentia-warning-bg text-talentia-warning px-4 py-1.5 rounded-full text-xs font-bold">
             Sin docente
           </span>
         </div>
 
         {/* Buscador de Docentes */}
         <div className="mb-6 max-w-md">
-          <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+          <label className="block text-xs font-extrabold text-talentia-primary mb-2">
             Buscar docente
           </label>
           <input
@@ -91,15 +91,15 @@ export default function AsignarDocente() {
             placeholder="Nombre, especialidad o disponibilidad"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+            className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
           />
         </div>
 
         {/* Tabla de Docentes */}
-        <div className="rounded-2xl overflow-hidden border border-gray-100">
+        <div className="rounded-2xl overflow-hidden border border-talentia-border">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F1F3FD] text-[#312E81] text-xs font-extrabold">
+              <tr className="bg-talentia-surface text-talentia-primary text-xs font-extrabold">
                 <th className="py-4 px-6">Docente</th>
                 <th className="py-4 px-6">Especialidad</th>
                 <th className="py-4 px-6">Carga</th>
@@ -107,20 +107,20 @@ export default function AsignarDocente() {
                 <th className="py-4 px-6 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm font-medium text-[#0F2851]">
+            <tbody className="divide-y divide-talentia-border text-sm font-medium text-talentia-primary">
               {docentesFiltrados.map((docente) => {
                 const isSelected = docenteSeleccionado === docente.id;
                 return (
                   <tr
                     key={docente.id}
-                    className="hover:bg-gray-50/50 transition"
+                    className="hover:bg-talentia-hover/50 transition"
                   >
                     <td className="py-4 px-6 font-bold">{docente.nombre}</td>
-                    <td className="py-4 px-6 text-[#64748B]">
+                    <td className="py-4 px-6 text-talentia-muted">
                       {docente.especialidad}
                     </td>
-                    <td className="py-4 px-6 text-[#64748B]">{docente.carga}</td>
-                    <td className="py-4 px-6 text-[#64748B]">
+                    <td className="py-4 px-6 text-talentia-muted">{docente.carga}</td>
+                    <td className="py-4 px-6 text-talentia-muted">
                       {docente.disponibilidad}
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -129,8 +129,8 @@ export default function AsignarDocente() {
                         onClick={() => setDocenteSeleccionado(docente.id)}
                         className={`font-bold px-5 py-2 rounded-xl text-xs transition ${
                           isSelected
-                            ? "bg-[#166534] text-white"
-                            : "bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                            ? "bg-talentia-success text-white"
+                            : "bg-talentia-action hover:bg-talentia-primary text-white"
                         }`}
                       >
                         {isSelected ? "Asignado" : "Asignar"}
@@ -144,7 +144,7 @@ export default function AsignarDocente() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-8 text-center text-[#64748B] text-sm"
+                    className="py-8 text-center text-talentia-muted text-sm"
                   >
                     No se encontraron docentes con esos criterios.
                   </td>
@@ -161,7 +161,7 @@ export default function AsignarDocente() {
         <button
           type="button"
           onClick={handleGuardar}
-          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm"
+          className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm"
         >
           Guardar asignación
         </button>

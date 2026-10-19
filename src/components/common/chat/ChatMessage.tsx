@@ -37,15 +37,15 @@ export default function ChatMessage({
         }`}
       >
         <div
-          className={`max-w-[88%] sm:max-w-[70%] rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm ${
+          className={`max-w-[88%] sm:max-w-[70%] rounded-xl border border-talentia-border bg-talentia-surface px-3 py-2 shadow-sm ${
             esMio ? "rounded-br-sm" : "rounded-bl-sm"
           }`}
         >
-          <p className="text-[11px] italic text-gray-500">
+          <p className="text-[13px] italic text-talentia-muted">
             Mensaje eliminado
           </p>
 
-          <p className="mt-1 text-right text-[9px] text-gray-400">
+          <p className="mt-1 text-right text-[12px] text-talentia-muted">
             {formatearHoraChat(message.time)}
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function ChatMessage({
     >
       <div className="max-w-[88%] sm:max-w-[70%]">
         <div
-          className={`rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm ${
+          className={`rounded-xl border border-talentia-border bg-talentia-surface px-3 py-2 shadow-sm ${
             esMio ? "rounded-br-sm" : "rounded-bl-sm"
           }`}
         >
@@ -120,7 +120,7 @@ export default function ChatMessage({
                 maxLength={10000}
                 rows={3}
                 autoFocus
-                className="w-full resize-y rounded-md border border-gray-300 p-2 text-[11px] outline-none focus:border-[#3186d8]"
+                className="w-full resize-y rounded-md border border-talentia-border p-2 text-[16px] sm:text-[15px] outline-none focus:border-talentia-blue"
               />
 
               <div className="flex justify-end gap-2">
@@ -132,7 +132,7 @@ export default function ChatMessage({
                     setEditando(false);
                     setError("");
                   }}
-                  className="text-[10px] text-gray-500"
+                  className="text-[12px] text-talentia-muted"
                 >
                   Cancelar
                 </button>
@@ -141,7 +141,7 @@ export default function ChatMessage({
                   type="button"
                   disabled={procesando}
                   onClick={() => void guardarEdicion()}
-                  className="rounded-md bg-[#3186d8] px-2 py-1 text-[10px] text-white disabled:opacity-50"
+                  className="rounded-md bg-talentia-action px-2 py-1 text-[12px] text-white disabled:opacity-50"
                 >
                   {procesando ? "Guardando..." : "Guardar"}
                 </button>
@@ -149,11 +149,11 @@ export default function ChatMessage({
             </div>
           ) : (
             <>
-              <p className="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-gray-800">
+              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[15px] leading-relaxed text-talentia-primary">
                 {message.text}
               </p>
 
-              <p className="mt-1 text-right text-[9px] text-gray-400">
+              <p className="mt-1 text-right text-[12px] text-talentia-muted">
                 {formatearHoraChat(message.time)}
                 {message.edited ? " · editado" : ""}
               </p>
@@ -162,7 +162,7 @@ export default function ChatMessage({
         </div>
 
         {esMio && !editando && (
-          <div className="mt-1 flex justify-end gap-3 text-[10px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+          <div className="mt-1 flex justify-end gap-3 text-[12px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <button
               type="button"
               disabled={procesando}
@@ -171,7 +171,7 @@ export default function ChatMessage({
                 setEditando(true);
                 setError("");
               }}
-              className="text-[#3186d8] hover:underline"
+              className="text-talentia-blue hover:underline"
             >
               Editar
             </button>
@@ -180,7 +180,7 @@ export default function ChatMessage({
               type="button"
               disabled={procesando}
               onClick={() => void borrar()}
-              className="text-red-600 hover:underline"
+              className="text-talentia-danger hover:underline"
             >
               Eliminar
             </button>
@@ -188,7 +188,7 @@ export default function ChatMessage({
         )}
 
         {error && (
-          <p className="mt-1 text-[10px] text-red-600">
+          <p className="mt-1 text-[12px] text-talentia-danger">
             {error}
           </p>
         )}

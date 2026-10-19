@@ -94,7 +94,7 @@ export default function QuizViewer({
 
   if (!quiz) {
     return (
-      <div className="rounded-xl bg-white p-8">
+      <div className="rounded-xl bg-talentia-surface p-8">
         <h2 className="text-xl font-semibold">
           Evaluación no encontrada
         </h2>
@@ -196,21 +196,21 @@ export default function QuizViewer({
     activeQuestion = false
   ) => {
     return (
-      <div className="mb-5 flex items-center justify-between border-b border-gray-300 pb-3">
+      <div className="mb-5 flex items-center justify-between border-b border-talentia-border pb-3">
 
         <div>
-          <h1 className="text-[24px] font-bold text-[#1554a0]">
+          <h1 className="text-[24px] font-bold text-talentia-primary">
             Practica: TICs
           </h1>
 
-          <p className="mt-1 text-[12px] text-gray-700">
+          <p className="mt-1 text-[12px] text-talentia-primary">
             {activeQuestion
               ? "Responde las preguntas seleccionando la alternativa correcta."
               : "Antes de empezar esta evaluación ten en cuenta lo siguiente:"}
           </p>
         </div>
 
-        <div className="flex items-center rounded-md bg-[#78f0ef]">
+        <div className="flex items-center rounded-md bg-talentia-selected">
 
           {/* TIEMPO */}
           <div className="flex items-center gap-3 px-4 py-2">
@@ -296,7 +296,7 @@ export default function QuizViewer({
 
   if (phase === "intro") {
     return (
-      <div className="rounded-xl border border-gray-300 bg-white px-7 py-6">
+      <div className="rounded-xl border border-talentia-border bg-talentia-surface px-7 py-6">
 
         {renderHeader(false)}
 
@@ -336,14 +336,14 @@ export default function QuizViewer({
             onClick={startQuiz}
             className="
               rounded-md
-              bg-[#3186d8]
+              bg-talentia-action
               px-12 py-3
               text-[17px]
               font-medium
               text-white
               shadow-sm
               transition
-              hover:bg-[#2777c1]
+              hover:bg-talentia-primary
             "
           >
             Empezar
@@ -357,7 +357,7 @@ export default function QuizViewer({
           {previousHref ? (
             <Link
               href={previousHref}
-              className="rounded border border-gray-400 bg-white px-5 py-2 text-sm transition hover:bg-gray-100"
+              className="rounded border border-talentia-border bg-talentia-surface px-5 py-2 text-sm transition hover:bg-talentia-hover"
             >
               ← Anterior
             </Link>
@@ -368,7 +368,7 @@ export default function QuizViewer({
           {nextHref ? (
             <Link
               href={nextHref}
-              className="rounded bg-[#3186d8] px-7 py-2.5 text-sm font-medium text-white transition hover:bg-[#2777c1]"
+              className="rounded bg-talentia-action px-7 py-2.5 text-sm font-medium text-white transition hover:bg-talentia-primary"
             >
               Siguiente →
             </Link>
@@ -389,7 +389,7 @@ export default function QuizViewer({
 
   if (phase === "question") {
     return (
-      <div className="rounded-xl border border-gray-300 bg-white px-7 py-6">
+      <div className="rounded-xl border border-talentia-border bg-talentia-surface px-7 py-6">
 
         {renderHeader(true)}
 
@@ -400,7 +400,7 @@ export default function QuizViewer({
               className="
                 inline-flex
                 rounded-lg
-                bg-[#3186d8]
+                bg-talentia-action
                 px-4 py-2
                 text-[14px]
                 font-semibold
@@ -412,7 +412,7 @@ export default function QuizViewer({
             </span>
           </div>
 
-          <h2 className="mb-5 text-[16px] font-semibold text-gray-800">
+          <h2 className="mb-5 text-[16px] font-semibold text-talentia-primary">
             {question.text}
           </h2>
 
@@ -433,10 +433,10 @@ export default function QuizViewer({
                       items-center
                       gap-4
                       rounded-lg
-                      bg-[#dfdfdf]
+                      bg-talentia-surface
                       px-4 py-3
                       transition
-                      hover:bg-[#d5d5d5]
+                      hover:bg-talentia-hover
                     "
                   >
 
@@ -452,11 +452,11 @@ export default function QuizViewer({
                       }
                       className="
                         h-5 w-5
-                        accent-[#3186d8]
+                        accent-talentia-blue
                       "
                     />
 
-                    <span className="text-[13px] text-gray-800">
+                    <span className="text-[13px] text-talentia-primary">
                       {option.id}){" "}
                       {option.text}
                     </span>
@@ -475,13 +475,13 @@ export default function QuizViewer({
               onClick={goNextQuestion}
               className="
                 rounded-md
-                bg-[#3186d8]
+                bg-talentia-action
                 px-7 py-2.5
                 text-[16px]
                 font-medium
                 text-white
                 transition
-                hover:bg-[#2777c1]
+                hover:bg-talentia-primary
               "
             >
               {currentQuestion ===
@@ -504,17 +504,17 @@ export default function QuizViewer({
    */
 
   return (
-    <div className="rounded-xl border border-gray-300 bg-white px-7 py-6">
+    <div className="rounded-xl border border-talentia-border bg-talentia-surface px-7 py-6">
 
       {renderHeader(false)}
 
       <div className="pt-8">
 
-        <h2 className="text-[16px] font-bold text-gray-900">
+        <h2 className="text-[16px] font-bold text-talentia-primary">
           Evaluación Terminada.
         </h2>
 
-        <p className="mt-1 max-w-[700px] text-[15px] font-semibold text-gray-900">
+        <p className="mt-1 max-w-[700px] text-[15px] font-semibold text-talentia-primary">
           Felicidades por terminar esta
           evaluación. Tu docente revisará tus
           respuestas y te informará cuando la nota
@@ -529,13 +529,13 @@ export default function QuizViewer({
           href={exitHref}
           className="
             rounded-md
-            bg-[#3186d8]
+            bg-talentia-action
             px-14 py-3
             text-[17px]
             font-medium
             text-white
             transition
-            hover:bg-[#2777c1]
+            hover:bg-talentia-primary
           "
         >
           Salir
@@ -549,7 +549,7 @@ export default function QuizViewer({
         {previousHref ? (
           <Link
             href={previousHref}
-            className="rounded border border-gray-400 bg-white px-5 py-2 text-sm transition hover:bg-gray-100"
+            className="rounded border border-talentia-border bg-talentia-surface px-5 py-2 text-sm transition hover:bg-talentia-hover"
           >
             ← Anterior
           </Link>
@@ -560,7 +560,7 @@ export default function QuizViewer({
         {nextHref ? (
           <Link
             href={nextHref}
-            className="rounded bg-[#3186d8] px-7 py-2.5 text-sm font-medium text-white transition hover:bg-[#2777c1]"
+            className="rounded bg-talentia-action px-7 py-2.5 text-sm font-medium text-white transition hover:bg-talentia-primary"
           >
             Siguiente →
           </Link>

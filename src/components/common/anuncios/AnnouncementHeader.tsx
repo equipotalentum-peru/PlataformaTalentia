@@ -8,13 +8,13 @@ export default function AnnouncementHeader({
   action,
 }: AnnouncementHeaderProps) {
   return (
-    <section className="rounded-xl bg-white px-5 py-4 shadow-sm">
+    <section className="rounded-xl bg-talentia-surface px-5 py-4 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#3186d8]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-talentia-blue">
             <svg
-              className="h-8 w-8 text-black"
+              className="h-8 w-8 text-talentia-primary"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -27,11 +27,11 @@ export default function AnnouncementHeader({
           </div>
 
           <div>
-            <h2 className="text-[14px] font-bold text-gray-900">
+            <h2 className="text-[14px] font-bold text-talentia-primary">
               Anuncios
             </h2>
 
-            <p className="mt-1 text-[11px] leading-snug text-gray-500">
+            <p className="mt-1 text-[11px] leading-snug text-talentia-muted">
               Mantente al día con las novedades,
               recordatorios o comunicados hechos por
               el docente del curso.

@@ -34,7 +34,7 @@ function BotonEditar({ onClick }: { onClick?: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-md border border-[#2782df] px-3 py-1 text-sm text-[#2782df] transition hover:bg-[#e8f3ff]"
+      className="inline-flex items-center gap-1 rounded-md border border-talentia-blue px-3 py-1 text-sm text-talentia-blue transition hover:bg-talentia-hover"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -66,9 +66,9 @@ function TarjetaInformacion({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg bg-white p-3 ${className}`}>
+    <section className={`rounded-lg bg-talentia-surface p-3 ${className}`}>
       <div className="mb-2 flex min-h-8 items-center justify-between">
-        <div className="flex items-center gap-2 text-[#2782df]">
+        <div className="flex items-center gap-2 text-talentia-blue">
           {icono}
           <h2 className="font-semibold">{titulo}</h2>
         </div>
@@ -76,17 +76,17 @@ function TarjetaInformacion({
         {editable && <BotonEditar onClick={onEditar} />}
       </div>
 
-      <dl className="border border-gray-300">
+      <dl className="border border-talentia-border">
         {campos.map((campo) => (
           <div
             key={campo.etiqueta}
-            className="grid gap-1 border-b border-gray-300 px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(150px,0.9fr)_minmax(0,1.4fr)]"
+            className="grid gap-1 border-b border-talentia-border px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(150px,0.9fr)_minmax(0,1.4fr)]"
           >
-            <dt className="font-semibold text-gray-900">
+            <dt className="font-semibold text-talentia-primary">
               {campo.etiqueta}
             </dt>
 
-            <dd className="break-words text-gray-700">
+            <dd className="break-words text-talentia-primary">
               {campo.valor}
             </dd>
           </div>
@@ -121,13 +121,13 @@ export default function VistaPerfil({
   return (
     <div className="min-h-screen px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-[1050px]">
-        <h1 className="mb-4 text-3xl font-semibold text-[#2782df]">
+        <h1 className="student-page-title teacher-page-title mb-4 text-3xl font-semibold text-talentia-primary">
           Mi perfil
         </h1>
 
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="relative h-28 w-28 shrink-0">
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#2495e9] text-3xl font-semibold text-white">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-talentia-teal text-3xl font-semibold text-white">
               {fotoPerfil ? (
                 <Image
                   src={fotoPerfil}
@@ -147,7 +147,7 @@ export default function VistaPerfil({
               aria-label={subiendoFoto ? "Subiendo foto de perfil" : "Cambiar foto de perfil"}
               aria-busy={subiendoFoto}
               title={subiendoFoto ? "Subiendo foto" : "Cambiar foto de perfil"}
-              className="absolute bottom-0 right-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#1679ca] bg-[#2495e9] text-black transition hover:bg-[#2782df] disabled:cursor-wait disabled:opacity-60"
+              className="absolute bottom-0 right-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-talentia-blue bg-talentia-action text-white transition hover:bg-talentia-primary disabled:cursor-wait disabled:opacity-60"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +167,7 @@ export default function VistaPerfil({
                 aria-label={eliminandoFoto ? "Eliminando foto de perfil" : "Eliminar foto de perfil"}
                 aria-busy={eliminandoFoto}
                 title={eliminandoFoto ? "Eliminando foto" : "Eliminar foto de perfil"}
-                className={`absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2782df] disabled:cursor-wait [@media(hover:none)]:opacity-100 ${eliminandoFoto ? "opacity-100" : "opacity-0"}`}
+                className={`absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue disabled:cursor-wait [@media(hover:none)]:opacity-100 ${eliminandoFoto ? "opacity-100" : "opacity-0"}`}
               >
                 <svg
                   aria-hidden="true"
@@ -186,11 +186,11 @@ export default function VistaPerfil({
           </div>
 
           <div>
-            <p className="text-lg font-semibold text-black">
+            <p className="text-lg font-semibold text-talentia-primary">
               {nombreCompleto}
             </p>
-            <p className="text-base text-gray-800">{usuario}</p>
-            <span className="mt-1 inline-flex rounded-md bg-[#2495e9] px-4 py-1 text-sm text-white">
+            <p className="text-base text-talentia-primary">{usuario}</p>
+            <span className="mt-1 inline-flex rounded-md bg-talentia-action px-4 py-1 text-sm text-white">
               {rol}
             </span>
           </div>

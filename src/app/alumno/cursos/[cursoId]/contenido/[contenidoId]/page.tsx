@@ -52,8 +52,9 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
         <div className="mx-auto max-w-[1000px]">
           <Link
             href={`/alumno/cursos/${courseId}`}
-            className="mb-4 inline-block text-[#12395B] hover:underline"
+            className="app-back-link mb-4"
           >
+          <span aria-hidden="true">{"<"}</span>
             Volver al curso
           </Link>
           <MaterialViewer
@@ -125,7 +126,7 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
             contentType={content.type}
           />
 
-          <span className="truncate text-[13px] text-gray-700">
+          <span className="truncate text-[13px] text-talentia-primary">
             Módulo {content.moduleId}: {module?.title}
             {" > "}
             {content.moduleId}.{content.order} {content.title}

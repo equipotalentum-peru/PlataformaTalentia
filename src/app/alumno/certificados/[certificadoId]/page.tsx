@@ -70,15 +70,16 @@ if (
   return (
     <div className="min-h-screen px-[30px] py-[32px] lg:px-[45px]">
 
-      <h1 className="text-[30px] font-semibold text-gray-900">
+      <h1 className="student-page-title text-[30px] font-semibold text-talentia-primary">
         Certificado no encontrado
       </h1>
 
       <Link
         href="/alumno/certificados"
-        className="mt-5 inline-block text-[#2d97e8] hover:underline"
+        className="app-back-link mt-5"
       >
-        ← Volver a certificados
+          <span aria-hidden="true">{"<"}</span>
+        Volver a certificados
       </Link>
 
     </div>
@@ -121,15 +122,16 @@ const certificado = {
   if (!certificado) {
     return (
       <div className="min-h-screen px-[30px] py-[32px] lg:px-[45px]">
-        <h1 className="text-[30px] font-semibold text-gray-900">
+        <h1 className="student-page-title text-[30px] font-semibold text-talentia-primary">
           Certificado no encontrado
         </h1>
 
         <Link
           href="/alumno/certificados"
-          className="mt-5 inline-block text-[#2d97e8] hover:underline"
+          className="app-back-link mt-5"
         >
-          ← Volver a certificados
+          <span aria-hidden="true">{"<"}</span>
+          Volver a certificados
         </Link>
       </div>
     );
@@ -141,32 +143,21 @@ const certificado = {
       {/* VOLVER */}
       <Link
         href="/alumno/certificados"
-        className="mb-5 flex w-fit items-center gap-2 text-[14px] font-semibold text-[#2d97e8] transition hover:text-[#1d79c1]"
+        className="app-back-link mb-5"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="h-4 w-4"
-        >
-          <path
-            d="m15 18-6-6 6-6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          <span aria-hidden="true">{"<"}</span>
+
 
         Volver
       </Link>
 
       {/* TÍTULO */}
       <header className="mb-7">
-        <h1 className="text-[34px] font-semibold tracking-[-0.8px] text-gray-900">
+        <h1 className="student-page-title text-[34px] font-semibold tracking-[-0.8px] text-talentia-primary">
           Certificado de finalización
         </h1>
 
-        <p className="mt-2 text-[14px] text-gray-500">
+        <p className="mt-2 text-[14px] text-talentia-muted">
           A continuación puedes ver tu certificado.
           También puedes descargarlo en PDF.
         </p>
@@ -176,12 +167,12 @@ const certificado = {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
 
         {/* CERTIFICADO */}
-        <section className="rounded-[16px] bg-white p-6 shadow-sm">
+        <section className="rounded-[16px] bg-talentia-surface p-6 shadow-sm">
 
-          <div className="overflow-hidden rounded-[12px] border border-[#d9e2ec] bg-white">
+          <div className="overflow-hidden rounded-[12px] border border-talentia-border bg-talentia-surface">
 
             {/* PARTE SUPERIOR */}
-            <div className="border-b border-[#e2e8f0] px-8 py-5">
+            <div className="border-b border-talentia-border px-8 py-5">
 
               <div className="flex items-center justify-between">
 
@@ -191,7 +182,7 @@ const certificado = {
                   className="w-[180px] object-contain"
                 />
 
-                <span className="rounded-full bg-[#dcfce7] px-4 py-2 text-[12px] font-semibold text-[#15803d]">
+                <span className="rounded-full bg-talentia-success-bg px-4 py-2 text-[12px] font-semibold text-talentia-success">
                   {certificado.estado}
                 </span>
 
@@ -202,31 +193,31 @@ const certificado = {
             {/* CUERPO CERTIFICADO */}
             <div className="px-8 py-12 text-center">
 
-              <p className="text-[17px] font-semibold uppercase tracking-[2px] text-[#2d97e8]">
+              <p className="text-[17px] font-semibold uppercase tracking-[2px] text-talentia-blue">
                 Talentia
               </p>
 
-              <h2 className="mt-4 text-[30px] font-bold uppercase tracking-[1px] text-[#287ad2]">
+              <h2 className="mt-4 text-[30px] font-bold uppercase tracking-[1px] text-talentia-primary">
                 Certificado de finalización
               </h2>
 
-              <p className="mt-8 text-[15px] text-gray-600">
+              <p className="mt-8 text-[15px] text-talentia-primary">
                 Se certifica que
               </p>
 
-              <h3 className="mt-3 text-[36px] font-bold text-[#2d97e8]">
+              <h3 className="mt-3 text-[36px] font-bold text-talentia-primary">
                 {certificado.estudiante}
               </h3>
 
-              <p className="mt-4 text-[15px] text-gray-600">
+              <p className="mt-4 text-[15px] text-talentia-primary">
                 ha completado satisfactoriamente el curso
               </p>
 
-              <h4 className="mt-3 text-[25px] font-bold text-[#2d97e8]">
+              <h4 className="mt-3 text-[25px] font-bold text-talentia-primary">
                 {certificado.curso}
               </h4>
 
-              <p className="mx-auto mt-7 max-w-[650px] text-[14px] leading-6 text-gray-500">
+              <p className="mx-auto mt-7 max-w-[650px] text-[14px] leading-6 text-talentia-muted">
                 Desarrollando las competencias necesarias
                 para aplicar herramientas tecnológicas en
                 entornos académicos y profesionales.
@@ -236,31 +227,31 @@ const certificado = {
               <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
 
                 <div>
-                  <p className="text-[12px] text-gray-400">
+                  <p className="text-[12px] text-talentia-muted">
                     Fecha de emisión
                   </p>
 
-                  <p className="mt-2 text-[14px] font-semibold text-gray-800">
+                  <p className="mt-2 text-[14px] font-semibold text-talentia-primary">
                     {certificado.fecha}
                   </p>
                 </div>
 
                 <div>
-                  <div className="mx-auto w-[130px] border-t border-gray-400 pt-2">
-                    <p className="text-[12px] text-gray-500">
+                  <div className="mx-auto w-[130px] border-t border-talentia-border pt-2">
+                    <p className="text-[12px] text-talentia-muted">
                       Firma autorizada
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <div className="mx-auto flex h-[86px] w-[86px] items-center justify-center rounded-[8px] border border-gray-300 bg-[#f7f9fb]">
+                  <div className="mx-auto flex h-[86px] w-[86px] items-center justify-center rounded-[8px] border border-talentia-border bg-talentia-surface">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="1.5"
-                      className="h-11 w-11 text-gray-500"
+                      className="h-11 w-11 text-talentia-muted"
                     >
                       <rect x="3" y="3" width="7" height="7" />
                       <rect x="14" y="3" width="7" height="7" />
@@ -272,7 +263,7 @@ const certificado = {
                     </svg>
                   </div>
 
-                  <p className="mt-2 text-[10px] text-gray-400">
+                  <p className="mt-2 text-[10px] text-talentia-muted">
                     Código de validación
                   </p>
                 </div>
@@ -286,9 +277,9 @@ const certificado = {
         </section>
 
         {/* INFORMACIÓN DERECHA */}
-        <aside className="h-fit rounded-[16px] bg-white p-6 shadow-sm">
+        <aside className="h-fit rounded-[16px] bg-talentia-surface p-6 shadow-sm">
 
-          <h2 className="text-[19px] font-semibold text-gray-900">
+          <h2 className="text-[19px] font-semibold text-talentia-primary">
             Información del certificado
           </h2>
 
@@ -297,7 +288,7 @@ const certificado = {
             {/* CURSO */}
             <div className="flex gap-3">
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#e7f2ff] text-[#2d97e8]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-talentia-selected text-talentia-blue">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -312,11 +303,11 @@ const certificado = {
               </div>
 
               <div>
-                <p className="text-[12px] text-gray-400">
+                <p className="text-[12px] text-talentia-muted">
                   Curso
                 </p>
 
-                <p className="mt-1 text-[14px] font-semibold text-gray-800">
+                <p className="mt-1 text-[14px] font-semibold text-talentia-primary">
                   {certificado.curso}
                 </p>
               </div>
@@ -326,7 +317,7 @@ const certificado = {
             {/* ESTUDIANTE */}
             <div className="flex gap-3">
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#e9f9f5] text-[#10a89c]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-talentia-success-bg text-talentia-blue">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -340,11 +331,11 @@ const certificado = {
               </div>
 
               <div>
-                <p className="text-[12px] text-gray-400">
+                <p className="text-[12px] text-talentia-muted">
                   Estudiante
                 </p>
 
-                <p className="mt-1 text-[14px] font-semibold text-gray-800">
+                <p className="mt-1 text-[14px] font-semibold text-talentia-primary">
                   {certificado.estudiante}
                 </p>
               </div>
@@ -354,7 +345,7 @@ const certificado = {
             {/* FECHA */}
             <div className="flex gap-3">
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#fff4df] text-[#f59e0b]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-talentia-warning-bg text-talentia-warning">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -370,11 +361,11 @@ const certificado = {
               </div>
 
               <div>
-                <p className="text-[12px] text-gray-400">
+                <p className="text-[12px] text-talentia-muted">
                   Fecha de emisión
                 </p>
 
-                <p className="mt-1 text-[14px] font-semibold text-gray-800">
+                <p className="mt-1 text-[14px] font-semibold text-talentia-primary">
                   {certificado.fecha}
                 </p>
               </div>
@@ -384,7 +375,7 @@ const certificado = {
             {/* DURACIÓN */}
             <div className="flex gap-3">
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#f1eafe] text-[#8b5cf6]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-talentia-purple-soft text-talentia-blue">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -398,11 +389,11 @@ const certificado = {
               </div>
 
               <div>
-                <p className="text-[12px] text-gray-400">
+                <p className="text-[12px] text-talentia-muted">
                   Duración
                 </p>
 
-                <p className="mt-1 text-[14px] font-semibold text-gray-800">
+                <p className="mt-1 text-[14px] font-semibold text-talentia-primary">
                   {certificado.duracion}
                 </p>
               </div>
@@ -412,7 +403,7 @@ const certificado = {
             {/* CÓDIGO */}
             <div className="flex gap-3">
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#e8f1ff] text-[#4169e1]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-talentia-selected text-talentia-blue">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -427,11 +418,11 @@ const certificado = {
               </div>
 
               <div>
-                <p className="text-[12px] text-gray-400">
+                <p className="text-[12px] text-talentia-muted">
                   Código
                 </p>
 
-                <p className="mt-1 text-[14px] font-semibold text-gray-800">
+                <p className="mt-1 text-[14px] font-semibold text-talentia-primary">
                   {certificado.certificado}
                 </p>
               </div>
@@ -452,7 +443,7 @@ const certificado = {
 
   label="Descargar PDF"
 
-  className="mt-8 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-[#2d97e8] text-[14px] font-semibold text-white transition hover:bg-[#2188d6] disabled:cursor-not-allowed disabled:opacity-60"
+  className="mt-8 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-talentia-action text-[14px] font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60"
 />
 
         </aside>

@@ -43,16 +43,17 @@ export default function RegistrarMatriculaPage() {
     <div className="p-8 max-w-5xl mx-auto space-y-4">
       <Link
         href="/administrador/matriculas"
-        className="text-xs font-bold text-[#64748B] hover:text-[#0F2851] flex items-center gap-1 mb-2"
+        className="app-back-link mb-2"
       >
-        ← Volver a matrículas
+          <span aria-hidden="true">{"<"}</span>
+        Volver a matrículas
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Registrar matrícula
         </h1>
-        <p className="text-xs font-semibold text-[#64748B] mt-1">
+        <p className="text-xs font-semibold text-talentia-muted mt-1">
           Inscribir alumno en una oferta publicada y validar disponibilidad.
         </p>
       </div>

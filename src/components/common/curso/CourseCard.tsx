@@ -20,7 +20,7 @@ export default function CourseCard({
           ? `/docente/cursos/${course.id}`
           : `/alumno/cursos/${course.id}`
       }
-      className="group block overflow-hidden rounded-[12px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.22)] transition duration-200 hover:-translate-y-1 hover:shadow-lg"
+      className="group block overflow-hidden rounded-[12px] bg-talentia-surface ring-1 ring-talentia-border shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
     >
       {/* IMAGEN */}
       <div className="relative h-[110px] overflow-hidden">
@@ -55,9 +55,9 @@ export default function CourseCard({
         <div className="px-[10px] py-[9px]">
           {/* ESTADÍSTICAS */}
           <div className="space-y-[3px]">
-            <div className="flex items-center gap-1.5 text-[10px] text-gray-800">
+            <div className="flex items-center gap-1.5 text-[10px] text-talentia-primary">
               <svg
-                className="h-3.5 w-3.5 text-[#3186d8]"
+                className="h-3.5 w-3.5 text-talentia-blue"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -72,9 +72,9 @@ export default function CourseCard({
               <span>Alumnos: {course.alumnos}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[10px] text-gray-800">
+            <div className="flex items-center gap-1.5 text-[10px] text-talentia-primary">
               <svg
-                className="h-3.5 w-3.5 text-[#3186d8]"
+                className="h-3.5 w-3.5 text-talentia-blue"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -87,9 +87,9 @@ export default function CourseCard({
               <span>Actividades: {course.actividades}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[10px] text-gray-800">
+            <div className="flex items-center gap-1.5 text-[10px] text-talentia-primary">
               <svg
-                className="h-3.5 w-3.5 text-[#3186d8]"
+                className="h-3.5 w-3.5 text-talentia-blue"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -107,15 +107,15 @@ export default function CourseCard({
 
           {/* PROGRESO */}
           <div className="mt-[7px]">
-            <div className="relative h-[12px] overflow-hidden rounded-full bg-[#ececec]">
+            <div className="relative h-[12px] overflow-hidden rounded-full bg-talentia-border">
               <div
-                className="h-full rounded-full bg-[#3186d8]"
+                className="h-full rounded-full bg-talentia-teal"
                 style={{
                   width: `${course.progreso}%`,
                 }}
               />
 
-              <span className="absolute inset-y-0 right-[7px] flex items-center text-[8px] font-medium text-[#3186d8]">
+              <span className="absolute inset-y-0 right-[7px] flex items-center text-[8px] font-medium text-talentia-blue">
                 {course.progreso}%
               </span>
             </div>
@@ -123,7 +123,7 @@ export default function CourseCard({
 
           {/* BOTÓN */}
           <div className="flex justify-center pt-[6px]">
-            <span className="rounded-full bg-[#3186d8] px-[18px] py-[6px] text-[11px] font-semibold text-white shadow-sm transition group-hover:bg-[#2777c1]">
+            <span className="rounded-full bg-talentia-action px-[18px] py-[6px] text-[11px] font-semibold text-white shadow-sm transition group-hover:bg-talentia-primary">
               Gestionar Curso →
             </span>
           </div>
@@ -131,18 +131,18 @@ export default function CourseCard({
       ) : (
         <div className="px-[10px] py-[9px]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-gray-700">
+            <span className="text-[11px] font-medium text-talentia-primary">
               Progreso
             </span>
 
-            <span className="text-[10px] text-[#3186d8]">
+            <span className="text-[10px] text-talentia-blue">
               {course.progreso}%
             </span>
           </div>
 
-          <div className="mt-1 h-[10px] overflow-hidden rounded-full bg-[#ececec]">
+          <div className="mt-1 h-[10px] overflow-hidden rounded-full bg-talentia-border">
             <div
-              className="h-full rounded-full bg-[#3186d8]"
+              className="h-full rounded-full bg-talentia-teal"
               style={{
                 width: `${course.progreso}%`,
               }}

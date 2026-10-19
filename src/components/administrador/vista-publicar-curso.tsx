@@ -64,9 +64,9 @@ export default function VistaPublicarCurso({
     valor: string;
     correcto: boolean;
   }) => (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs">
-      <span className="text-sm font-bold text-[#0F2851]">{etiqueta}</span>
-      <span className={`max-w-[60%] rounded-full px-4 py-1.5 text-right text-xs font-extrabold ${correcto ? "bg-[#C6F6D5] text-[#22543D]" : "bg-[#FEF3C7] text-[#92400E]"}`}>
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-talentia-border bg-talentia-surface p-4 shadow-xs">
+      <span className="text-sm font-bold text-talentia-primary">{etiqueta}</span>
+      <span className={`max-w-[60%] rounded-full px-4 py-1.5 text-right text-xs font-extrabold ${correcto ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-warning-bg text-talentia-warning"}`}>
         {valor}
       </span>
     </div>
@@ -74,43 +74,43 @@ export default function VistaPublicarCurso({
 
   return (
     <div className="w-full space-y-6">
-      <div className="max-w-5xl space-y-6 rounded-3xl border border-gray-100/80 bg-white p-8 shadow-sm">
+      <div className="max-w-5xl space-y-6 rounded-3xl border border-talentia-border/80 bg-talentia-surface p-8 shadow-sm">
         <div>
-          <h2 className="text-xl font-extrabold text-[#0F2851]">Revisión del curso</h2>
-          <p className="mt-1 text-sm text-[#64748B]">
+          <h2 className="text-xl font-extrabold text-talentia-primary">Revisión del curso</h2>
+          <p className="mt-1 text-sm text-talentia-muted">
             Comprueba los datos antes de guardar el borrador o publicar.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-[#F8FAFC] p-4">
-            <p className="text-xs font-bold text-[#64748B]">Nombre del curso</p>
-            <p className="mt-1 break-words font-extrabold text-[#0F2851]">{curso.nombreCurso || "Sin nombre"}</p>
+          <div className="rounded-2xl bg-talentia-surface p-4">
+            <p className="text-xs font-bold text-talentia-muted">Nombre del curso</p>
+            <p className="mt-1 break-words font-extrabold text-talentia-primary">{curso.nombreCurso || "Sin nombre"}</p>
           </div>
-          <div className="rounded-2xl bg-[#F8FAFC] p-4">
-            <p className="text-xs font-bold text-[#64748B]">Código</p>
-            <p className="mt-1 font-extrabold text-[#0F2851]">{curso.codigo || "Sin código"}</p>
+          <div className="rounded-2xl bg-talentia-surface p-4">
+            <p className="text-xs font-bold text-talentia-muted">Código</p>
+            <p className="mt-1 font-extrabold text-talentia-primary">{curso.codigo || "Sin código"}</p>
           </div>
-          <div className="rounded-2xl bg-[#F8FAFC] p-4">
-            <p className="text-xs font-bold text-[#64748B]">Categoría y modalidad</p>
-            <p className="mt-1 font-extrabold text-[#0F2851]">{curso.categoria} · {curso.modalidad}</p>
+          <div className="rounded-2xl bg-talentia-surface p-4">
+            <p className="text-xs font-bold text-talentia-muted">Categoría y modalidad</p>
+            <p className="mt-1 font-extrabold text-talentia-primary">{curso.categoria} · {curso.modalidad}</p>
           </div>
-          <div className="rounded-2xl bg-[#F8FAFC] p-4">
-            <p className="text-xs font-bold text-[#64748B]">Cupos máximos</p>
-            <p className="mt-1 font-extrabold text-[#0F2851]">{curso.cupos || "0"}</p>
+          <div className="rounded-2xl bg-talentia-surface p-4">
+            <p className="text-xs font-bold text-talentia-muted">Cupos máximos</p>
+            <p className="mt-1 font-extrabold text-talentia-primary">{curso.cupos || "0"}</p>
           </div>
         </div>
 
         <div>
-          <h3 className="mb-2 text-sm font-extrabold text-[#0F2851]">Descripción</h3>
-          <p className="whitespace-pre-wrap break-words rounded-2xl bg-[#F8FAFC] p-4 text-sm text-[#475569]">
+          <h3 className="mb-2 text-sm font-extrabold text-talentia-primary">Descripción</h3>
+          <p className="whitespace-pre-wrap break-words rounded-2xl bg-talentia-surface p-4 text-sm text-talentia-muted">
             {curso.descripcion || "No se ha ingresado una descripción."}
           </p>
         </div>
 
         <div>
-          <h3 className="mb-2 text-sm font-extrabold text-[#0F2851]">Imagen de portada</h3>
-          <p className="rounded-2xl bg-[#F8FAFC] p-4 text-sm text-[#475569]">
+          <h3 className="mb-2 text-sm font-extrabold text-talentia-primary">Imagen de portada</h3>
+          <p className="rounded-2xl bg-talentia-surface p-4 text-sm text-talentia-muted">
             {imagenPortada
               ? `Nueva imagen seleccionada: ${imagenPortada.name}`
               : imagenExistente
@@ -120,20 +120,20 @@ export default function VistaPublicarCurso({
         </div>
 
         <div>
-          <h3 className="mb-3 text-sm font-extrabold text-[#0F2851]">Sistema de evaluación</h3>
+          <h3 className="mb-3 text-sm font-extrabold text-talentia-primary">Sistema de evaluación</h3>
           {evaluaciones.filter((item) => item.nombre.trim()).length === 0 ? (
-            <p className="rounded-xl bg-[#F8FAFC] p-4 text-sm text-[#64748B]">No hay componentes configurados.</p>
+            <p className="rounded-xl bg-talentia-surface p-4 text-sm text-talentia-muted">No hay componentes configurados.</p>
           ) : (
             <div className="space-y-2">
               {evaluaciones.filter((item) => item.nombre.trim()).map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3">
-                  <span className="text-sm font-bold text-[#0F2851]">{item.nombre}</span>
-                  <span className="text-sm font-extrabold text-[#1D4ED8]">
+                <div key={item.id} className="flex items-center justify-between gap-4 rounded-xl border border-talentia-border px-4 py-3">
+                  <span className="text-sm font-bold text-talentia-primary">{item.nombre}</span>
+                  <span className="text-sm font-extrabold text-talentia-blue">
                     {item.porcentaje ? `${item.porcentaje}%` : "Sin porcentaje"}
                   </span>
                 </div>
               ))}
-              <p className={`text-sm font-bold ${Math.abs(totalPorcentaje - 100) < 0.01 ? "text-green-700" : "text-amber-700"}`}>
+              <p className={`text-sm font-bold ${Math.abs(totalPorcentaje - 100) < 0.01 ? "text-talentia-success" : "text-talentia-warning"}`}>
                 Total asignado: {totalPorcentaje}%
               </p>
             </div>
@@ -141,14 +141,14 @@ export default function VistaPublicarCurso({
         </div>
 
         <div>
-          <h3 className="mb-2 text-sm font-extrabold text-[#0F2851]">Docente responsable</h3>
-          <p className="rounded-2xl bg-[#F8FAFC] p-4 text-sm text-[#475569]">
+          <h3 className="mb-2 text-sm font-extrabold text-talentia-primary">Docente responsable</h3>
+          <p className="rounded-2xl bg-talentia-surface p-4 text-sm text-talentia-muted">
             {docente ? `${docente.nombre} · ${docente.especialidad}` : "Sin docente asignado"}
           </p>
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-extrabold text-[#0F2851]">Checklist de publicación</h3>
+          <h3 className="text-sm font-extrabold text-talentia-primary">Checklist de publicación</h3>
           <ItemChecklist etiqueta="Datos completos" valor={datosCompletos ? "Completo" : "Pendiente"} correcto={datosCompletos} />
           <ItemChecklist etiqueta="Evaluaciones suman 100 %" valor={evaluacionesCompletas ? "Completo" : "Pendiente"} correcto={evaluacionesCompletas} />
           <ItemChecklist etiqueta="Docente asignado" valor={docente ? docente.nombre : "Sin asignar"} correcto={Boolean(docente)} />
@@ -156,13 +156,13 @@ export default function VistaPublicarCurso({
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p role="alert" className="rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm text-talentia-danger">
             {error}
           </p>
         )}
 
-        <div className="rounded-2xl bg-[#F3E8FF] p-4 text-center">
-          <p className="text-xs font-extrabold text-[#6B21A8]">
+        <div className="rounded-2xl bg-talentia-purple-soft p-4 text-center">
+          <p className="text-xs font-extrabold text-talentia-purple">
             {datosCompletos && evaluacionesCompletas && docente
               ? "El curso cumple los requisitos visuales para publicar."
               : "Puedes guardar un borrador mientras completas los requisitos para publicar."}
@@ -175,7 +175,7 @@ export default function VistaPublicarCurso({
           type="button"
           onClick={onVolver}
           disabled={guardando}
-          className="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-xs font-extrabold text-[#0F2851] shadow-xs transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-2xl border border-talentia-border bg-talentia-surface px-6 py-3 text-xs font-extrabold text-talentia-primary shadow-xs transition hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           Anterior
         </button>
@@ -184,7 +184,7 @@ export default function VistaPublicarCurso({
           type="button"
           onClick={() => void onGuardar(false)}
           disabled={guardando}
-          className="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-xs font-extrabold text-[#6B21A8] shadow-xs transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-2xl border border-talentia-border bg-talentia-surface px-6 py-3 text-xs font-extrabold text-talentia-purple shadow-xs transition hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios" : "Guardar borrador"}
         </button>
@@ -193,7 +193,7 @@ export default function VistaPublicarCurso({
           type="button"
           onClick={() => void onGuardar(true)}
           disabled={guardando}
-          className="rounded-2xl bg-[#3B82F6] px-8 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-2xl bg-talentia-action px-8 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios y activar" : "Publicar curso"}
         </button>

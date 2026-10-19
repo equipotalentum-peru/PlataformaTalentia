@@ -7,7 +7,7 @@ import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import type { ContentType, } from "@/data/courseContents";
 
 
-const MODULE_COLOR = "#70A9DC";
+const MODULE_COLOR = "var(--talentia-teal)";
 
 const tiposIcono: Record<
   string,
@@ -178,7 +178,7 @@ export default function CourseModules({
     courseId <= 0
   ) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+      <div className="rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] text-talentia-danger">
         Curso no válido.
       </div>
     );
@@ -186,7 +186,7 @@ export default function CourseModules({
 
   if (cargando) {
     return (
-      <div className="rounded-lg bg-white px-4 py-5 text-center text-[13px] text-gray-500">
+      <div className="rounded-lg bg-talentia-surface px-4 py-5 text-center text-[13px] text-talentia-muted">
         Cargando módulos...
       </div>
     );
@@ -194,7 +194,7 @@ export default function CourseModules({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+      <div className="rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] text-talentia-danger">
         {error}
       </div>
     );
@@ -202,7 +202,7 @@ export default function CourseModules({
 
   if (modulos.length === 0) {
     return (
-      <div className="rounded-lg bg-white px-4 py-5 text-center text-[13px] text-gray-500">
+      <div className="rounded-lg bg-talentia-surface px-4 py-5 text-center text-[13px] text-talentia-muted">
         Este curso todavía no tiene módulos publicados.
       </div>
     );
@@ -254,12 +254,12 @@ export default function CourseModules({
                   rounded-lg
                   px-3 py-2.5
                   focus-visible:outline-2
-                  focus-visible:outline-[#12395B]
+                  focus-visible:outline-talentia-blue
                   [&::-webkit-details-marker]:hidden
                 "
                 style={{
                   backgroundColor:
-                    MODULE_COLOR,
+                    "var(--talentia-selected)",
                 }}
               >
 
@@ -278,7 +278,7 @@ export default function CourseModules({
                     * Círculo blanco
                     * Check azul del módulo
                     */
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-talentia-surface">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke={MODULE_COLOR} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12l4 4L19 6" />
                       </svg>
@@ -342,7 +342,7 @@ export default function CourseModules({
                 </span>
 
                 {/* NOMBRE DEL MÓDULO */}
-                <span className="min-w-0 flex-1 break-words text-[14px] font-semibold text-[#12395B]">
+                <span className="min-w-0 flex-1 break-words text-[14px] font-semibold text-talentia-primary">
                   Módulo{" "}
                   {modulo.numero}:{" "}
                   {modulo.titulo}
@@ -350,7 +350,7 @@ export default function CourseModules({
 
                 {/* FLECHA */}
                 <svg
-                  className="h-5 w-5 shrink-0 text-[#12395B] transition-transform group-open:rotate-180"
+                  className="h-5 w-5 shrink-0 text-talentia-primary transition-transform group-open:rotate-180"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -361,7 +361,7 @@ export default function CourseModules({
                 </svg>
               </summary>
 
-              <ul className="mt-1 divide-y divide-gray-200 bg-white px-4">
+              <ul className="mt-1 divide-y divide-talentia-border bg-talentia-surface px-4">
 
                 {contenidos.map(
                   (contenido) => {
@@ -422,7 +422,7 @@ const visto =
                           gap-3
                           py-3
                           text-[14px]
-                          text-[#12395B]
+                          text-talentia-primary
                         "
                       >
 
@@ -483,7 +483,7 @@ const visto =
                               items-center
                               justify-center
                               rounded-full
-                              bg-[#3186d8]
+                              bg-talentia-action
                               text-white
                             "
                             title="Contenido completado"
@@ -508,7 +508,7 @@ const visto =
                               shrink-0
                               rounded-full
                               border-2
-                              border-[#3186d8]
+                              border-talentia-blue
                             "
                             title="Contenido pendiente"
                             aria-label="Contenido pendiente"
@@ -520,7 +520,7 @@ const visto =
                 )}
 
                 {!contenidos.length && (
-                  <li className="py-3 text-sm text-gray-500">
+                  <li className="py-3 text-sm text-talentia-muted">
                     Este módulo todavía no tiene contenidos.
                   </li>
                 )}

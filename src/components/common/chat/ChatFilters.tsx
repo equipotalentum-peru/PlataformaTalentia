@@ -18,10 +18,10 @@ export default function ChatFilters({ value, onChange }: Props) {
           type="button"
           onClick={() => onChange(filter)}
           aria-pressed={value === filter}
-          className={`inline-flex h-9 min-w-[60px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border px-2 text-xs leading-none font-semibold transition ${
+          className={`inline-flex h-9 min-w-[60px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border px-2 text-[13px] leading-none font-semibold transition ${
             value === filter
-              ? "border-[#3186d8] bg-[#3186d8] text-white"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              ? "border-talentia-blue bg-talentia-action text-white"
+              : "border-talentia-border bg-talentia-surface text-talentia-primary hover:bg-talentia-primary"
           }`}
         >
           {filter}

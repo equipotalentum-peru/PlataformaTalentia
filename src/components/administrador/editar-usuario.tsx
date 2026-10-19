@@ -95,37 +95,38 @@ export default function EditarUsuario() {
       {/* Botón Volver a usuarios */}
       <Link
         href="/administrador/usuarios"
-        className="inline-flex items-center gap-2 text-xs font-bold text-[#64748B] hover:text-[#0F2851] transition mb-4"
+        className="app-back-link mb-4"
       >
-        <span>←</span> Volver a usuarios
+          <span aria-hidden="true">{"<"}</span>
+         Volver a usuarios
       </Link>
 
       {/* Encabezado */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Editar usuario
         </h1>
-        <p className="text-sm text-[#6F83A5] mt-1 font-medium">
+        <p className="text-sm text-talentia-muted mt-1 font-medium">
           Actualizar datos y rol de una cuenta.
         </p>
       </div>
 
-      {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
-      {cargando ? <p role="status" className="text-sm text-slate-500">Cargando usuario...</p> : formData.rol && (
+      {error && <p role="alert" className="mb-4 text-sm text-talentia-danger">{error}</p>}
+      {cargando ? <p role="status" className="text-sm text-talentia-muted">Cargando usuario...</p> : formData.rol && (
       <form onSubmit={handleSubmit}>
         {/* Tarjeta de Contenido Principal */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-12">
+        <div className="bg-talentia-surface rounded-3xl p-8 shadow-sm border border-talentia-border/80 mb-12">
           {/* Cabecera del Usuario (Avatar, Nombre y Badge de Estado) */}
-          <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-talentia-border">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-[#C4F1F9] flex items-center justify-center text-[#0F2851] text-lg font-extrabold shadow-inner">
+              <div className="w-16 h-16 rounded-full bg-talentia-selected flex items-center justify-center text-talentia-primary text-lg font-extrabold shadow-inner">
                 {iniciales}
               </div>
               <div>
-                <h2 className="text-xl font-extrabold text-[#0F2851]">
+                <h2 className="text-xl font-extrabold text-talentia-primary">
                   {formData.nombreCompleto}
                 </h2>
-                <p className="text-xs text-[#64748B] font-medium mt-0.5">
+                <p className="text-xs text-talentia-muted font-medium mt-0.5">
                   {formData.rol} · {formData.correo}
                 </p>
               </div>
@@ -134,11 +135,11 @@ export default function EditarUsuario() {
             {/* Badge de Estado */}
             <div>
               {formData.estado === "Activo" ? (
-                <span className="inline-block bg-[#BBF7D0] text-[#166534] px-5 py-2 rounded-full font-bold text-xs">
+                <span className="inline-block bg-talentia-success-bg text-talentia-success px-5 py-2 rounded-full font-bold text-xs">
                   Activo
                 </span>
               ) : (
-                <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-5 py-2 rounded-full font-bold text-xs">
+                <span className="inline-block bg-talentia-danger-bg text-talentia-danger px-5 py-2 rounded-full font-bold text-xs">
                   Inactivo
                 </span>
               )}
@@ -149,7 +150,7 @@ export default function EditarUsuario() {
             {/* Fila 1: Nombre completo y Correo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Nombre completo *
                 </label>
                 <input
@@ -159,12 +160,12 @@ export default function EditarUsuario() {
                   value={formData.nombreCompleto}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Correo *
                 </label>
                 <input
@@ -174,14 +175,14 @@ export default function EditarUsuario() {
                   value={formData.correo}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Rol *
                 </label>
                 <select
@@ -189,7 +190,7 @@ export default function EditarUsuario() {
                   value={formData.rol}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition cursor-pointer font-medium"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition cursor-pointer font-medium"
                 >
                   <option value="Docente">Docente</option>
                   <option value="Alumno">Alumno</option>
@@ -198,7 +199,7 @@ export default function EditarUsuario() {
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+                <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                   Teléfono
                 </label>
                 <input
@@ -207,7 +208,7 @@ export default function EditarUsuario() {
                   maxLength={20}
                   value={formData.telefono}
                   onChange={handleChange}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                  className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
                 />
               </div>
 
@@ -215,11 +216,11 @@ export default function EditarUsuario() {
 
             {/* Sección: Cursos Asignados */}
             <div className="pt-4">
-              <h3 className="text-sm font-extrabold text-[#0F2851] mb-3">
+              <h3 className="text-sm font-extrabold text-talentia-primary mb-3">
                 Cursos asignados
               </h3>
 
-              <p className="text-sm text-[#64748B]">Ninguno</p>
+              <p className="text-sm text-talentia-muted">Ninguno</p>
             </div>
           </div>
         </div>
@@ -229,7 +230,7 @@ export default function EditarUsuario() {
           <button
             type="button"
             onClick={() => router.push("/administrador/usuarios")}
-            className="bg-white hover:bg-gray-50 text-[#312E81] border border-gray-200 font-bold px-10 py-3 rounded-2xl text-sm transition-all shadow-sm"
+            className="bg-talentia-surface hover:bg-talentia-border text-talentia-blue border border-talentia-border font-bold px-10 py-3 rounded-2xl text-sm transition-all shadow-sm"
           >
             Cancelar
           </button>
@@ -237,7 +238,7 @@ export default function EditarUsuario() {
           <button
             type="submit"
             disabled={guardando}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm disabled:opacity-50"
+            className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm disabled:opacity-50"
           >
             {guardando ? "Guardando..." : "Guardar cambios"}
           </button>

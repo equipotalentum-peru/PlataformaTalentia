@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 
 import {
   useCallback,
@@ -405,30 +404,12 @@ function Icon({
 
 function PageHeader({
   title,
-  href,
 }: {
   title?: string;
-  href: string;
 }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
-      <Link
-        href={
-          href
-        }
-        className="activity-primary inline-flex h-[24px] shrink-0 items-center gap-1 rounded-[4px] px-2 text-[10px] font-medium"
-      >
-        <Icon
-          type="back"
-          size={
-            16
-          }
-        />
-
-        Volver
-      </Link>
-
-      <p className="truncate text-[11px] text-[#252b33]">
+      <p className="truncate text-[14px] text-talentia-primary">
         Módulo 1:
         Introducción a las
         TIC &gt;{" "}
@@ -471,11 +452,11 @@ function DetailRow({
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[#1e66c5]">
+        <p className="text-talentia-blue">
           {label}
         </p>
 
-        <div className="text-[10px] leading-[1.35] text-[#252b33]">
+        <div className="text-[14px] leading-[1.35] text-talentia-primary">
           {children}
         </div>
       </div>
@@ -556,9 +537,9 @@ function StudentRubricModal({
         overflow-hidden
         rounded-[12px]
         border-0
-        bg-white
+        bg-talentia-surface
         p-0
-        text-gray-800
+        text-talentia-primary
         shadow-2xl
         backdrop:bg-black/55
       "
@@ -568,7 +549,7 @@ function StudentRubricModal({
         <div className="flex shrink-0 items-center justify-between px-6 pb-3 pt-6 sm:px-7">
           <h2
             id="student-rubric-title"
-            className="text-[24px] font-bold text-[#103763]"
+            className="text-[24px] font-bold text-talentia-primary"
           >
             Rúbrica de
             evaluación
@@ -590,9 +571,9 @@ function StudentRubricModal({
               rounded-md
               text-[26px]
               font-light
-              text-[#334155]
+              text-talentia-primary
               transition
-              hover:bg-gray-100
+              hover:bg-talentia-hover
             "
           >
             ×
@@ -603,12 +584,12 @@ function StudentRubricModal({
         {/* CONTENIDO */}
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 sm:px-7">
           {/* MENSAJE SUPERIOR */}
-          <div className="flex items-center gap-3 rounded-[8px] bg-[#dff0ff] px-4 py-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#1479d1] text-[13px] font-bold text-[#1479d1]">
+          <div className="flex items-center gap-3 rounded-[8px] bg-talentia-selected px-4 py-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-talentia-blue text-[13px] font-bold text-talentia-blue">
               i
             </span>
 
-            <p className="text-[12px] leading-[1.4] text-[#174d7c]">
+            <p className="text-[14px] leading-[1.4] text-talentia-primary">
               Esta actividad
               será evaluada con
               los siguientes
@@ -624,24 +605,24 @@ function StudentRubricModal({
 
 
           {/* TABLA */}
-          <div className="mt-5 overflow-hidden rounded-[8px] border border-[#dae3ed]">
+          <div className="mt-5 overflow-hidden rounded-[8px] border border-talentia-border">
             <div className="max-h-[390px] overflow-auto">
-              <table className="w-full min-w-[700px] border-collapse text-[12px]">
-                <thead className="sticky top-0 z-10 bg-[#f0f4f8]">
+              <table className="w-full min-w-[700px] border-collapse text-[14px]">
+                <thead className="sticky top-0 z-10 bg-talentia-surface">
                   <tr>
-                    <th className="w-[70px] border-r border-[#dce3eb] px-4 py-3 text-center font-semibold text-[#34445a]">
+                    <th className="w-[70px] border-r border-talentia-border px-4 py-3 text-center font-semibold text-talentia-primary">
                       #
                     </th>
 
-                    <th className="w-[205px] border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                    <th className="w-[205px] border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                       Criterio
                     </th>
 
-                    <th className="border-r border-[#dce3eb] px-5 py-3 text-left font-semibold text-[#34445a]">
+                    <th className="border-r border-talentia-border px-5 py-3 text-left font-semibold text-talentia-primary">
                       Descripción
                     </th>
 
-                    <th className="w-[120px] px-5 py-3 text-center font-semibold text-[#34445a]">
+                    <th className="w-[120px] px-5 py-3 text-center font-semibold text-talentia-primary">
                       Puntos
                     </th>
                   </tr>
@@ -657,7 +638,7 @@ function StudentRubricModal({
                         colSpan={
                           4
                         }
-                        className="px-6 py-10 text-center text-[13px] text-gray-400"
+                        className="px-6 py-10 text-center text-[13px] text-talentia-muted"
                       >
                         Esta rúbrica
                         todavía no
@@ -675,25 +656,25 @@ function StudentRubricModal({
                           key={
                             criterio.id
                           }
-                          className="border-t border-[#dfe6ee] bg-white"
+                          className="border-t border-talentia-border bg-talentia-surface"
                         >
-                          <td className="border-r border-[#dfe6ee] px-4 py-4 text-center font-medium text-[#24364b]">
+                          <td className="border-r border-talentia-border px-4 py-4 text-center font-medium text-talentia-primary">
                             {index +
                               1}
                           </td>
 
-                          <td className="border-r border-[#dfe6ee] px-5 py-4 font-bold text-[#24364b]">
+                          <td className="border-r border-talentia-border px-5 py-4 font-bold text-talentia-primary">
                             {
                               criterio.nombre
                             }
                           </td>
 
-                          <td className="border-r border-[#dfe6ee] px-5 py-4 leading-[1.5] text-[#43546a]">
+                          <td className="border-r border-talentia-border px-5 py-4 leading-[1.5] text-talentia-muted">
                             {criterio.descripcion ||
                               "—"}
                           </td>
 
-                          <td className="px-5 py-4 text-center font-bold text-[#24364b]">
+                          <td className="px-5 py-4 text-center font-bold text-talentia-primary">
                             {Number(
                               criterio.puntaje_maximo
                             )}
@@ -709,12 +690,12 @@ function StudentRubricModal({
 
 
           {/* TOTAL */}
-          <div className="mt-2 flex items-center justify-between rounded-[7px] bg-[#e1f1ff] px-5 py-3">
-            <span className="text-[15px] font-bold text-[#1554a0]">
+          <div className="mt-2 flex items-center justify-between rounded-[7px] bg-talentia-selected px-5 py-3">
+            <span className="text-[15px] font-bold text-talentia-primary">
               Puntuación total
             </span>
 
-            <span className="text-[18px] font-bold text-[#1554a0]">
+            <span className="text-[18px] font-bold text-talentia-primary">
               {total ||
                 maxGrade}{" "}
               puntos
@@ -723,17 +704,17 @@ function StudentRubricModal({
 
 
           {/* IMPORTANTE */}
-          <div className="mt-2 flex gap-4 rounded-[8px] bg-[#dff0ff] px-5 py-4">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#1479d1] text-[13px] font-bold text-[#1479d1]">
+          <div className="mt-2 flex gap-4 rounded-[8px] bg-talentia-selected px-5 py-4">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-talentia-blue text-[13px] font-bold text-talentia-blue">
               i
             </span>
 
             <div>
-              <p className="text-[14px] font-bold text-[#145da8]">
+              <p className="text-[14px] font-bold text-talentia-blue">
                 Importante
               </p>
 
-              <p className="mt-1 text-[12px] leading-[1.45] text-[#315b7e]">
+              <p className="mt-1 text-[14px] leading-[1.45] text-talentia-primary">
                 Estos criterios
                 serán utilizados
                 por el docente
@@ -751,7 +732,7 @@ function StudentRubricModal({
 
 
         {/* FOOTER */}
-        <div className="flex shrink-0 justify-end border-t border-[#e1e6ec] bg-white px-6 py-4 sm:px-7">
+        <div className="flex shrink-0 justify-end border-t border-talentia-border bg-talentia-surface px-6 py-4 sm:px-7">
           <button
             type="button"
             onClick={
@@ -760,14 +741,14 @@ function StudentRubricModal({
             className="
               min-h-10
               rounded-[6px]
-              bg-[#eee9ff]
+              bg-talentia-selected
               px-7
               py-2
               text-[13px]
               font-medium
-              text-[#5549b8]
+              text-talentia-blue
               transition
-              hover:bg-[#e3dcff]
+              hover:bg-talentia-hover
             "
           >
             Cerrar
@@ -785,7 +766,6 @@ export default function ActivityViewer({
   title,
   previousHref,
   nextHref,
-  exitHref,
   activityDefinition,
   trackLocalProgress = true,
 }: Props) {
@@ -1444,9 +1424,6 @@ const showDeliveryDetail =
   const pageHeader = (
     <PageHeader
       title="1.4 Práctica"
-      href={
-        exitHref
-      }
     />
   );
 
@@ -1456,7 +1433,7 @@ const showDeliveryDetail =
       <div className="activity-page-root">
         {pageHeader}
 
-        <div className="activity-card mt-[18px] flex min-h-[250px] items-center justify-center p-8 text-sm text-slate-600">
+        <div className="activity-card mt-[18px] flex min-h-[250px] items-center justify-center p-8 text-sm text-talentia-primary">
           Cargando
           actividad...
         </div>
@@ -1477,7 +1454,7 @@ const showDeliveryDetail =
 
         <div
           role="alert"
-          className="mt-[18px] rounded-lg bg-red-50 p-4 text-sm text-red-700"
+          className="mt-[18px] rounded-lg bg-talentia-danger-bg p-4 text-sm text-talentia-danger"
         >
           {error}
         </div>
@@ -1511,12 +1488,12 @@ const showDeliveryDetail =
                 />
 
                 <div>
-                  <h1 className="text-[17px] font-bold leading-tight text-[#08b72a]">
+                  <h1 className="text-[17px] font-bold leading-tight text-talentia-success">
                     ¡Entrega
                     realizada!
                   </h1>
 
-                  <p className="mt-1 text-[10px] leading-tight text-[#08b72a]">
+                  <p className="mt-1 text-[14px] leading-tight text-talentia-success">
                     Tu actividad ha
                     sido enviada
                     correctamente.
@@ -1525,14 +1502,14 @@ const showDeliveryDetail =
               </div>
 
 
-              <div className="mt-[14px] rounded-lg bg-[#eeeeee] p-[14px]">
-                <h2 className="mb-3 text-[12px] font-bold text-[#1c70ce]">
+              <div className="mt-[14px] rounded-lg bg-talentia-surface p-[14px]">
+                <h2 className="mb-3 text-[14px] font-bold text-talentia-primary">
                   Archivo enviado
                 </h2>
 
 
                 {displayedSubmission.comentario && (
-                  <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-[#c8c8c8] bg-white px-[11px] py-[10px] text-[10px] leading-[1.35] text-[#171717]">
+                  <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-talentia-border bg-talentia-surface px-[11px] py-[10px] text-[14px] leading-[1.35] text-talentia-primary">
                     {
                       displayedSubmission.comentario
                     }
@@ -1542,8 +1519,8 @@ const showDeliveryDetail =
 
                 {displayedSubmission.nombre_archivo &&
                 displayedSubmission.archivo_id ? (
-                  <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md bg-white px-3 py-2">
-                    <span className="flex h-[38px] w-[28px] shrink-0 items-center justify-center rounded bg-[#ef5350] text-white">
+                  <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md bg-talentia-surface px-3 py-2">
+                    <span className="flex h-[38px] w-[28px] shrink-0 items-center justify-center rounded bg-talentia-danger text-white">
                       <Icon
                         type="file"
                         size={
@@ -1553,13 +1530,13 @@ const showDeliveryDetail =
                     </span>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] text-[#333333]">
+                      <p className="truncate text-[14px] text-talentia-primary">
                         {
                           displayedSubmission.nombre_archivo
                         }
                       </p>
 
-                      <p className="mt-1 text-[9px] text-[#898989]">
+                      <p className="mt-1 text-[12px] text-talentia-muted">
                         {formatSize(
                           displayedSubmission.tamano_bytes
                         )}
@@ -1568,7 +1545,7 @@ const showDeliveryDetail =
 
                     <a
                       href={`${API_URL}/actividades/archivo/${displayedSubmission.archivo_id}`}
-                      className="activity-link inline-flex h-[27px] shrink-0 items-center gap-1 rounded-md border border-[#2788f2] px-2 text-[10px]"
+                      className="activity-link inline-flex h-[27px] shrink-0 items-center gap-1 rounded-md border border-talentia-blue px-2 text-[14px]"
                     >
                       <Icon
                         type="download"
@@ -1581,7 +1558,7 @@ const showDeliveryDetail =
                     </a>
                   </div>
                 ) : !displayedSubmission.comentario ? (
-                  <p className="rounded bg-white p-3 text-[10px] text-gray-500">
+                  <p className="rounded bg-talentia-surface p-3 text-[14px] text-talentia-muted">
                     No se adjuntó
                     un documento
                     ni un
@@ -1592,7 +1569,7 @@ const showDeliveryDetail =
             </>
           ) : (
             <>
-              <h1 className="max-w-[440px] text-[23px] font-bold leading-[1.15] text-[#1551ad]">
+              <h1 className="max-w-[641px] text-[23px] font-bold leading-[1.15] text-talentia-primary">
                 {displayTitle.startsWith(
                   "Actividad:"
                 )
@@ -1602,7 +1579,7 @@ const showDeliveryDetail =
 
 
               {displayDescription && (
-                <p className="mt-[10px] max-w-[438px] text-[11px] leading-[1.25] text-[#242424]">
+                <p className="mt-[10px] max-w-[630px] text-[16px] leading-[1.5] text-talentia-primary">
                   {
                     displayDescription
                   }
@@ -1610,10 +1587,10 @@ const showDeliveryDetail =
               )}
 
 
-              <div className="my-[7px] border-b border-[#555555]" />
+              <div className="my-[7px] border-b border-talentia-border" />
 
 
-              <h2 className="mb-[5px] text-[16px] font-bold leading-tight text-[#1551ad]">
+              <h2 className="mb-[5px] text-[16px] font-bold leading-tight text-talentia-primary">
                 Tu entrega
               </h2>
 
@@ -1621,7 +1598,7 @@ const showDeliveryDetail =
               {message && (
                 <p
                   role="status"
-                  className="mb-2 rounded-md bg-green-100 p-2 text-[11px] text-green-800"
+                  className="mb-2 rounded-md bg-talentia-success-bg p-2 text-[14px] text-talentia-success"
                 >
                   {
                     message
@@ -1633,7 +1610,7 @@ const showDeliveryDetail =
               {error && (
                 <p
                   role="alert"
-                  className="mb-2 rounded-md bg-red-50 p-2 text-[11px] text-red-700"
+                  className="mb-2 rounded-md bg-talentia-danger-bg p-2 text-[14px] text-talentia-danger"
                 >
                   {
                     error
@@ -1674,7 +1651,7 @@ const showDeliveryDetail =
                       5000
                     }
                     placeholder="Haga clic si desea agregar texto"
-                    className="activity-input h-[70px] resize-y rounded-none border-[#c9c9c9] px-[10px] py-[9px] text-[10px] placeholder:text-[#858585]"
+                    className="activity-input h-[70px] resize-y rounded-none border-talentia-border px-[10px] py-[9px] text-[14px] placeholder:text-talentia-placeholder"
                   />
 
 
@@ -1699,11 +1676,11 @@ const showDeliveryDetail =
                     }
                     className={`mt-[10px] flex min-h-[139px] cursor-pointer flex-col items-center justify-center rounded-[8px] px-4 py-4 text-center transition ${
                       isDragging
-                        ? "border-2 border-[#1888ef] bg-blue-50"
-                        : "border-2 border-transparent bg-[#eeeeee]"
+                        ? "border-2 border-talentia-blue bg-talentia-selected"
+                        : "border-2 border-transparent bg-talentia-surface"
                     }`}
                   >
-                    <span className="text-[#121212]">
+                    <span className="text-talentia-primary">
                       <Icon
                         type="file"
                         size={
@@ -1712,13 +1689,13 @@ const showDeliveryDetail =
                       />
                     </span>
 
-                    <span className="mt-[4px] text-[11px] text-[#161616]">
+                    <span className="mt-[4px] text-[14px] text-talentia-primary">
                       {file
                         ? file.name
                         : "Arrastra y suelta tu archivo aquí"}
                     </span>
 
-                    <span className="mt-[2px] text-[10px] text-[#858585]">
+                    <span className="mt-[2px] text-[14px] text-talentia-muted">
                       Tamaño máximo{" "}
                       {
                         maxFileSizeMB
@@ -1726,17 +1703,17 @@ const showDeliveryDetail =
                       MB
                     </span>
 
-                    <span className="my-[5px] text-[10px] text-[#222222]">
+                    <span className="my-[5px] text-[14px] text-talentia-primary">
                       o
                     </span>
 
-                    <span className="inline-flex h-[21px] items-center rounded-[7px] border border-[#105bd0] px-2 text-[11px] text-[#105bd0]">
+                    <span className="inline-flex min-h-[28px] items-center rounded-[7px] border border-talentia-blue px-2 text-[14px] text-talentia-blue">
                       Seleccionar
                       archivo
                     </span>
 
                     {file && (
-                      <span className="mt-1 text-[10px] text-[#277b42]">
+                      <span className="mt-1 text-[14px] text-talentia-success">
                         Seleccionado ·{" "}
                         {formatSize(
                           file.size
@@ -1770,7 +1747,7 @@ const showDeliveryDetail =
                       }
                     />
 
-                    <p className="text-[9px] leading-[1.3] text-[#1766a4]">
+                    <p className="text-[12px] leading-[1.3] text-talentia-blue">
                       Formatos
                       permitidos:
                       PDF, DOC,
@@ -1783,7 +1760,7 @@ const showDeliveryDetail =
                   </div>
                 </>
               ) : (
-                <p className="rounded-md bg-amber-50 p-3 text-[11px] text-amber-800">
+                <p className="rounded-md bg-talentia-warning-bg p-3 text-[14px] text-talentia-warning">
                   Ya alcanzaste el
                   máximo de
                   intentos
@@ -1886,7 +1863,7 @@ const showDeliveryDetail =
                         : "Ver rúbrica ↗"}
                     </button>
                   ) : (
-                    <span className="text-gray-400">
+                    <span className="text-talentia-muted">
                       Sin rúbrica
                     </span>
                   )}
@@ -1905,11 +1882,11 @@ const showDeliveryDetail =
                 />
 
                 <div>
-                  <p className="text-[10px] font-bold text-[#1766a4]">
+                  <p className="text-[14px] font-bold text-talentia-blue">
                     Importante
                   </p>
 
-                  <p className="mt-[2px] text-[9px] leading-[1.2]">
+                  <p className="mt-[2px] text-[12px] leading-[1.5]">
                     Las entregas
                     realizadas
                     después de la
@@ -1937,7 +1914,7 @@ displayedSubmission && (
     displayedSubmission.nota !==
       undefined ? (
       <>
-        <div className="mt-2 flex min-h-[29px] items-center justify-center gap-2 rounded-md bg-[#c8e8ca] px-2 text-[14px] font-bold text-[#269d36]">
+        <div className="mt-2 flex min-h-[29px] items-center justify-center gap-2 rounded-md bg-talentia-success-bg px-2 text-[14px] font-bold text-talentia-success">
           <Icon
             type="trophy"
             size={17}
@@ -1949,7 +1926,7 @@ displayedSubmission && (
           / {maxGrade} puntos
         </div>
 
-        <p className="mt-2 text-[10px] leading-[1.3] text-[#aaaaaa]">
+        <p className="mt-2 text-[14px] leading-[1.3] text-talentia-muted">
           {displayedSubmission.calificado_en
             ? `Calificado el ${formatDate(
                 displayedSubmission.calificado_en
@@ -1957,7 +1934,7 @@ displayedSubmission && (
             : "La calificación ya está disponible."}
         </p>
 
-        <div className="mt-4 flex items-center gap-2 text-[12px] font-bold text-[#287ee0]">
+        <div className="mt-4 flex items-center gap-2 text-[14px] font-bold text-talentia-blue">
           <Icon
             type="chat"
             size={16}
@@ -1966,13 +1943,13 @@ displayedSubmission && (
           Comentarios del docente
         </div>
 
-        <p className="mt-2 min-h-[118px] whitespace-pre-wrap rounded-lg border border-[#287ee0] bg-white p-2 text-[10px] leading-[1.3] text-[#174363]">
+        <p className="mt-2 min-h-[118px] whitespace-pre-wrap rounded-lg border border-talentia-blue bg-talentia-surface p-2 text-[14px] leading-[1.3] text-talentia-primary">
           {displayedSubmission.retroalimentacion ||
             "El docente todavía no ha añadido comentarios."}
         </p>
       </>
     ) : (
-      <p className="mt-3 rounded-md bg-[#f1f5fa] p-3 text-[11px] text-slate-600">
+      <p className="mt-3 rounded-md bg-talentia-surface p-3 text-[14px] text-talentia-primary">
         Este intento está
         pendiente de calificación.
       </p>
@@ -1985,15 +1962,15 @@ displayedSubmission && (
               {showDeliveryDetail ? "Historial de intentos" : "Entregas realizadas"}
             </h2>
             {submissions.length === 0 ? (
-              <p className="mt-3 text-[10px] text-[#818181]">Todavía no has realizado entregas.</p>
+              <p className="mt-3 text-[14px] text-talentia-muted">Todavía no has realizado entregas.</p>
             ) : (
               <div className="mt-[10px] space-y-[7px]">
                 {submissions.map((submission) => {
                   const isSelected = displayedSubmission?.id === submission.id;
                   const isLatest = latest?.id === submission.id;
                   return (
-                    <div key={submission.id} className="flex min-w-0 items-center gap-1 text-[10px] leading-[1.35]">
-                      <span className="shrink-0 text-[#333333]">Intento {submission.numero_intento}:</span>
+                    <div key={submission.id} className="flex min-w-0 items-center gap-1 text-[14px] leading-[1.35]">
+                      <span className="shrink-0 text-talentia-primary">Intento {submission.numero_intento}:</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -2006,10 +1983,10 @@ displayedSubmission && (
                       >
                         Ver entrega ↗
                       </button>
-                      <span className="shrink-0 text-[#555555]">
+                      <span className="shrink-0 text-talentia-primary">
                         {submission.nota != null ? `${submission.nota}/${maxGrade}` : "Pendiente"}
                       </span>
-                      {isLatest && <span className="shrink-0 rounded bg-[#e8f2ff] px-1 py-[2px] text-[8px] text-[#1551ad]">Último</span>}
+                      {isLatest && <span className="shrink-0 rounded bg-talentia-selected px-1 py-[2px] text-[12px] text-talentia-primary">Último</span>}
                     </div>
                   );
                 })}
@@ -2024,7 +2001,7 @@ displayedSubmission && (
                   setError("");
                   setMessage("");
                 }}
-                className="activity-primary mt-[14px] flex min-h-[30px] w-full items-center justify-center rounded-[6px] px-3 text-[10px] font-medium"
+                className="activity-primary mt-[14px] flex min-h-[30px] w-full items-center justify-center rounded-[6px] px-3 text-[14px] font-medium"
               >
                 Realizar otro intento ({remaining} disponible{remaining === 1 ? "" : "s"})
               </button>

@@ -39,12 +39,13 @@ export default function ForumCourse({ courseId, role, forumId }: {
     <div className="min-h-screen px-3 py-4 lg:px-4">
       <div className="mx-auto max-w-[1000px]">
         <Link href={forumId ? `${base}/foro` : `/${role}/cursos`}
-          className="mb-2 flex min-h-6 w-fit items-center gap-2 text-[12px] font-medium text-gray-700 hover:text-[#3186d8]">
-          <span className="mx-1 h-2 w-2 shrink-0 rotate-45 border-b-2 border-l-2" aria-hidden="true" />
+          className="app-back-link mb-2">
+          <span aria-hidden="true">{"<"}</span>
+
           {forumId ? "Volver a Foro" : "Volver a cursos"}
         </Link>
-        {error ? <p role="alert" className="p-4 text-sm text-red-600">{error}</p> : !context ?
-          <p role="status" className="p-4 text-sm text-gray-600">Cargando curso...</p> : <>
+        {error ? <p role="alert" className="p-4 text-sm text-talentia-danger">{error}</p> : !context ?
+          <p role="status" className="p-4 text-sm text-talentia-primary">Cargando curso...</p> : <>
             <CourseHeader
               courseId={courseId}
               nombre={context.curso.nombre}
@@ -53,9 +54,9 @@ export default function ForumCourse({ courseId, role, forumId }: {
             />
             <CourseTabs role={role} courseId={courseId} active="foro" />
             <div className="mt-2 space-y-2">
-              {!forumId && context.ofertas.length > 1 && <label className="flex items-center gap-2 text-[11px] text-gray-700">
+              {!forumId && context.ofertas.length > 1 && <label className="flex items-center gap-2 text-[11px] text-talentia-primary">
                 Oferta del curso
-                <select value={ofertaId} onChange={event => setOfertaId(event.target.value)} className="rounded-md border border-gray-300 bg-white p-2">
+                <select value={ofertaId} onChange={event => setOfertaId(event.target.value)} className="rounded-md border border-talentia-border bg-talentia-surface p-2">
                   <option value="" disabled>Selecciona una oferta</option>
                   {context.ofertas.map(oferta => <option key={oferta.oferta_curso_id} value={String(oferta.oferta_curso_id)}>Oferta {oferta.oferta_curso_id} - {oferta.estado}</option>)}
                 </select>

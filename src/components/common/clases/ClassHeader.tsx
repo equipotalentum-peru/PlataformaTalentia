@@ -10,9 +10,9 @@ export default function ClassHeader({
   return (
     <section className="mb-2 flex flex-col gap-3 px-1 py-2 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-[#ead5f5]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-talentia-purple-soft">
           <svg
-            className="h-6 w-6 text-[#3186d8]"
+            className="h-6 w-6 text-talentia-blue"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -31,11 +31,11 @@ export default function ClassHeader({
         </div>
 
         <div>
-          <h2 className="text-[15px] font-bold text-[#3186d8]">
+          <h2 className="text-[15px] font-bold text-talentia-primary">
             Clases virtuales
           </h2>
 
-          <p className="text-[9px] text-[#3186d8]">
+          <p className="text-[9px] text-talentia-blue">
             Programa, gestiona y realiza el seguimiento de tus clases en vivo
           </p>
         </div>
@@ -45,7 +45,7 @@ export default function ClassHeader({
         <button
           type="button"
           onClick={onSchedule}
-          className="flex h-9 items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-semibold text-white transition hover:bg-[#2777c1]"
+          className="flex h-9 items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white transition hover:bg-talentia-primary"
         >
           <svg
             className="h-4 w-4"

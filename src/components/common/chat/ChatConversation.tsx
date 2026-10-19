@@ -809,11 +809,11 @@ export default function ChatConversation({
   };
 
   return (
-    <main className="min-h-screen bg-[#eef2f8] p-2 lg:p-3">
-      <div className="flex h-[calc(100vh-24px)] w-full overflow-hidden rounded-lg border border-[#d4d9e2] bg-white">
+    <main className="min-h-screen bg-talentia-surface p-2 lg:p-3">
+      <div className="flex h-[calc(100vh-24px)] w-full overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface">
 
         {loadingContacts ? (
-          <div className="flex w-full items-center justify-center text-[12px] text-gray-500">
+          <div className="flex w-full items-center justify-center text-[13px] text-talentia-muted">
             Cargando chat...
           </div>
         ) : (
@@ -844,7 +844,7 @@ export default function ChatConversation({
                   showChat
                     ? "flex"
                     : "hidden min-[861px]:flex"
-                } min-w-0 flex-1 flex-col`}
+                } min-h-0 min-w-0 flex-1 flex-col`}
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -852,25 +852,25 @@ export default function ChatConversation({
               >
                 
               {isDraggingFile && (
-                <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-blue-50/90 p-6">
-                  <div className="rounded-2xl border-2 border-dashed border-[#3186d8] bg-white px-8 py-7 text-center shadow-lg">
-                    <p className="text-base font-bold text-[#18407c]">
+                <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-talentia-selected/90 p-6">
+                  <div className="rounded-2xl border-2 border-dashed border-talentia-blue bg-talentia-surface px-8 py-7 text-center shadow-lg">
+                    <p className="text-[15px] font-bold text-talentia-primary">
                       Suelta los archivos aquí
                     </p>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-[13px] text-talentia-muted">
                       Se enviarán a la conversación actual.
                     </p>
                   </div>
                 </div>
               )}
 
-              <header className="flex items-center gap-3 border-b border-gray-300 px-3 py-3 sm:gap-4 sm:px-5">
+              <header className="flex items-center gap-3 border-b border-talentia-border px-3 py-3 sm:gap-4 sm:px-5">
 
                 <button
                   type="button"
                   onClick={() => setShowChat(false)}
                   aria-label="Volver a contactos"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#18407c] hover:bg-gray-100 min-[861px]:hidden"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-primary hover:bg-talentia-hover min-[861px]:hidden"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -890,17 +890,17 @@ export default function ChatConversation({
                   src={selectedUser?.fotoPerfil}
                   initials={selectedUser?.initials ?? "?"}
                   name={selectedUser?.name ?? "Usuario"}
-                  className="h-11 w-11 bg-[#11b7b8] text-[13px] sm:h-14 sm:w-14"
+                  className="h-11 w-11 bg-talentia-blue text-[13px] sm:h-14 sm:w-14"
                 />
 
                 <div className="min-w-0">
-                  <h2 className="truncate text-[14px] font-bold text-gray-900">
+                  <h2 className="truncate text-[15px] font-bold text-talentia-primary">
                     {
                       selectedUser?.name
                     }
                   </h2>
 
-                  <p className="text-[11px] text-gray-600">
+                  <p className="text-[13px] text-talentia-primary">
                     {
                       selectedUser?.role
                     }
@@ -909,10 +909,10 @@ export default function ChatConversation({
 
               </header>
 
-              <div className="flex-1 overflow-y-auto bg-white px-3 py-4 sm:px-6 sm:py-6">
+              <div className="min-h-0 flex-1 overflow-y-auto bg-talentia-surface px-3 py-4 sm:px-6 sm:py-6">
 
                 {loadingMessages ? (
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[13px] text-talentia-muted">
                     Cargando mensajes...
                   </p>
                 ) : (
@@ -937,7 +937,7 @@ export default function ChatConversation({
                     )}
 
                     {!messages.length && (
-                      <p className="pt-10 text-center text-[11px] text-gray-400">
+                      <p className="pt-10 text-center text-[13px] text-talentia-muted">
                         No hay mensajes todavía.
                       </p>
                     )}

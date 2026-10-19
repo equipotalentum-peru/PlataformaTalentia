@@ -7,7 +7,7 @@ type TeacherCourseInfoProps = {
 
 function Icon({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eef8fb] text-[#11b7c0]">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-talentia-surface text-talentia-blue">
       {children}
     </div>
   );
@@ -74,8 +74,8 @@ function InfoRow({
     <div className="flex items-center gap-3">
       <Icon>{icon}</Icon>
       <div className="min-w-0">
-        <p className="text-[10px] text-[#8a98aa]">{label}</p>
-        <p className="truncate text-[11px] font-medium text-[#3186d8]">{value}</p>
+        <p className="text-[10px] text-talentia-placeholder">{label}</p>
+        <p className="truncate text-[11px] font-medium text-talentia-blue">{value}</p>
       </div>
     </div>
   );
@@ -86,20 +86,20 @@ export default function TeacherCourseInfo({ course }: TeacherCourseInfoProps) {
 
   return (
     <aside className="order-first w-full shrink-0 xl:order-last xl:w-[225px]">
-      <h2 className="mb-2 text-[12px] font-semibold text-[#3f91dc]">Información del curso</h2>
+      <h2 className="mb-2 text-[12px] font-semibold text-talentia-primary">Información del curso</h2>
 
       <div className="space-y-3">
-        <section className="rounded-xl bg-white p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
+        <section className="rounded-xl bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] font-semibold text-[#3f91dc]">Contenido publicado</span>
-            <span className="whitespace-nowrap text-[9px] text-[#3f91dc]">{published}%</span>
+            <span className="text-[10px] font-semibold text-talentia-blue">Contenido publicado</span>
+            <span className="whitespace-nowrap text-[9px] text-talentia-blue">{published}%</span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[#edf1f5]">
-            <div className="h-full rounded-full bg-[#3186d8]" style={{ width: `${published}%` }} />
+          <div className="h-1.5 overflow-hidden rounded-full bg-talentia-border">
+            <div className="h-full rounded-full bg-talentia-teal" style={{ width: `${published}%` }} />
           </div>
         </section>
 
-        <section className="rounded-xl bg-white p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
+        <section className="rounded-xl bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
           <div className="space-y-4">
             <InfoRow icon={<UsersIcon />} label="Alumnos" value={`${Math.max(course.alumnos - 2, 0)} alumnos matriculados`} />
             <InfoRow icon={<ActivityIcon />} label="Actividades" value={`${course.actividades} actividades`} />

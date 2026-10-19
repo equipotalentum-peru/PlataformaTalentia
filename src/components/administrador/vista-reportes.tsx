@@ -51,43 +51,43 @@ const CATEGORIAS: Categoria[] = [
 ];
 
 const COLORES_GRAFICO: Record<Categoria, string[]> = {
-  Usuarios: ["bg-[#3B82F6]", "bg-[#38BDF8]", "bg-[#8B5CF6]"],
+  Usuarios: ["bg-talentia-blue", "bg-talentia-teal", "bg-talentia-purple"],
   Cursos: [
-    "bg-[#38BDF8]",
-    "bg-[#8B5CF6]",
-    "bg-[#3B82F6]",
-    "bg-[#38BDF8]",
-    "bg-[#8B5CF6]",
+    "bg-talentia-teal",
+    "bg-talentia-purple",
+    "bg-talentia-blue",
+    "bg-talentia-teal",
+    "bg-talentia-purple",
   ],
   "Matrículas": [
-    "bg-[#3B82F6]",
-    "bg-[#38BDF8]",
-    "bg-[#8B5CF6]",
-    "bg-[#3B82F6]",
-    "bg-[#38BDF8]",
+    "bg-talentia-blue",
+    "bg-talentia-teal",
+    "bg-talentia-purple",
+    "bg-talentia-blue",
+    "bg-talentia-teal",
   ],
   Calificaciones: [
-    "bg-[#F87171]",
-    "bg-[#FBBF24]",
-    "bg-[#38BDF8]",
-    "bg-[#3B82F6]",
-    "bg-[#8B5CF6]",
+    "bg-talentia-danger",
+    "bg-talentia-warning",
+    "bg-talentia-teal",
+    "bg-talentia-blue",
+    "bg-talentia-purple",
   ],
   Certificados: [
-    "bg-[#8B5CF6]",
-    "bg-[#3B82F6]",
-    "bg-[#38BDF8]",
-    "bg-[#8B5CF6]",
-    "bg-[#3B82F6]",
+    "bg-talentia-purple",
+    "bg-talentia-blue",
+    "bg-talentia-teal",
+    "bg-talentia-purple",
+    "bg-talentia-blue",
   ],
 };
 
 const COLORES_INDICADORES: Record<Categoria, [string, string]> = {
-  Usuarios: ["text-[#3B82F6]", "text-[#6B21A8]"],
-  Cursos: ["text-[#8B5CF6]", "text-[#38BDF8]"],
-  "Matrículas": ["text-[#3B82F6]", "text-[#F59E0B]"],
-  Calificaciones: ["text-[#10B981]", "text-[#8B5CF6]"],
-  Certificados: ["text-[#3B82F6]", "text-[#10B981]"],
+  Usuarios: ["text-talentia-blue", "text-talentia-purple"],
+  Cursos: ["text-talentia-purple", "text-talentia-blue"],
+  "Matrículas": ["text-talentia-blue", "text-talentia-warning"],
+  Calificaciones: ["text-talentia-success", "text-talentia-blue"],
+  Certificados: ["text-talentia-blue", "text-talentia-success"],
 };
 
 function formatearFecha(value: string) {
@@ -217,16 +217,16 @@ export default function VistaReportes() {
     <div className="w-full space-y-6">
       {/* Encabezado */}
       <div>
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Reportes
         </h1>
-        <p className="text-sm font-semibold text-[#64748B] mt-1">
+        <p className="text-sm font-semibold text-talentia-muted mt-1">
           Consulta usuarios, cursos, progreso, calificaciones y certificados.
         </p>
       </div>
 
       {/* Barra superior de pestañas y botón Exportar */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="bg-talentia-surface rounded-3xl p-4 shadow-sm border border-talentia-border/80 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {CATEGORIAS.map((categoria) => (
             <button
@@ -235,8 +235,8 @@ export default function VistaReportes() {
               onClick={() => setCategoriaActiva(categoria)}
               className={`px-5 py-2 rounded-full text-[13px] font-bold transition ${
                 categoriaActiva === categoria
-                  ? "bg-[#A5F3FC] text-[#0891B2]"
-                  : "text-[#6B21A8] hover:bg-slate-50"
+                  ? "bg-talentia-selected text-talentia-blue"
+                  : "text-talentia-purple hover:bg-talentia-hover"
               }`}
             >
               {categoria}
@@ -247,7 +247,7 @@ export default function VistaReportes() {
           type="button"
           onClick={() => void descargarReporte(categoriaActiva)}
           disabled={descargando !== null || cargando}
-          className="bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-8 py-2.5 rounded-2xl text-sm transition shadow-sm w-full sm:w-auto"
+          className="bg-talentia-action hover:bg-talentia-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-8 py-2.5 rounded-2xl text-sm transition shadow-sm w-full sm:w-auto"
         >
           {descargando === categoriaActiva ? "Exportando..." : "Exportar"}
         </button>
@@ -256,7 +256,7 @@ export default function VistaReportes() {
       {error && (
         <div
           role="alert"
-          className="rounded-2xl border border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+          className="rounded-2xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-3 text-sm font-semibold text-talentia-danger"
         >
           {error}
         </div>
@@ -264,8 +264,8 @@ export default function VistaReportes() {
 
       {/* Gráfico e indicadores: se conserva el diseño de Figma */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 flex flex-col justify-between">
-          <h2 className="text-sm font-extrabold text-[#0F2851] mb-6">
+        <div className="bg-talentia-surface rounded-3xl p-6 shadow-sm border border-talentia-border/80 flex flex-col justify-between">
+          <h2 className="text-sm font-extrabold text-talentia-primary mb-6">
             {datos?.grafico.titulo ?? (
               categoriaActiva === "Usuarios"
                 ? "Usuarios por rol"
@@ -278,13 +278,13 @@ export default function VistaReportes() {
                       : "Certificados emitidos por especialidad"
             )}
           </h2>
-          <div className="flex items-end justify-around gap-3 h-48 pt-4 border-b border-gray-100 pb-2">
+          <div className="flex items-end justify-around gap-3 h-48 pt-4 border-b border-talentia-border pb-2">
             {cargando && !datos ? (
-              <p className="text-[13px] font-semibold text-[#64748B]">
+              <p className="text-[13px] font-semibold text-talentia-muted">
                 Cargando datos...
               </p>
             ) : itemsGrafico.length === 0 ? (
-              <p className="text-[13px] font-semibold text-[#64748B]">
+              <p className="text-[13px] font-semibold text-talentia-muted">
                 No hay datos disponibles.
               </p>
             ) : (
@@ -308,7 +308,7 @@ export default function VistaReportes() {
                       style={{ height: `${altura}px` }}
                       aria-label={`${item.label}: ${item.value}`}
                     />
-                    <span className="max-w-full truncate text-[13px] font-bold text-[#64748B]">
+                    <span className="max-w-full truncate text-[13px] font-bold text-talentia-muted">
                       {item.label}
                     </span>
                   </div>
@@ -318,8 +318,8 @@ export default function VistaReportes() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
-          <h2 className="text-sm font-extrabold text-[#0F2851] mb-6">
+        <div className="bg-talentia-surface rounded-3xl p-6 shadow-sm border border-talentia-border/80">
+          <h2 className="text-sm font-extrabold text-talentia-primary mb-6">
             {categoriaActiva === "Usuarios"
               ? "Indicadores clave"
               : categoriaActiva === "Cursos"
@@ -342,7 +342,7 @@ export default function VistaReportes() {
               return (
                 <div
                   key={indicador?.label ?? `indicador-vacio-${index}`}
-                  className="border border-gray-100 rounded-2xl p-5 bg-white"
+                  className="border border-talentia-border rounded-2xl p-5 bg-talentia-surface"
                 >
                   <p
                     className={`text-3xl font-extrabold ${
@@ -351,7 +351,7 @@ export default function VistaReportes() {
                   >
                     {cargando && !datos ? "—" : valor}
                   </p>
-                  <p className="text-[13px] font-bold text-[#64748B] mt-2">
+                  <p className="text-[13px] font-bold text-talentia-muted mt-2">
                     {indicador?.label ?? "Cargando indicador"}
                   </p>
                 </div>
@@ -362,15 +362,15 @@ export default function VistaReportes() {
       </div>
 
       {/* Tabla de reportes exportados recientemente */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
+      <div className="bg-talentia-surface rounded-3xl p-6 shadow-sm border border-talentia-border/80">
         <div className="flex justify-between items-center mb-6 gap-3">
-          <h2 className="text-sm font-extrabold text-[#0F2851]">
+          <h2 className="text-sm font-extrabold text-talentia-primary">
             Reporte reciente
           </h2>
           <button
             type="button"
             onClick={() => router.push("/administrador/reportes/historial")}
-            className="text-[13px] font-bold text-[#6B21A8] hover:text-[#581c87] bg-[#F5F3FF] hover:bg-[#e9e5ff] px-4 py-2 rounded-xl transition"
+            className="text-[13px] font-bold text-talentia-purple hover:text-talentia-purple bg-talentia-surface hover:bg-talentia-hover px-4 py-2 rounded-xl transition"
           >
             Ver historial administrativo →
           </button>
@@ -379,7 +379,7 @@ export default function VistaReportes() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+              <tr className="bg-talentia-table-header text-talentia-primary text-[13px] font-extrabold border-b border-talentia-border">
                 <th className="py-4 px-6">Reporte</th>
                 <th className="py-4 px-6">Fecha</th>
                 <th className="py-4 px-6">Responsable</th>
@@ -387,20 +387,20 @@ export default function VistaReportes() {
                 <th className="py-4 px-6 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-[13px]">
+            <tbody className="divide-y divide-talentia-border text-[13px]">
               {(datos?.reportesRecientes ?? []).map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                  <td className="py-4 px-6 font-bold text-[#0F2851]">
+                <tr key={item.id} className="hover:bg-talentia-hover/50 transition">
+                  <td className="py-4 px-6 font-bold text-talentia-primary">
                     {item.reporte}
                   </td>
-                  <td className="py-4 px-6 font-semibold text-[#64748B]">
+                  <td className="py-4 px-6 font-semibold text-talentia-muted">
                     {formatearFecha(item.fecha)}
                   </td>
-                  <td className="py-4 px-6 font-semibold text-[#64748B]">
+                  <td className="py-4 px-6 font-semibold text-talentia-muted">
                     {item.responsable}
                   </td>
                   <td className="py-4 px-6">
-                    <span className="bg-[#BBF7D0] text-[#166534] text-[13px] font-extrabold px-4 py-1.5 rounded-full inline-block">
+                    <span className="bg-talentia-success-bg text-talentia-success text-[13px] font-extrabold px-4 py-1.5 rounded-full inline-block">
                       {item.estado === "Completo" ? "Listo" : item.estado}
                     </span>
                   </td>
@@ -409,7 +409,7 @@ export default function VistaReportes() {
                       type="button"
                       onClick={() => void descargarReporte(item.categoria)}
                       disabled={descargando !== null}
-                      className="bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-2 rounded-xl transition shadow-sm"
+                      className="bg-talentia-action hover:bg-talentia-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-2 rounded-xl transition shadow-sm"
                     >
                       {descargando === item.categoria ? "Descargando..." : "Descargar"}
                     </button>
@@ -420,7 +420,7 @@ export default function VistaReportes() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-8 px-6 text-center font-semibold text-[#64748B]"
+                    className="py-8 px-6 text-center font-semibold text-talentia-muted"
                   >
                     Todavía no se han exportado reportes.
                   </td>

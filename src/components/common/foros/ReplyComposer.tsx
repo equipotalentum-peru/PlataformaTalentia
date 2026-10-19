@@ -51,17 +51,17 @@ export default function ReplyComposer({
   };
 
   return (
-    <div className="flex gap-3 border-t border-gray-100 pt-4">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00b8b3] text-[10px] font-semibold text-white">
+    <div className="flex gap-3 border-t border-talentia-border pt-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-talentia-action text-[10px] font-semibold text-white">
         {initials}
       </div>
 
       <div className="min-w-0 flex-1">
         {replyingTo && (
-          <div className="mb-2 flex items-center gap-2 text-[10px] text-gray-500">
+          <div className="mb-2 flex items-center gap-2 text-[10px] text-talentia-muted">
             <span>
               Respondiendo a{" "}
-              <span className="font-semibold text-[#3186d8]">
+              <span className="font-semibold text-talentia-blue">
                 @{replyingTo.author.replaceAll(" ", "")}
               </span>
             </span>
@@ -69,7 +69,7 @@ export default function ReplyComposer({
             <button
               type="button"
               onClick={onCancelReply}
-              className="font-semibold text-gray-400 hover:text-gray-700"
+              className="font-semibold text-talentia-muted hover:text-talentia-primary"
             >
               ×
             </button>
@@ -91,7 +91,7 @@ export default function ReplyComposer({
             type="button"
             onClick={onReply}
             disabled={disabled || !value.trim()}
-            className="rounded-md bg-[#00b8b3] px-5 py-2 text-[10px] font-medium text-white hover:bg-[#00a7a2]"
+            className="rounded-md bg-talentia-action px-5 py-2 text-[10px] font-medium text-white hover:bg-talentia-primary"
           >
             {disabled ? "Enviando..." : "Responder"}
           </button>

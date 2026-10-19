@@ -29,7 +29,7 @@ export default function TeacherEvaluationViewer({
 
   if (!quiz) {
     return (
-      <div className="rounded-xl bg-white p-8">
+      <div className="rounded-xl bg-talentia-surface p-8">
         <h2 className="text-xl font-semibold">
           Evaluación no encontrada
         </h2>
@@ -40,17 +40,17 @@ export default function TeacherEvaluationViewer({
   const totalQuestions = quiz.questions.length;
 
   return (
-    <div className="rounded-xl border border-gray-300 bg-white px-7 py-6">
+    <div className="rounded-xl border border-talentia-border bg-talentia-surface px-7 py-6">
 
       {/* CABECERA */}
-      <div className="mb-5 flex flex-col gap-3 border-b border-gray-300 pb-4 md:flex-row md:items-start md:justify-between">
+      <div className="mb-5 flex flex-col gap-3 border-b border-talentia-border pb-4 md:flex-row md:items-start md:justify-between">
 
         <div>
-          <h1 className="text-[24px] font-bold text-[#1554a0]">
+          <h1 className="text-[24px] font-bold text-talentia-primary">
             {quiz.title}
           </h1>
 
-          <p className="mt-1 text-[12px] text-gray-700">
+          <p className="mt-1 text-[12px] text-talentia-primary">
             Vista previa de la evaluación
           </p>
         </div>
@@ -58,14 +58,14 @@ export default function TeacherEvaluationViewer({
         <div className="flex items-center gap-2">
           <Link
             href={editHref}
-            className="rounded-md bg-[#3186d8] px-4 py-2 text-[11px] font-medium text-white transition hover:bg-[#2777c1]"
+            className="rounded-md bg-talentia-action px-4 py-2 text-[11px] font-medium text-white transition hover:bg-talentia-primary"
           >
             ✎ Editar evaluación
           </Link>
 
           <Link
             href={exitHref}
-            className="rounded-md border border-gray-400 bg-white px-4 py-2 text-[11px] font-medium text-gray-700 transition hover:bg-gray-100"
+            className="rounded-md border border-talentia-border bg-talentia-surface px-4 py-2 text-[11px] font-medium text-talentia-primary transition hover:bg-talentia-hover"
           >
             Salir
           </Link>
@@ -73,24 +73,24 @@ export default function TeacherEvaluationViewer({
       </div>
 
       {/* INFORMACIÓN */}
-      <div className="mb-6 flex items-center justify-between rounded-lg bg-[#e9f3fb] px-4 py-3">
+      <div className="mb-6 flex items-center justify-between rounded-lg bg-talentia-selected px-4 py-3">
 
         <div>
-          <p className="text-[10px] font-medium uppercase text-[#3186d8]">
+          <p className="text-[10px] font-medium uppercase text-talentia-blue">
             Evaluación
           </p>
 
-          <p className="text-[18px] font-bold text-[#1554a0]">
+          <p className="text-[18px] font-bold text-talentia-primary">
             {totalQuestions} preguntas
           </p>
         </div>
 
-        <div className="rounded-md bg-white px-5 py-2 text-right">
-          <p className="text-[9px] text-gray-500">
+        <div className="rounded-md bg-talentia-surface px-5 py-2 text-right">
+          <p className="text-[9px] text-talentia-muted">
             Tiempo límite
           </p>
 
-          <p className="text-[14px] font-bold text-gray-800">
+          <p className="text-[14px] font-bold text-talentia-primary">
             Sin límite
           </p>
         </div>
@@ -102,16 +102,16 @@ export default function TeacherEvaluationViewer({
         {quiz.questions.map((question, index) => (
           <section
             key={question.id}
-            className="border-b border-gray-200 pb-7 last:border-b-0"
+            className="border-b border-talentia-border pb-7 last:border-b-0"
           >
 
             <div className="mb-4">
-              <span className="inline-flex rounded-lg bg-[#3186d8] px-4 py-2 text-[14px] font-semibold text-white">
+              <span className="inline-flex rounded-lg bg-talentia-action px-4 py-2 text-[14px] font-semibold text-white">
                 Pregunta {index + 1}
               </span>
             </div>
 
-            <h2 className="mb-5 text-[16px] font-semibold text-gray-800">
+            <h2 className="mb-5 text-[16px] font-semibold text-talentia-primary">
               {question.text}
             </h2>
 
@@ -130,8 +130,8 @@ export default function TeacherEvaluationViewer({
                       px-4 py-3
                       ${
                         isCorrect
-                          ? "border-[#58b8e8] bg-[#e8f7ff]"
-                          : "border-gray-200 bg-[#dfdfdf]"
+                          ? "border-talentia-border bg-talentia-selected"
+                          : "border-talentia-border bg-talentia-surface"
                       }
                     `}
                   >
@@ -144,22 +144,22 @@ export default function TeacherEvaluationViewer({
                         rounded-full border-2
                         ${
                           isCorrect
-                            ? "border-[#3186d8]"
-                            : "border-gray-500 bg-white"
+                            ? "border-talentia-blue"
+                            : "border-talentia-border bg-talentia-surface"
                         }
                       `}
                     >
                       {isCorrect && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-[#3186d8]" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-talentia-teal" />
                       )}
                     </span>
 
-                    <span className="text-[13px] text-gray-800">
+                    <span className="text-[13px] text-talentia-primary">
                       {option.id}) {option.text}
                     </span>
 
                     {isCorrect && (
-                      <span className="ml-auto shrink-0 rounded-full bg-[#c9efca] px-2.5 py-1 text-[9px] font-semibold text-[#23963a]">
+                      <span className="ml-auto shrink-0 rounded-full bg-talentia-success-bg px-2.5 py-1 text-[9px] font-semibold text-talentia-success">
                         Correcta
                       </span>
                     )}
@@ -175,20 +175,20 @@ export default function TeacherEvaluationViewer({
       </div>
 
       {/* NAVEGACIÓN DEL CURSO */}
-      <div className="mt-8 flex items-center justify-between border-t border-gray-300 pt-5">
+      <div className="mt-8 flex items-center justify-between border-t border-talentia-border pt-5">
 
         {previousSectionHref ? (
           <Link
             href={previousSectionHref}
             className="
               rounded
-              border border-gray-400
-              bg-white
+              border border-talentia-border
+              bg-talentia-surface
               px-5 py-2
               text-sm
-              text-gray-800
+              text-talentia-primary
               transition
-              hover:bg-gray-100
+              hover:bg-talentia-hover
             "
           >
             ← Anterior
@@ -202,13 +202,13 @@ export default function TeacherEvaluationViewer({
             href={nextSectionHref}
             className="
               rounded
-              bg-[#3186d8]
+              bg-talentia-action
               px-5 py-2
               text-sm
               font-medium
               text-white
               transition
-              hover:bg-[#2777c1]
+              hover:bg-talentia-primary
             "
           >
             Siguiente →

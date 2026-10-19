@@ -126,47 +126,47 @@ export default function UsuariosTable() {
       {/* Encabezado de la página */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
             Usuarios
           </h1>
-          <p className="text-sm font-semibold text-[#64748B] mt-1">
+          <p className="text-sm font-semibold text-talentia-muted mt-1">
             Administración de alumnos, docentes y administradores.
           </p>
         </div>
 
-        <button onClick={() => router.push("/administrador/usuarios/crear")} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-sm transition-all duration-200">
+        <button onClick={() => router.push("/administrador/usuarios/crear")} className="bg-talentia-action hover:bg-talentia-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-sm transition-all duration-200">
           Crear usuario
         </button>
       </div>
 
       <div className="grid grid-cols-1 items-end gap-3 min-[480px]:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_190px_160px]">
-        <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B] min-[480px]:col-span-2 lg:col-span-1">
+        <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-talentia-muted min-[480px]:col-span-2 lg:col-span-1">
           Buscar
           <input
             type="text"
             placeholder="Buscar por nombre, correo o rol"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
+            className="h-11 w-full rounded-lg border border-talentia-border bg-talentia-surface px-4 text-sm font-normal text-talentia-primary placeholder-talentia-placeholder outline-none transition-colors hover:border-talentia-border focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </label>
 
-          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
+          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-talentia-muted">
             Rol
             <select value={filtroRol}
               onChange={(event) => setFiltroRol(event.target.value as typeof filtroRol)}
-              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-[#D7E0EC] bg-white px-3 text-sm font-normal text-[#0F2851] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15">
+              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-talentia-border bg-talentia-surface px-3 text-sm font-normal text-talentia-primary outline-none transition-colors hover:border-talentia-border focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15">
               <option value="Todos">Todos</option>
               <option value="Alumno">Alumno</option>
               <option value="Docente">Docente</option>
               <option value="Administrador">Administrador</option>
             </select>
           </label>
-          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
+          <label className="flex min-w-0 flex-col gap-2 text-[13px] font-semibold text-talentia-muted">
             Estado
             <select value={filtroEstado}
               onChange={(event) => setFiltroEstado(event.target.value as typeof filtroEstado)}
-              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-[#D7E0EC] bg-white px-3 text-sm font-normal text-[#0F2851] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15">
+              className="h-11 w-full min-w-0 cursor-pointer rounded-lg border border-talentia-border bg-talentia-surface px-3 text-sm font-normal text-talentia-primary outline-none transition-colors hover:border-talentia-border focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15">
               <option value="Todos">Todos</option>
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
@@ -175,11 +175,11 @@ export default function UsuariosTable() {
       </div>
 
       {/* Tabla estilo Figma */}
-      {errorAccion && <p role="alert" className="mb-4 text-[13px] text-red-600">{errorAccion}</p>}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-x-auto">
+      {errorAccion && <p role="alert" className="mb-4 text-[13px] text-talentia-danger">{errorAccion}</p>}
+      <div className="bg-talentia-surface rounded-3xl shadow-sm border border-talentia-border/80 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+            <tr className="bg-talentia-table-header text-talentia-primary text-[13px] font-extrabold border-b border-talentia-border">
               <th className="py-4 px-6">Usuario</th>
               <th className="py-4 px-6">Correo</th>
               <th className="py-4 px-6">Rol</th>
@@ -188,37 +188,37 @@ export default function UsuariosTable() {
               <th className="py-4 px-6 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-[13px]">
+          <tbody className="divide-y divide-talentia-border text-[13px]">
             {(cargando || error || usuariosFiltrados.length === 0) && (
               <tr>
-                <td colSpan={6} className="py-6 px-6 text-[#64748B]" role={error ? "alert" : "status"}>
+                <td colSpan={6} className="py-6 px-6 text-talentia-muted" role={error ? "alert" : "status"}>
                   {cargando ? "Cargando usuarios..." : error || "No se encontraron usuarios."}
                 </td>
               </tr>
             )}
             {!cargando && !error && usuariosFiltrados.map((usuario) => (
-              <tr key={usuario.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-bold text-[#0F2851]">
+              <tr key={usuario.id} className="hover:bg-talentia-hover/50 transition-colors">
+                <td className="py-4 px-6 font-bold text-talentia-primary">
                   {usuario.nombre}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-semibold">
+                <td className="py-4 px-6 text-talentia-muted font-semibold">
                   {usuario.correo}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-semibold">
+                <td className="py-4 px-6 text-talentia-muted font-semibold">
                   {usuario.rol}
                 </td>
-                <td className="py-4 px-6 text-[#64748B] font-semibold">
+                <td className="py-4 px-6 text-talentia-muted font-semibold">
                   {usuario.actividad
                     ? new Date(usuario.actividad).toLocaleString("es-PE")
                     : "Sin acceso registrado"}
                 </td>
                 <td className="py-4 px-6">
                   {usuario.estado === "Activo" ? (
-                    <span className="inline-block bg-[#BBF7D0] text-[#166534] px-4 py-1.5 rounded-full font-extrabold text-[13px]">
+                    <span className="inline-block bg-talentia-success-bg text-talentia-success px-4 py-1.5 rounded-full font-extrabold text-[13px]">
                       Activo
                     </span>
                   ) : (
-                    <span className="inline-block bg-[#FBCFE8] text-[#9D174D] px-4 py-1.5 rounded-full font-extrabold text-[13px]">
+                    <span className="inline-block bg-talentia-danger-bg text-talentia-danger px-4 py-1.5 rounded-full font-extrabold text-[13px]">
                       Inactivo
                     </span>
                   )}
@@ -237,7 +237,7 @@ export default function UsuariosTable() {
                         left: Math.max(8, Math.min(rect.right - 224, window.innerWidth - 232)),
                       });
                     }}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50">
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-talentia-muted transition hover:bg-talentia-hover disabled:opacity-50">
                     ⋮
                   </button>
                 </td>
@@ -249,7 +249,7 @@ export default function UsuariosTable() {
       {menu && createPortal(
         <div ref={menuRef} id="usuario-acciones" aria-label={`Acciones de ${menu.usuario.nombre}`}
           style={{ top: menu.top, left: menu.left }}
-          className="fixed z-50 w-56 rounded-lg border border-slate-100 bg-white py-1 text-[13px] text-[#0F2851] shadow-lg">
+          className="fixed z-50 w-56 rounded-lg border border-talentia-border bg-talentia-surface py-1 text-[13px] text-talentia-primary shadow-lg">
           {([
             "Ver detalles",
             "Editar",
@@ -263,7 +263,7 @@ export default function UsuariosTable() {
                 else if (index === 1) router.push(`/administrador/usuarios/editar?id=${menu.usuario.id}`);
                 else void cambiarUsuario(menu.usuario, index === 3);
               }}
-              className={`w-full px-4 py-3 text-left hover:bg-slate-50 ${index === 3 ? "border-t border-slate-100 text-red-600" : ""}`}>
+              className={`w-full px-4 py-3 text-left hover:bg-talentia-hover ${index === 3 ? "border-t border-talentia-border text-talentia-danger" : ""}`}>
               {label}
             </button>
           ))}

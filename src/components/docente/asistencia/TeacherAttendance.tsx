@@ -629,9 +629,9 @@ export default function TeacherAttendance({
   return (
     <div className="w-full">
       {/* CABECERA DE ASISTENCIA */}
-      <section className="rounded-xl bg-white px-4 py-3 shadow-sm">
+      <section className="rounded-xl bg-talentia-surface px-4 py-3 shadow-sm">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-[15px] font-bold text-gray-900">
+          <h1 className="text-[15px] font-bold text-talentia-primary">
             Registrar asistencia
           </h1>
 
@@ -657,10 +657,10 @@ export default function TeacherAttendance({
                   0 ||
                 sessions.length ===
                   0
-                  ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                  ? "cursor-not-allowed bg-talentia-border text-talentia-disabled-text"
                   : editing
-                    ? "bg-[#eef5fc] text-[#3186d8] hover:bg-[#e3eef9]"
-                    : "bg-[#3186d8] text-white hover:bg-[#2777c1]"
+                    ? "bg-talentia-action text-talentia-blue hover:bg-talentia-primary"
+                    : "bg-talentia-action text-white hover:bg-talentia-primary"
               }`}
             >
               {editing
@@ -689,8 +689,8 @@ export default function TeacherAttendance({
                   0 &&
                 sessions.length >
                   0
-                  ? "bg-[#00b8b3] text-white hover:bg-[#00a7a2]"
-                  : "cursor-not-allowed bg-gray-200 text-gray-400"
+                  ? "bg-talentia-action text-white hover:bg-talentia-primary"
+                  : "cursor-not-allowed bg-talentia-border text-talentia-disabled-text"
               }`}
             >
               {saving
@@ -703,16 +703,16 @@ export default function TeacherAttendance({
 
         {/* ERROR */}
         {error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-700">
+          <div className="mb-4 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[11px] text-talentia-danger">
             {error}
           </div>
         )}
 
 
         {/* BUSCADOR */}
-        <div className="mb-4 flex h-9 w-full max-w-[360px] items-center rounded-md bg-[#eeeeee] px-3">
+        <div className="mb-4 flex h-9 w-full max-w-[360px] items-center rounded-md bg-talentia-surface px-3">
           <svg
-            className="mr-2 h-4 w-4 text-[#3186d8]"
+            className="mr-2 h-4 w-4 text-talentia-blue"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -746,7 +746,7 @@ export default function TeacherAttendance({
 
         {/* CARGANDO */}
         {loading && (
-          <div className="py-10 text-center text-[11px] text-gray-500">
+          <div className="py-10 text-center text-[11px] text-talentia-muted">
             Cargando asistencia...
           </div>
         )}
@@ -756,7 +756,7 @@ export default function TeacherAttendance({
         {!loading &&
           sessions.length ===
             0 && (
-            <div className="py-10 text-center text-[11px] text-gray-500">
+            <div className="py-10 text-center text-[11px] text-talentia-muted">
               Este curso todavía no
               tiene sesiones de clase
               registradas.
@@ -773,12 +773,12 @@ export default function TeacherAttendance({
                 <table className="w-full min-w-[1180px] border-collapse text-[10px]">
                   <thead>
                     {/* CABECERA PRINCIPAL */}
-                    <tr className="bg-[#eeeeee]">
+                    <tr className="bg-talentia-surface">
                       <th
                         rowSpan={
                           2
                         }
-                        className="w-[42px] border-r border-gray-300 px-2 py-2 text-center font-semibold"
+                        className="w-[42px] border-r border-talentia-border px-2 py-2 text-center font-semibold"
                       >
                         N°
                       </th>
@@ -787,7 +787,7 @@ export default function TeacherAttendance({
                         rowSpan={
                           2
                         }
-                        className="min-w-[220px] border-r border-gray-300 px-3 py-2 text-left font-semibold"
+                        className="min-w-[220px] border-r border-talentia-border px-3 py-2 text-left font-semibold"
                       >
                         Estudiante
                       </th>
@@ -796,7 +796,7 @@ export default function TeacherAttendance({
                         colSpan={
                           sessions.length
                         }
-                        className="border-r border-gray-300 px-2 py-2 text-center font-semibold"
+                        className="border-r border-talentia-border px-2 py-2 text-center font-semibold"
                       >
                         Semanas
                       </th>
@@ -831,7 +831,7 @@ export default function TeacherAttendance({
 
 
                     {/* NÚMERO DE CADA SESIÓN */}
-                    <tr className="bg-[#f7f7f7]">
+                    <tr className="bg-talentia-surface">
                       {sessions.map(
                         (
                           session
@@ -843,7 +843,7 @@ export default function TeacherAttendance({
                             title={
                               session.tema
                             }
-                            className="w-[28px] border-r border-gray-200 px-1 py-1 text-center font-medium"
+                            className="w-[28px] border-r border-talentia-border px-1 py-1 text-center font-medium"
                           >
                             {
                               session.numero
@@ -871,17 +871,17 @@ export default function TeacherAttendance({
                             key={
                               student.matriculaId
                             }
-                            className="border-t border-gray-200"
+                            className="border-t border-talentia-border"
                           >
                             {/* N° */}
-                            <td className="border-r border-gray-200 px-2 py-2 text-center">
+                            <td className="border-r border-talentia-border px-2 py-2 text-center">
                               {index +
                                 1}
                             </td>
 
 
                             {/* ESTUDIANTE */}
-                            <td className="border-r border-gray-200 px-3 py-2 font-medium text-gray-800">
+                            <td className="border-r border-talentia-border px-3 py-2 font-medium text-talentia-primary">
                               {
                                 student.nombre
                               }
@@ -895,7 +895,7 @@ export default function TeacherAttendance({
                               ) => (
                                 <td
                                   key={`${student.matriculaId}-${attendance.sesionClaseId}`}
-                                  className="border-r border-gray-200 p-0 text-center"
+                                  className="border-r border-talentia-border p-0 text-center"
                                 >
                                   <button
                                     type="button"
@@ -912,17 +912,17 @@ export default function TeacherAttendance({
                                     className={`flex h-[30px] w-full items-center justify-center ${
                                       editing &&
                                       !saving
-                                        ? "cursor-pointer hover:bg-gray-100"
+                                        ? "cursor-pointer hover:bg-talentia-hover"
                                         : "cursor-default"
                                     }`}
                                   >
                                     {attendance.estado ===
                                     "presente" ? (
-                                      <span className="text-[#20c85a]">
+                                      <span className="text-talentia-success">
                                         <CheckIcon />
                                       </span>
                                     ) : (
-                                      <span className="text-[#ff5252]">
+                                      <span className="text-talentia-danger">
                                         <XIcon />
                                       </span>
                                     )}
@@ -971,7 +971,7 @@ export default function TeacherAttendance({
               {/* SIN ESTUDIANTES */}
               {filteredStudents.length ===
                 0 && (
-                <div className="py-10 text-center text-[11px] text-gray-500">
+                <div className="py-10 text-center text-[11px] text-talentia-muted">
                   {search.trim()
                     ? "No se encontraron estudiantes."
                     : "No hay estudiantes matriculados en este curso."}
@@ -984,7 +984,7 @@ export default function TeacherAttendance({
 
       {/* MENSAJE GUARDADO */}
       {saved && (
-        <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-[#163f66] px-4 py-3 text-[11px] font-medium text-white shadow-xl">
+        <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-talentia-action px-4 py-3 text-[11px] font-medium text-white shadow-xl">
           Asistencia guardada
           correctamente.
         </div>

@@ -17,22 +17,22 @@ export default function ForumReply({
 
   return (
     <div className="flex gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00b8b3] text-[10px] font-semibold text-white">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-talentia-action text-[10px] font-semibold text-white">
         {reply.initials}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-[11px] font-bold text-gray-900">
+          <span className="text-[11px] font-bold text-talentia-primary">
             {reply.author}
           </span>
 
-          <span className="text-[9px] text-gray-400">
+          <span className="text-[9px] text-talentia-muted">
             {reply.date}
           </span>
         </div>
 
-        <p className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-relaxed text-gray-700">
+        <p className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-relaxed text-talentia-primary">
           {reply.content}
         </p>
 
@@ -40,14 +40,14 @@ export default function ForumReply({
           {canReply && <button
             type="button"
             onClick={onReply}
-            className="text-[10px] font-medium text-gray-600 hover:text-[#3186d8]"
+            className="text-[10px] font-medium text-talentia-primary hover:text-talentia-blue"
           >
             Responder
           </button>}
 
           {hasReplies && (
             <span
-              className="text-[10px] font-semibold text-[#3186d8]"
+              className="text-[10px] font-semibold text-talentia-blue"
             >
               {totalReplies} {totalReplies === 1 ? "respuesta" : "respuestas"}
             </span>

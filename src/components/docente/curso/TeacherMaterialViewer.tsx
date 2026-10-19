@@ -58,18 +58,19 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
 
   return <div className="min-h-screen px-4 py-4 lg:px-5"><div className="mx-auto max-w-[1000px]">
     <div className="mb-3 flex min-w-0 items-center gap-3">
-      <Link href={`/docente/cursos/${courseId}`} className="flex shrink-0 items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+      <Link href={`/docente/cursos/${courseId}`} className="app-back-link">
+          <span aria-hidden="true">{"<"}</span>
+
         Volver a cursos
       </Link>
-      {data && <span className="min-w-0 truncate text-[11px] text-gray-700">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.numeroContenido} {data.content.titulo}</span>}
+      {data && <span className="min-w-0 truncate text-[11px] text-talentia-primary">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.numeroContenido} {data.content.titulo}</span>}
     </div>
-    {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : !data ? <p role="status">Cargando contenido...</p> : <>
-      {data.content.tipo === "enlace" && data.content.urlEnlace ? <a href={data.content.urlEnlace} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3186d8] underline">{data.content.titulo}</a> :
+    {error ? <p role="alert" className="text-sm text-talentia-danger">{error}</p> : !data ? <p role="status">Cargando contenido...</p> : <>
+      {data.content.tipo === "enlace" && data.content.urlEnlace ? <a href={data.content.urlEnlace} target="_blank" rel="noopener noreferrer" className="text-sm text-talentia-blue underline">{data.content.titulo}</a> :
         <ContentViewer title={data.content.titulo} type={types[data.content.tipo] ?? "pdf"} file={data.file} />}
       <div className="mt-5 flex items-center justify-between gap-4">
-        {data.previous ? <Link href={data.previous} className="rounded border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100">Anterior</Link> : <span />}
-        {data.next ? <Link href={data.next} className="rounded bg-[#3186d8] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#2777c1]">Siguiente</Link> : <span />}
+        {data.previous ? <Link href={data.previous} className="rounded border border-talentia-border bg-talentia-surface px-5 py-2 text-sm font-medium text-talentia-primary transition hover:bg-talentia-hover">Anterior</Link> : <span />}
+        {data.next ? <Link href={data.next} className="rounded bg-talentia-action px-5 py-2 text-sm font-medium text-white transition hover:bg-talentia-primary">Siguiente</Link> : <span />}
       </div>
     </>}
   </div></div>;

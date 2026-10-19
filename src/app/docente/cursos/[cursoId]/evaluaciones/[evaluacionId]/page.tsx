@@ -121,12 +121,13 @@ export default async function TeacherEvaluationPage({
         <div className="mb-3 flex items-center gap-3">
           <a
             href={`/docente/cursos/${courseId}`}
-            className="rounded-md bg-[#3186d8] px-3 py-1.5 text-[10px] font-medium text-white"
+            className="app-back-link"
           >
-            ← Volver
+          <span aria-hidden="true">{"<"}</span>
+            Volver
           </a>
 
-          <span className="truncate text-[11px] text-gray-700">
+          <span className="truncate text-[11px] text-talentia-primary">
             Módulo 1: Introducción a las TIC &gt;{" "}
             {quiz.title}
           </span>

@@ -95,7 +95,7 @@ export default function ClassesPage({
 
   if (error) {
     return (
-      <div className="p-10 text-center text-red-600">
+      <div className="p-10 text-center text-talentia-danger">
         {error}
       </div>
     );
@@ -187,17 +187,10 @@ export default function ClassesPage({
         {/* VOLVER */}
         <Link
           href="/alumno/cursos"
-          className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]"
+          className="app-back-link mb-3"
         >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <span aria-hidden="true">{"<"}</span>
+
 
           Volver a cursos
         </Link>
@@ -210,11 +203,11 @@ export default function ClassesPage({
 
         {/* PRÓXIMA CLASE */}
         {proximaClase && (
-          <section className="mt-2 rounded-xl bg-white px-5 py-4 shadow-sm">
+          <section className="mt-2 rounded-xl bg-talentia-surface px-5 py-4 shadow-sm">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#2588db] text-white">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-talentia-action text-white">
                   <svg
                     className="h-7 w-7"
                     viewBox="0 0 24 24"
@@ -236,18 +229,18 @@ export default function ClassesPage({
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-gray-500">
+                  <p className="text-[10px] font-medium uppercase text-talentia-muted">
                     {proximaClase.estado === "En curso"
                       ? "Clase en curso"
                       : "Próxima clase"}
                   </p>
 
-                  <h2 className="text-[17px] font-bold text-gray-900">
+                  <h2 className="text-[17px] font-bold text-talentia-primary">
                     Sesión {proximaClase.numero}:{" "}
                     {proximaClase.tema}
                   </h2>
 
-                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-gray-600">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-talentia-primary">
                     <span className="flex items-center gap-1">
                       <svg
                         className="h-3.5 w-3.5"
@@ -334,7 +327,7 @@ export default function ClassesPage({
                     console.error(error);
                   }
                 }}
-                className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#3186d8] px-5 text-[12px] font-medium text-white transition hover:bg-[#2777c1]"
+                className="flex h-10 items-center justify-center gap-2 rounded-md bg-talentia-action px-5 text-[12px] font-medium text-white transition hover:bg-talentia-primary"
               >
                 <svg
                   className="h-4 w-4"
@@ -362,10 +355,10 @@ export default function ClassesPage({
         )}
 
         {/* TODAS LAS CLASES */}
-        <section className="mt-3 rounded-xl bg-white shadow-sm">
+        <section className="mt-3 rounded-xl bg-talentia-surface shadow-sm">
 
           <div className="px-4 pt-3">
-            <h2 className="text-[14px] font-bold text-gray-900">
+            <h2 className="text-[14px] font-bold text-talentia-primary">
               Todas las clases
             </h2>
           </div>
@@ -373,24 +366,24 @@ export default function ClassesPage({
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-left text-[11px]">
               <thead>
-                <tr className="border-y border-gray-200 bg-[#f8fafc]">
-                  <th className="px-4 py-2.5 font-semibold text-gray-800">
+                <tr className="border-y border-talentia-border bg-talentia-surface">
+                  <th className="px-4 py-2.5 font-semibold text-talentia-primary">
                     Sesión
                   </th>
 
-                  <th className="px-4 py-2.5 font-semibold text-gray-800">
+                  <th className="px-4 py-2.5 font-semibold text-talentia-primary">
                     Tema
                   </th>
 
-                  <th className="px-4 py-2.5 font-semibold text-gray-800">
+                  <th className="px-4 py-2.5 font-semibold text-talentia-primary">
                     Fecha y Hora
                   </th>
 
-                  <th className="px-4 py-2.5 font-semibold text-gray-800">
+                  <th className="px-4 py-2.5 font-semibold text-talentia-primary">
                     Estado
                   </th>
 
-                  <th className="px-4 py-2.5 text-right font-semibold text-gray-800">
+                  <th className="px-4 py-2.5 text-right font-semibold text-talentia-primary">
                     Acción
                   </th>
                 </tr>
@@ -407,22 +400,22 @@ export default function ClassesPage({
                   return (
                     <tr
                       key={clase.id}
-                      className="border-b border-gray-200 last:border-b-0"
+                      className="border-b border-talentia-border last:border-b-0"
                     >
-                      <td className="px-4 py-2.5 text-gray-700">
+                      <td className="px-4 py-2.5 text-talentia-primary">
                         {clase.numero}
                       </td>
 
-                      <td className="px-4 py-2.5 text-gray-700">
+                      <td className="px-4 py-2.5 text-talentia-primary">
                         {clase.tema}
                       </td>
 
                       <td className="px-4 py-2.5">
-                        <div className="font-medium text-gray-700">
+                        <div className="font-medium text-talentia-primary">
                           {clase.fecha}
                         </div>
 
-                        <div className="text-[10px] text-gray-400">
+                        <div className="text-[10px] text-talentia-muted">
                           {clase.horario}
                         </div>
                       </td>
@@ -431,12 +424,12 @@ export default function ClassesPage({
                         <span
                           className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-medium ${
                             clase.estado === "Finalizada"
-                              ? "bg-[#cef1d2] text-[#27a844]"
+                              ? "bg-talentia-success-bg text-talentia-success"
                               : clase.estado === "En curso"
-                                ? "bg-[#ffe6a3] text-[#c58a00]"
+                                ? "bg-talentia-warning-bg text-talentia-warning"
                                 : clase.estado === "Cancelada"
-                                  ? "bg-[#f7c7c7] text-[#c44242]"
-                                  : "bg-[#77c3fb] text-[#2479c5]"
+                                  ? "bg-talentia-danger-bg text-talentia-danger"
+                                  : "bg-talentia-selected text-talentia-blue"
                           }`}
                         >
                           {clase.estado}
@@ -450,7 +443,7 @@ export default function ClassesPage({
                             onClick={() =>
                               void handleRecording(clase)
                             }
-                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-medium text-white transition hover:bg-[#2777c1]"
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -484,7 +477,7 @@ export default function ClassesPage({
                             onClick={() =>
                               void handleJoin(clase)
                             }
-                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-medium text-white transition hover:bg-[#2777c1]"
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -516,7 +509,7 @@ export default function ClassesPage({
                           <button
                             type="button"
                             disabled
-                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-gray-300 px-4 text-[10px] font-medium text-gray-500"
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[10px] font-medium text-talentia-muted"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -548,7 +541,7 @@ export default function ClassesPage({
                           <button
                             type="button"
                             disabled
-                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-gray-300 px-4 text-[10px] font-medium text-gray-500"
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[10px] font-medium text-talentia-muted"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -577,7 +570,7 @@ export default function ClassesPage({
                         )}
 
                         {clase.estado === "Cancelada" && (
-                          <span className="text-gray-400">
+                          <span className="text-talentia-muted">
                             —
                           </span>
                         )}

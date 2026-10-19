@@ -16,32 +16,32 @@ export default function ChatContactItem({
     <button
       type="button"
       onClick={() => onSelect(contact.id)}
-      className={`flex w-full items-center gap-3 border-b border-gray-200 px-4 py-3 text-left transition ${
+      className={`flex w-full items-center gap-3 border-b border-talentia-border px-4 py-3 text-left transition ${
         selected
-          ? "bg-[#9558f5]"
-          : "bg-white hover:bg-[#f5f7fa]"
+          ? "bg-talentia-selected"
+          : "bg-talentia-surface hover:bg-talentia-hover"
       }`}
     >
       <ChatAvatar
         src={contact.fotoPerfil}
         initials={contact.initials}
         name={contact.name}
-        className="h-12 w-12 bg-[#11b7b8] text-[11px]"
+        className="h-12 w-12 bg-talentia-blue text-[13px]"
       />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] font-semibold text-gray-900">
+        <p className="truncate text-[13px] font-semibold text-talentia-primary">
           {contact.name}
         </p>
 
-        <p className="mt-0.5 text-[10px] text-gray-700">
+        <p className="mt-0.5 text-[12px] text-talentia-primary">
           {contact.role}
         </p>
       </div>
 
       {contact.unread && !selected && (
         <span
-          className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3186d8]"
+          className="h-2.5 w-2.5 shrink-0 rounded-full bg-talentia-teal"
           title="Sin leer"
         />
       )}

@@ -179,7 +179,7 @@ export default function PdfViewer({
 
       <div
         ref={containerRef}
-        className="h-[560px] overflow-y-auto bg-[#666666] p-4"
+        className="h-[560px] overflow-y-auto bg-talentia-border p-4"
       >
         <Document
           file={file}

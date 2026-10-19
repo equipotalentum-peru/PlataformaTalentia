@@ -75,13 +75,7 @@ function MinusIcon() {
   );
 }
 
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.9">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
+
 
 function QuestionTypeLabel({ type }: { type: EvaluationQuestionType }) {
   if (type === "multiple") return "Selección múltiple";
@@ -220,8 +214,9 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
   return (
     <div className="min-h-screen px-3 py-3 lg:px-5">
       <div className="mx-auto max-w-[1000px]">
-        <Link href={backHref} className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
-          <BackIcon />
+        <Link href={backHref} className="app-back-link mb-3">
+          <span aria-hidden="true">{"<"}</span>
+
           Volver a cursos
         </Link>
 
@@ -230,58 +225,58 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
         <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
 
         <div className="grid grid-cols-1 gap-3 py-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(290px,1fr)]">
-          <section className="rounded-md bg-white p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
+          <section className="rounded-md bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_170px]">
               <div>
-                <label htmlFor="evaluation-title" className="mb-1 block text-[10px] font-medium text-[#3186d8]">Título:</label>
+                <label htmlFor="evaluation-title" className="mb-1 block text-[10px] font-medium text-talentia-blue">Título:</label>
                 <input
                   id="evaluation-title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  className="h-8 w-full rounded-md border border-[#e7eaee] bg-[#f1f1f1] px-2 text-[11px] outline-none focus:border-[#3186d8]"
+                  className="h-8 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[11px] outline-none focus:border-talentia-blue"
                 />
 
-                <label htmlFor="evaluation-description" className="mb-1 mt-2 block text-[10px] font-medium text-[#3186d8]">Descripción e Instrucciones:</label>
+                <label htmlFor="evaluation-description" className="mb-1 mt-2 block text-[10px] font-medium text-talentia-blue">Descripción e Instrucciones:</label>
                 <textarea
                   id="evaluation-description"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
-                  className="h-[74px] w-full resize-none rounded-md border border-[#e7eaee] bg-[#f1f1f1] p-2 text-[10px] outline-none focus:border-[#3186d8]"
+                  className="h-[74px] w-full resize-none rounded-md border border-talentia-border bg-talentia-surface p-2 text-[10px] outline-none focus:border-talentia-blue"
                 />
               </div>
 
               <div>
-                <label htmlFor="evaluation-type" className="mb-1 block text-[10px] font-medium text-[#3186d8]">Tipo de Evaluación:</label>
+                <label htmlFor="evaluation-type" className="mb-1 block text-[10px] font-medium text-talentia-blue">Tipo de Evaluación:</label>
                 <div className="relative">
                   <select
                     id="evaluation-type"
                     value={evaluationType}
                     onChange={(event) => setEvaluationType(event.target.value as EvaluationQuestionType)}
-                    className="h-10 w-full appearance-none rounded-md border border-[#dfe4ea] bg-[#f1f1f1] px-3 text-[10px] outline-none focus:border-[#3186d8]"
+                    className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 text-[10px] outline-none focus:border-talentia-blue"
                   >
                     <option value="single">Práctica</option>
                     <option value="multiple">Selección múltiple</option>
                     <option value="boolean">Verdadero / Falso</option>
                   </select>
-                  <span className="pointer-events-none absolute right-2 top-3 text-gray-500"><ChevronDownIcon /></span>
+                  <span className="pointer-events-none absolute right-2 top-3 text-talentia-muted"><ChevronDownIcon /></span>
                 </div>
               </div>
             </div>
 
             <div className="mt-3 flex items-center justify-between">
-              <h2 className="text-[10px] font-semibold text-[#3186d8]">Preguntas:</h2>
-              <span className="text-[8px] text-gray-500">{questions.length} preguntas · {totalQuestionPoints} pts</span>
+              <h2 className="text-[10px] font-semibold text-talentia-primary">Preguntas:</h2>
+              <span className="text-[8px] text-talentia-muted">{questions.length} preguntas · {totalQuestionPoints} pts</span>
             </div>
 
             <div className="mt-2 space-y-2.5">
               {questions.map((question) => (
-                <div key={question.id} className="rounded-md border border-[#d7e2ee] bg-white">
-                  <div className="flex items-center gap-1.5 rounded-t-md bg-[#a9dcf8] px-2 py-1">
-                    <span className="flex-1 text-[9px] font-semibold text-[#3186d8]">Pregunta {question.id}</span>
+                <div key={question.id} className="rounded-md border border-talentia-border bg-talentia-surface">
+                  <div className="flex items-center gap-1.5 rounded-t-md bg-talentia-selected px-2 py-1">
+                    <span className="flex-1 text-[9px] font-semibold text-talentia-blue">Pregunta {question.id}</span>
                     <select
                       value={question.type}
                       onChange={(event) => updateQuestionType(question.id, event.target.value as EvaluationQuestionType)}
-                      className="h-5 rounded border border-white/80 bg-white/80 px-1 text-[8px] text-gray-700 outline-none"
+                      className="h-5 rounded border border-white/80 bg-talentia-surface/80 px-1 text-[8px] text-talentia-primary outline-none"
                       aria-label={`Tipo de pregunta ${question.id}`}
                     >
                       <option value="single">Selección única</option>
@@ -291,7 +286,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                     <button
                       type="button"
                       onClick={() => removeQuestion(question.id)}
-                      className="flex h-5 w-5 items-center justify-center rounded bg-red-100 text-red-500 hover:bg-red-200 disabled:opacity-40"
+                      className="flex h-5 w-5 items-center justify-center rounded bg-talentia-danger-bg text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-40"
                       disabled={questions.length === 1}
                       aria-label={`Eliminar pregunta ${question.id}`}
                     >
@@ -302,16 +297,16 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   <div className="p-2">
                     <div className="grid grid-cols-[minmax(0,1fr)_40px] gap-2">
                       <div>
-                        <label htmlFor={`question-${question.id}`} className="block text-[8px] font-medium text-[#3186d8]">Enunciado:</label>
+                        <label htmlFor={`question-${question.id}`} className="block text-[8px] font-medium text-talentia-blue">Enunciado:</label>
                         <input
                           id={`question-${question.id}`}
                           value={question.prompt}
                           onChange={(event) => updateQuestion(question.id, { prompt: event.target.value })}
-                          className="mt-1 h-7 w-full rounded border border-[#e4e9ee] bg-[#f3f3f3] px-2 text-[9px] outline-none focus:border-[#3186d8]"
+                          className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-2 text-[9px] outline-none focus:border-talentia-blue"
                         />
                       </div>
                       <div>
-                        <label htmlFor={`points-${question.id}`} className="block text-[8px] font-medium text-[#3186d8]">Pts</label>
+                        <label htmlFor={`points-${question.id}`} className="block text-[8px] font-medium text-talentia-blue">Pts</label>
                         <input
                           id={`points-${question.id}`}
                           type="number"
@@ -319,29 +314,29 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                           max={100}
                           value={question.points}
                           onChange={(event) => updateQuestion(question.id, { points: Math.max(0, Number(event.target.value) || 0) })}
-                          className="mt-1 h-7 w-full rounded border border-[#e4e9ee] bg-[#f3f3f3] px-1 text-center text-[9px] outline-none focus:border-[#3186d8]"
+                          className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-1 text-center text-[9px] outline-none focus:border-talentia-blue"
                         />
                       </div>
                     </div>
 
-                    <div className="mt-1.5 text-[8px] text-[#3186d8]">Opciones de Respuesta:</div>
+                    <div className="mt-1.5 text-[8px] text-talentia-blue">Opciones de Respuesta:</div>
                     <div className="mt-1 space-y-1">
                       {question.options.map((option) => (
                         <div key={option.id} className="grid grid-cols-[16px_18px_minmax(0,1fr)_16px] items-center gap-1">
-                          <span className="h-3 w-3 rounded-full border border-gray-500" />
-                          <span className="text-[8px] text-gray-600">{option.id}</span>
+                          <span className="h-3 w-3 rounded-full border border-talentia-border" />
+                          <span className="text-[8px] text-talentia-primary">{option.id}</span>
                           <input
                             aria-label={`Opción ${option.id} de pregunta ${question.id}`}
                             value={option.text}
                             onChange={(event) => updateOption(question.id, option.id, event.target.value)}
-                            className="h-5 rounded border border-[#e3e7ec] bg-[#f4f4f4] px-1.5 text-[8px] outline-none focus:border-[#3186d8]"
+                            className="h-5 rounded border border-talentia-border bg-talentia-surface px-1.5 text-[8px] outline-none focus:border-talentia-blue"
                             disabled={question.type === "boolean"}
                           />
                           <button
                             type="button"
                             onClick={() => removeOption(question.id, option.id)}
                             disabled={question.type === "boolean" || question.options.length <= 2}
-                            className="flex h-4 w-4 items-center justify-center text-red-400 hover:text-red-600 disabled:opacity-30"
+                            className="flex h-4 w-4 items-center justify-center text-talentia-danger hover:text-talentia-danger disabled:opacity-30"
                             aria-label={`Eliminar opción ${option.id}`}
                           >
                             <TrashIcon />
@@ -354,7 +349,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                       <button
                         type="button"
                         onClick={() => addOption(question.id)}
-                        className="mt-2 flex h-6 items-center gap-1 rounded bg-[#a9dcf8] px-2.5 text-[8px] font-semibold text-[#3186d8] hover:bg-[#99d2f2] disabled:opacity-40"
+                        className="mt-2 flex h-6 items-center gap-1 rounded bg-talentia-selected px-2.5 text-[8px] font-semibold text-talentia-blue hover:bg-talentia-hover disabled:opacity-40"
                         disabled={question.options.length >= 6}
                       >
                         <PlusIcon />
@@ -369,101 +364,101 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
             <button
               type="button"
               onClick={addQuestion}
-              className="mt-2.5 flex h-7 w-full items-center justify-center gap-1 rounded-md bg-[#a9dcf8] text-[8px] font-semibold text-[#3186d8] hover:bg-[#99d2f2]"
+              className="mt-2.5 flex h-7 w-full items-center justify-center gap-1 rounded-md bg-talentia-selected text-[8px] font-semibold text-talentia-blue hover:bg-talentia-hover"
             >
               <PlusIcon />
               Agregar Pregunta
             </button>
           </section>
 
-          <aside className="rounded-md bg-white p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
-            <h2 className="text-[10px] font-medium text-[#3186d8]">Configuración de Evaluación:</h2>
+          <aside className="rounded-md bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
+            <h2 className="text-[10px] font-medium text-talentia-primary">Configuración de Evaluación:</h2>
 
-            <div className="mt-3 space-y-3 text-[9px] text-gray-700">
+            <div className="mt-3 space-y-3 text-[9px] text-talentia-primary">
               <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Tiempo Límite:</span>
+                <span className="text-talentia-blue">Tiempo Límite:</span>
                 <input
                   type="number"
                   min={0}
                   value={duration}
                   onChange={(event) => setDuration(Math.max(0, Number(event.target.value) || 0))}
-                  className="h-6 w-10 rounded border border-[#e2e6ea] bg-[#f1f1f1] text-center text-[8px] outline-none"
+                  className="h-6 w-10 rounded border border-talentia-border bg-talentia-surface text-center text-[8px] outline-none"
                 />
                 <span>Min</span>
               </div>
 
               <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Intentos:</span>
-                <button type="button" onClick={() => setAttempts((value) => Math.max(1, value - 1))} className="flex h-6 w-6 items-center justify-center rounded bg-[#f1f1f1] border border-[#e2e6ea] text-gray-600"><MinusIcon /></button>
-                <button type="button" onClick={() => setAttempts((value) => Math.min(10, value + 1))} className="flex h-6 min-w-[36px] items-center justify-center rounded bg-[#f1f1f1] border border-[#e2e6ea] px-1 text-[8px] text-gray-700">{attempts}<span className="ml-1">+</span></button>
+                <span className="text-talentia-blue">Intentos:</span>
+                <button type="button" onClick={() => setAttempts((value) => Math.max(1, value - 1))} className="flex h-6 w-6 items-center justify-center rounded bg-talentia-surface border border-talentia-border text-talentia-primary"><MinusIcon /></button>
+                <button type="button" onClick={() => setAttempts((value) => Math.min(10, value + 1))} className="flex h-6 min-w-[36px] items-center justify-center rounded bg-talentia-surface border border-talentia-border px-1 text-[8px] text-talentia-primary">{attempts}<span className="ml-1">+</span></button>
               </div>
 
               <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Puntaje:</span>
+                <span className="text-talentia-blue">Puntaje:</span>
                 <input
                   type="number"
                   min={0}
                   value={totalPoints}
                   onChange={(event) => setTotalPoints(Math.max(0, Number(event.target.value) || 0))}
-                  className="h-6 w-12 rounded border border-[#e2e6ea] bg-[#f1f1f1] text-center text-[8px] outline-none"
+                  className="h-6 w-12 rounded border border-talentia-border bg-talentia-surface text-center text-[8px] outline-none"
                 />
                 <span>Pts</span>
               </div>
 
               <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Preguntas:</span>
-                <span className="flex h-6 w-12 items-center justify-center rounded bg-[#f1f1f1] px-1 text-[8px]">{questions.length}</span>
+                <span className="text-talentia-blue">Preguntas:</span>
+                <span className="flex h-6 w-12 items-center justify-center rounded bg-talentia-surface px-1 text-[8px]">{questions.length}</span>
                 <span> </span>
               </div>
 
               <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Fecha de Inicio:</span>
-                <label className="flex h-7 w-[106px] items-center gap-1 rounded bg-[#f1f1f1] px-2 text-gray-500">
+                <span className="text-talentia-blue">Fecha de Inicio:</span>
+                <label className="flex h-7 w-[106px] items-center gap-1 rounded bg-talentia-surface px-2 text-talentia-muted">
                   <CalendarIcon />
                   <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="min-w-0 bg-transparent text-[8px] outline-none" />
                 </label>
               </div>
 
               <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                <span className="text-[#3186d8]">Fecha Final:</span>
-                <label className="flex h-7 w-[106px] items-center gap-1 rounded bg-[#f1f1f1] px-2 text-gray-500">
+                <span className="text-talentia-blue">Fecha Final:</span>
+                <label className="flex h-7 w-[106px] items-center gap-1 rounded bg-talentia-surface px-2 text-talentia-muted">
                   <CalendarIcon />
                   <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="min-w-0 bg-transparent text-[8px] outline-none" />
                 </label>
               </div>
 
               <div className="mt-1 flex items-center justify-between gap-2">
-                <span className="text-[#3186d8]">Es una actividad calificada?</span>
+                <span className="text-talentia-blue">Es una actividad calificada?</span>
                 <button
                   type="button"
                   onClick={() => setGraded((value) => !value)}
                   className="flex items-center gap-1"
                   aria-pressed={graded}
                 >
-                  <span className="text-[8px] text-gray-600">No</span>
-                  <span className={`flex h-4 w-8 items-center rounded-full p-0.5 transition ${graded ? "bg-[#d8eaf7] justify-end" : "bg-[#dddddd] justify-start"}`}>
-                    <span className={`h-3 w-3 rounded-full transition ${graded ? "bg-[#3186d8]" : "bg-white"}`} />
+                  <span className="text-[8px] text-talentia-primary">No</span>
+                  <span className={`flex h-4 w-8 items-center rounded-full p-0.5 transition ${graded ? "bg-talentia-selected justify-end" : "bg-talentia-surface justify-start"}`}>
+                    <span className={`h-3 w-3 rounded-full transition ${graded ? "bg-talentia-blue" : "bg-talentia-surface"}`} />
                   </span>
-                  <span className="text-[8px] text-gray-600">Sí</span>
+                  <span className="text-[8px] text-talentia-primary">Sí</span>
                 </button>
               </div>
             </div>
 
-            <div className="mt-5 rounded-md bg-[#f5f8fb] px-2.5 py-2 text-[8px] text-gray-500">
-              Puntos distribuidos en preguntas: <span className="font-semibold text-[#3186d8]">{totalQuestionPoints}</span> / {totalPoints}
+            <div className="mt-5 rounded-md bg-talentia-surface px-2.5 py-2 text-[8px] text-talentia-muted">
+              Puntos distribuidos en preguntas: <span className="font-semibold text-talentia-blue">{totalQuestionPoints}</span> / {totalPoints}
             </div>
           </aside>
         </div>
 
         <div className="flex flex-wrap justify-end gap-2 pb-3 pt-1">
-          <Link href={backHref} className="flex h-8 items-center justify-center rounded-md bg-[#efe6fa] px-4 text-[10px] font-semibold text-[#4b5fa7] hover:bg-[#e7dcf4]">Cancelar</Link>
-          <button type="button" onClick={() => submit("Borrador")} className="h-8 rounded-md bg-white px-4 text-[10px] font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Guardar como borrador</button>
-          <button type="button" onClick={() => submit("Publicado")} className="h-8 rounded-md bg-[#3186d8] px-4 text-[10px] font-semibold text-white shadow-sm hover:bg-[#2777c1]">Publicar</button>
+          <Link href={backHref} className="flex h-8 items-center justify-center rounded-md bg-talentia-surface px-4 text-[10px] font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
+          <button type="button" onClick={() => submit("Borrador")} className="h-8 rounded-md bg-talentia-surface px-4 text-[10px] font-semibold text-talentia-primary shadow-sm hover:bg-talentia-hover">Guardar como borrador</button>
+          <button type="button" onClick={() => submit("Publicado")} className="h-8 rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white shadow-sm hover:bg-talentia-primary">Publicar</button>
         </div>
       </div>
 
       {notice && (
-        <div className="fixed bottom-5 right-5 z-[140] rounded-lg bg-[#163f66] px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">
+        <div className="fixed bottom-5 right-5 z-[140] rounded-lg bg-talentia-action px-4 py-2.5 text-[11px] font-medium text-white shadow-xl">
           {notice}
         </div>
       )}

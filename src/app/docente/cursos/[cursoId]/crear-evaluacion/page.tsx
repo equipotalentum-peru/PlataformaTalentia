@@ -88,7 +88,7 @@ export default function CreateEvaluationPage({
           actividades: 0,
           evaluaciones: 0,
           progreso: 0,
-          accent: "#54d6d8",
+          accent: "var(--talentia-teal)",
         });
       } catch (loadError) {
         if (controller.signal.aborted) return;
@@ -112,7 +112,7 @@ export default function CreateEvaluationPage({
 
   if (loading) {
     return (
-      <main className="p-8 text-center text-sm text-gray-500">
+      <main className="p-8 text-center text-sm text-talentia-muted">
         Cargando curso...
       </main>
     );
@@ -123,7 +123,7 @@ export default function CreateEvaluationPage({
       <main className="min-h-screen px-4 py-5 lg:px-6">
         <p
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg p-4 text-sm text-talentia-danger"
         >
           {error || "No se encontró el curso o no tienes acceso a él."}
         </p>

@@ -380,7 +380,7 @@ export default function CrearCurso({
 
   if (modoEdicion && cargandoCurso) {
     return (
-      <div className="mx-auto w-full max-w-[1600px] p-8 text-center text-[#64748B]">
+      <div className="mx-auto w-full max-w-[1600px] p-8 text-center text-talentia-muted">
         Cargando datos del curso...
       </div>
     );
@@ -389,15 +389,16 @@ export default function CrearCurso({
   if (modoEdicion && errorCargaCurso) {
     return (
       <div className="mx-auto w-full max-w-[1600px] space-y-4 p-8">
-        <p role="alert" className="text-sm font-semibold text-red-600">
+        <p role="alert" className="text-sm font-semibold text-talentia-danger">
           {errorCargaCurso}
         </p>
 
         <button
           type="button"
           onClick={() => router.push("/administrador/cursos")}
-          className="rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white"
+          className="app-back-link"
         >
+          <span aria-hidden="true">{"<"}</span>
           Volver a cursos
         </button>
       </div>
@@ -410,14 +411,15 @@ export default function CrearCurso({
       <div className="mb-6">
         <Link
           href="/administrador/cursos"
-          className="text-xs text-[#64748B] hover:text-[#0F2851] font-semibold transition flex items-center gap-1 mb-2"
+          className="app-back-link mb-2"
         >
-          ← Volver a cursos
+          <span aria-hidden="true">{"<"}</span>
+          Volver a cursos
         </Link>
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           {modoEdicion ? step === 4 ? "Revisar cambios" : "Editar curso" : step === 4 ? "Publicar curso" : "Crear curso"}
         </h1>
-        <p className="text-xs font-semibold text-[#64748B] mt-1">
+        <p className="text-xs font-semibold text-talentia-muted mt-1">
           {modoEdicion
             ? "Actualiza los datos del curso, su sistema de calificación y el docente responsable."
             : step === 4
@@ -428,33 +430,33 @@ export default function CrearCurso({
 
       {/* Stepper Global (Visualización para Pasos 1, 2 y 3) */}
       {step <= 3 && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div className="bg-talentia-surface rounded-3xl p-6 shadow-sm border border-talentia-border mb-8">
           <div className="flex items-center justify-between max-w-3xl mx-auto">
             <div
               className={`text-xs font-extrabold ${
-                step >= 1 ? "text-[#0F2851]" : "text-[#94A3B8]"
+                step >= 1 ? "text-talentia-primary" : "text-talentia-placeholder"
               }`}
             >
               1. Datos del curso
             </div>
-            <div className="h-[2px] bg-gray-200 flex-1 mx-4"></div>
+            <div className="h-[2px] bg-talentia-border flex-1 mx-4"></div>
             <div
               className={`text-xs font-extrabold px-4 py-2 rounded-full ${
                 step === 2
-                  ? "bg-[#BAE6FD] text-[#0369A1]"
+                  ? "bg-talentia-selected text-talentia-blue"
                   : step > 2
-                  ? "text-[#0F2851]"
-                  : "bg-gray-100 text-[#94A3B8]"
+                  ? "text-talentia-primary"
+                  : "bg-talentia-surface text-talentia-placeholder"
               }`}
             >
               2. Evaluaciones
             </div>
-            <div className="h-[2px] bg-gray-200 flex-1 mx-4"></div>
+            <div className="h-[2px] bg-talentia-border flex-1 mx-4"></div>
             <div
               className={`text-xs font-extrabold px-4 py-2 rounded-full ${
                 step === 3
-                  ? "bg-[#E8DDFB] text-[#5B21B6]"
-                  : "bg-gray-100 text-[#94A3B8]"
+                  ? "bg-talentia-purple-soft text-talentia-purple"
+                  : "bg-talentia-surface text-talentia-placeholder"
               }`}
             >
               3. Docentes y visibilidad
@@ -467,10 +469,10 @@ export default function CrearCurso({
 
       {/* PASO 1: Formulario de Datos Iniciales */}
       {step === 1 && (
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-8 space-y-6">
+        <div className="bg-talentia-surface rounded-3xl p-8 shadow-sm border border-talentia-border/80 mb-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+              <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Nombre del curso *
               </label>
               <input
@@ -480,12 +482,12 @@ export default function CrearCurso({
                 onChange={handleChange}
                 placeholder="Diseño UX"
                 required
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+              <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Código *
               </label>
               <input
@@ -495,12 +497,12 @@ export default function CrearCurso({
                 onChange={handleChange}
                 placeholder="UX001"
                 required
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+              <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Cupos *
               </label>
               <input
@@ -510,14 +512,14 @@ export default function CrearCurso({
                 onChange={handleChange}
                 placeholder="80"
                 required
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+              <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Categoría *
               </label>
               <select
@@ -525,7 +527,7 @@ export default function CrearCurso({
                 value={formData.categoria}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition cursor-pointer font-medium"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition cursor-pointer font-medium"
               >
                 <option value="Diseño">Diseño</option>
                 <option value="Tecnología">Tecnología</option>
@@ -534,7 +536,7 @@ export default function CrearCurso({
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+              <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Modalidad *
               </label>
               <select
@@ -542,7 +544,7 @@ export default function CrearCurso({
                 value={formData.modalidad}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 text-sm text-[#0F2851] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition cursor-pointer font-medium"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition cursor-pointer font-medium"
               >
                 <option value="Virtual">Virtual</option>
                 <option value="Presencial">Presencial</option>
@@ -554,7 +556,7 @@ export default function CrearCurso({
           <div>
             <label
               htmlFor="periodoId"
-              className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+              className="mb-2 block text-xs font-extrabold text-talentia-primary"
             >
               Periodo académico
             </label>
@@ -565,7 +567,7 @@ export default function CrearCurso({
               value={formData.periodoId}
               onChange={handleChange}
               disabled={cargandoPeriodos}
-              className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-sm font-medium text-[#0F2851] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#3B82F6] disabled:opacity-50"
+              className="w-full rounded-2xl border border-talentia-border bg-talentia-surface px-4 py-3.5 text-sm font-medium text-talentia-primary outline-none transition focus:bg-talentia-surface focus:ring-2 focus:ring-talentia-blue disabled:opacity-50"
             >
               <option value="">
                 Sin periodo asignado (solo borrador)
@@ -588,20 +590,20 @@ export default function CrearCurso({
                 ))}
             </select>
 
-            <p className="mt-2 text-xs text-[#64748B]">
+            <p className="mt-2 text-xs text-talentia-muted">
               El periodo define las fechas de la oferta. Es obligatorio
               para publicar el curso.
             </p>
 
             {errorPeriodos && (
-              <p role="alert" className="mt-2 text-sm text-red-600">
+              <p role="alert" className="mt-2 text-sm text-talentia-danger">
                 {errorPeriodos}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-[#0F2851] mb-2">
+            <label className="block text-xs font-extrabold text-talentia-primary mb-2">
               Descripción *
             </label>
             <textarea
@@ -611,14 +613,14 @@ export default function CrearCurso({
               onChange={handleChange}
               placeholder="Insertar descripción"
               required
-              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 text-sm text-[#0F2851] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white transition font-medium resize-none"
+              className="w-full bg-talentia-surface border border-talentia-border rounded-2xl p-4 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium resize-none"
             />
           </div>
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div>
               <label
                 htmlFor="imagenPortada"
-                className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+                className="mb-2 block text-xs font-extrabold text-talentia-primary"
               >
                 Imagen de portada
               </label>
@@ -629,32 +631,32 @@ export default function CrearCurso({
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={handleImagenPortadaChange}
-                className="block w-full cursor-pointer rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm text-[#64748B] file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-[#DBEAFE] file:px-4 file:py-2 file:font-bold file:text-[#1D4ED8] hover:file:bg-[#BFDBFE]"
+                className="block w-full cursor-pointer rounded-2xl border border-talentia-border bg-talentia-surface p-3 text-sm text-talentia-muted file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-talentia-selected file:px-4 file:py-2 file:font-bold file:text-talentia-blue hover:file:bg-talentia-hover"
               />
 
-              <p className="mt-2 text-xs text-[#64748B]">
+              <p className="mt-2 text-xs text-talentia-muted">
                 Formatos permitidos: JPG, PNG y WebP. Tamaño máximo: 5 MB.
               </p>
 
               {imagenPortada && (
-                <p className="mt-2 break-all text-xs font-semibold text-[#0F2851]">
+                <p className="mt-2 break-all text-xs font-semibold text-talentia-primary">
                   Archivo seleccionado: {imagenPortada.name}
                 </p>
               )}
 
               {errorImagen && (
-                <p role="alert" className="mt-2 text-sm font-semibold text-red-600">
+                <p role="alert" className="mt-2 text-sm font-semibold text-talentia-danger">
                   {errorImagen}
                 </p>
               )}
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-extrabold text-[#0F2851]">
+              <p className="mb-2 text-xs font-extrabold text-talentia-primary">
                 Vista previa
               </p>
 
-              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]">
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-dashed border-talentia-border bg-talentia-surface">
                 {vistaPreviaImagen ? (
                   <Image
                     src={vistaPreviaImagen}
@@ -666,10 +668,10 @@ export default function CrearCurso({
                   />
                 ) : (
                   <div className="px-4 text-center">
-                    <p className="text-sm font-bold text-[#64748B]">
+                    <p className="text-sm font-bold text-talentia-muted">
                       Sin imagen seleccionada
                     </p>
-                    <p className="mt-1 text-xs text-[#94A3B8]">
+                    <p className="mt-1 text-xs text-talentia-placeholder">
                       La imagen del curso aparecerá aquí.
                     </p>
                   </div>
@@ -725,7 +727,7 @@ export default function CrearCurso({
       )}
 
       {errorGuardar && step <= 3 && (
-        <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="mb-4 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm text-talentia-danger">
           {errorGuardar}
         </p>
       )}
@@ -737,7 +739,7 @@ export default function CrearCurso({
             <button
               type="button"
               onClick={() => setStep(step - 1)}
-              className="bg-white hover:bg-gray-50 text-[#0F2851] border border-gray-200 font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
+              className="bg-talentia-surface hover:bg-talentia-hover text-talentia-primary border border-talentia-border font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
             >
               Anterior
             </button>
@@ -749,7 +751,7 @@ export default function CrearCurso({
             <button
               type="button"
               onClick={step === 1 ? handleContinuarPasoUno : () => { setErrorGuardar(""); setStep(step + 1); }}
-              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
+              className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
             >
               Continuar
             </button>
@@ -760,7 +762,7 @@ export default function CrearCurso({
                 setErrorGuardar("");
                 setStep(4);
               }}
-              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
+              className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-10 py-3.5 rounded-2xl text-sm transition shadow-sm cursor-pointer"
             >
               Revisar curso
             </button>

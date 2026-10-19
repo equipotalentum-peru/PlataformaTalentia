@@ -274,7 +274,7 @@ export default function DocxViewer({
 
       <div
         ref={rootRef}
-        className="h-[560px] overflow-auto bg-[#666666] p-7"
+        className="h-[560px] overflow-auto bg-talentia-border p-7"
       >
 
         {loading && (

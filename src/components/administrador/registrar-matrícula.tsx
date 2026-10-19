@@ -44,7 +44,7 @@ interface RegistrarMatriculaProps {
 }
 
 const CLASE_INPUT =
-  "w-full bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm font-semibold text-[#0F2851] placeholder-[#94A3B8] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30";
+  "w-full bg-talentia-surface border border-talentia-border rounded-2xl px-5 py-3 text-sm font-semibold text-talentia-primary placeholder-talentia-placeholder shadow-sm focus:outline-none focus:ring-2 focus:ring-talentia-blue/30";
 
 
 function etiquetaAlumno(alumno: AlumnoOption) {
@@ -214,13 +214,13 @@ const ofertasFiltradas = useMemo(() => {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100/80 mb-6">
-        <h2 className="text-xl font-extrabold text-[#0F2851] mb-6">
+      <div className="bg-talentia-surface rounded-3xl p-8 shadow-sm border border-talentia-border/80 mb-6">
+        <h2 className="text-xl font-extrabold text-talentia-primary mb-6">
           Nueva matrícula
         </h2>
 
         {cargando && (
-          <p className="mb-5 text-sm font-semibold text-[#64748B]">
+          <p className="mb-5 text-sm font-semibold text-talentia-muted">
             Cargando alumnos, cursos y periodos...
           </p>
         )}
@@ -228,7 +228,7 @@ const ofertasFiltradas = useMemo(() => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="alumnoMatricula" className="block text-xs font-bold text-[#0F2851] mb-2">
+              <label htmlFor="alumnoMatricula" className="block text-xs font-bold text-talentia-primary mb-2">
                 Alumno *
               </label>
               <input
@@ -250,7 +250,7 @@ const ofertasFiltradas = useMemo(() => {
             </div>
             
             <div className="relative">
-              <label htmlFor="cursoMatricula" className="block text-xs font-bold text-[#0F2851] mb-2">Curso *</label>
+              <label htmlFor="cursoMatricula" className="block text-xs font-bold text-talentia-primary mb-2">Curso *</label>
               <input id="cursoMatricula" type="text" value={ofertaTexto} onChange={(event) =>
               handleOfertaTextoChange(event.target.value)} onFocus={() => setMostrarSugerenciasOferta(true)} onBlur={() => { 
               }}
@@ -267,7 +267,7 @@ const ofertasFiltradas = useMemo(() => {
               {mostrarSugerenciasOferta && !cargando && (
                 <div id="ofertasDisponibles"
                 role="listbox"
-                className="absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-lg"
+                className="absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-talentia-border bg-talentia-surface p-2 shadow-lg"
                 >
                   {ofertasFiltradas.length > 0 ? (
                     ofertasFiltradas.map((oferta) => (
@@ -278,23 +278,23 @@ const ofertasFiltradas = useMemo(() => {
                     aria-selected={oferta.id === ofertaCursoId}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => seleccionarOferta(oferta)}
-                    className={`block w-full rounded-xl px-4 py-3 text-left transition hover:bg-[#F3E8FF]/70 ${
+                    className={`block w-full rounded-xl px-4 py-3 text-left transition hover:bg-talentia-hover/70 ${
                       oferta.id === ofertaCursoId
-                      ? "bg-[#F3E8FF]"
-                      : "bg-white"
+                      ? "bg-talentia-selected"
+                      : "bg-talentia-surface"
                     }`}
                     >
-                      <span className="block text-sm font-bold text-[#0F2851]">
+                      <span className="block text-sm font-bold text-talentia-primary">
                         {oferta.nombreCurso}
                         </span>
                         
-                        <span className="mt-1 block text-xs font-semibold text-[#64748B]">
+                        <span className="mt-1 block text-xs font-semibold text-talentia-muted">
                           Código: {oferta.codigo}
                           {" · "}
                           {oferta.periodoNombre ?? "Periodo por asignar"}
                           </span>
                           
-                          <span className="mt-1 block text-xs text-[#64748B]">
+                          <span className="mt-1 block text-xs text-talentia-muted">
                             Oferta {oferta.id}
                             {" · "}
                             {oferta.cuposDisponibles} cupos disponibles
@@ -302,7 +302,7 @@ const ofertasFiltradas = useMemo(() => {
                             </button>
                             ))
                           ) : (
-                          <p className="px-4 py-3 text-sm text-[#64748B]">
+                          <p className="px-4 py-3 text-sm text-talentia-muted">
                             {opciones.ofertas.length === 0
                             ? "No hay ofertas publicadas con cupos disponibles."
                             : "No hay cursos que coincidan con tu búsqueda."}
@@ -318,7 +318,7 @@ const ofertasFiltradas = useMemo(() => {
             <div>
               <label
                 htmlFor="periodoMatricula"
-                className="mb-2 block text-xs font-bold text-[#0F2851]"
+                className="mb-2 block text-xs font-bold text-talentia-primary"
               >
                 Periodo académico
               </label>
@@ -332,12 +332,12 @@ const ofertasFiltradas = useMemo(() => {
                     ? ofertaSeleccionada.periodoNombre ?? "Periodo no disponible"
                     : "Selecciona una oferta"
                 }
-                className={`${CLASE_INPUT} cursor-not-allowed bg-[#F8FAFC]`}
+                className={`${CLASE_INPUT} cursor-not-allowed bg-talentia-surface`}
               />
             </div>
 
             <div>
-              <label htmlFor="estadoPagoMatricula" className="block text-xs font-bold text-[#0F2851] mb-2">
+              <label htmlFor="estadoPagoMatricula" className="block text-xs font-bold text-talentia-primary mb-2">
                 Estado *
               </label>
               <select
@@ -353,7 +353,7 @@ const ofertasFiltradas = useMemo(() => {
             </div>
 
             <div>
-              <label htmlFor="cuposDisponibles" className="block text-xs font-bold text-[#0F2851] mb-2">
+              <label htmlFor="cuposDisponibles" className="block text-xs font-bold text-talentia-primary mb-2">
                 Cupo disponible
               </label>
               <input
@@ -366,15 +366,15 @@ const ofertasFiltradas = useMemo(() => {
             </div>
           </div>
 
-          <div className="bg-[#F3E8FF]/60 rounded-2xl p-4 mt-6">
-            <p className="text-xs font-extrabold text-[#0F2851] mb-3">
+          <div className="bg-talentia-purple-soft/60 rounded-2xl p-4 mt-6">
+            <p className="text-xs font-extrabold text-talentia-primary mb-3">
               Validación automática
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full ${alumnoSeleccionado ? "bg-[#BBF7D0] text-[#166534]" : "bg-[#F1F5F9] text-[#64748B]"}`}>
+              <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full ${alumnoSeleccionado ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-surface text-talentia-muted"}`}>
                 {alumnoSeleccionado ? "Alumno seleccionado" : "Selecciona un alumno"}
               </span>
-              <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full ${ofertaSeleccionada && ofertaSeleccionada.cuposDisponibles > 0 ? "bg-[#BAE6FD] text-[#0369A1]" : "bg-[#F1F5F9] text-[#64748B]"}`}>
+              <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full ${ofertaSeleccionada && ofertaSeleccionada.cuposDisponibles > 0 ? "bg-talentia-selected text-talentia-blue" : "bg-talentia-surface text-talentia-muted"}`}>
                 {ofertaSeleccionada
                   ? ofertaSeleccionada.cuposDisponibles > 0
                     ? "Cupo disponible"
@@ -385,12 +385,12 @@ const ofertasFiltradas = useMemo(() => {
           </div>
 
           {error && (
-            <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+            <p role="alert" className="rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg p-3 text-sm font-semibold text-talentia-danger">
               {error}
             </p>
           )}
           {mensaje && (
-            <p role="status" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">
+            <p role="status" className="rounded-xl border border-talentia-success/20 bg-talentia-success-bg p-3 text-sm font-semibold text-talentia-success">
               {mensaje}
             </p>
           )}
@@ -402,7 +402,7 @@ const ofertasFiltradas = useMemo(() => {
           type="button"
           onClick={onCancelar}
           disabled={guardando}
-          className="bg-white hover:bg-gray-50 text-[#6B21A8] border border-gray-200 font-bold px-8 py-3.5 rounded-2xl text-sm transition shadow-sm disabled:opacity-50"
+          className="bg-talentia-surface hover:bg-talentia-border text-talentia-purple border border-talentia-border font-bold px-8 py-3.5 rounded-2xl text-sm transition shadow-sm disabled:opacity-50"
         >
           Cancelar
         </button>
@@ -410,7 +410,7 @@ const ofertasFiltradas = useMemo(() => {
           type="button"
           onClick={() => void ejecutarRegistro()}
           disabled={guardando || cargando}
-          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-8 py-3.5 rounded-2xl text-sm transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-8 py-3.5 rounded-2xl text-sm transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? "Registrando..." : "Registrar matrícula"}
         </button>

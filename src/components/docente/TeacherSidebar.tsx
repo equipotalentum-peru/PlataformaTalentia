@@ -117,7 +117,7 @@ export default function TeacherSidebar() {
         <div className="app-sidebar-account-avatar app-sidebar-account-avatar--teacher">
           <SidebarAvatar fotoPerfil={fotoPerfil} nombre={nombre}>
             <svg
-              className="h-6 w-6 text-[#6f42a5]"
+              className="h-6 w-6 text-talentia-purple"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

@@ -58,13 +58,13 @@ export default function SectionNavigation({
           onClick={handlePrevious}
           className="
             rounded
-            border border-gray-400
-            bg-white
+            border border-talentia-border
+            bg-talentia-surface
             px-5 py-2
             text-sm
-            text-gray-800
+            text-talentia-primary
             transition
-            hover:bg-gray-100
+            hover:bg-talentia-hover
           "
         >
           ← Anterior
@@ -81,13 +81,13 @@ export default function SectionNavigation({
           }
           className="
             rounded
-            bg-[#3186d8]
+            bg-talentia-action
             px-5 py-2
             text-sm
             font-medium
             text-white
             transition
-            hover:bg-[#2777c1]
+            hover:bg-talentia-primary
           "
         >
           Siguiente →

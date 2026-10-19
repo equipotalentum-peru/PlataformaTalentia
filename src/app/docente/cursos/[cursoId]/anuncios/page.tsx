@@ -170,18 +170,10 @@ export default function TeacherAnnouncementsPage({
         {/* VOLVER */}
         <Link
           href="/docente/cursos"
-          className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]"
+          className="app-back-link mb-3"
         >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <span aria-hidden="true">{"<"}</span>
+
 
           Volver a cursos
         </Link>
@@ -199,19 +191,19 @@ export default function TeacherAnnouncementsPage({
 
         <div className="mt-2 space-y-2">
           {loadError && (
-            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[11px] text-talentia-danger">
               <span>{loadError}</span>
               <button type="button" onClick={() => void loadAnnouncements()} className="shrink-0 font-semibold underline">Reintentar</button>
             </div>
           )}
           {actionError && (
-            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[11px] text-red-700">
+            <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[11px] text-talentia-danger">
               <span>{actionError}</span>
               <button type="button" onClick={() => setActionError("")} className="font-semibold">×</button>
             </div>
           )}
           {loading && announcements.length === 0 && (
-            <div className="rounded-lg bg-white px-4 py-6 text-center text-[11px] text-gray-500">Cargando anuncios...</div>
+            <div className="rounded-lg bg-talentia-surface px-4 py-6 text-center text-[11px] text-talentia-muted">Cargando anuncios...</div>
           )}
 
           {/* CABECERA */}
@@ -220,7 +212,7 @@ export default function TeacherAnnouncementsPage({
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="flex h-9 items-center justify-center gap-2 rounded-md bg-[#3186d8] px-4 text-[10px] font-semibold text-white"
+                className="flex h-9 items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white"
               >
                 <span className="text-[16px]">
                   +
@@ -247,8 +239,8 @@ export default function TeacherAnnouncementsPage({
                 onClick={() => setFilter(item)}
                 className={`rounded-full px-4 py-1.5 text-[10px] font-medium ${
                   filter === item
-                    ? "bg-[#3186d8] text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
+                    ? "bg-talentia-action text-white"
+                    : "bg-talentia-surface text-talentia-primary hover:bg-talentia-primary"
                 }`}
               >
                 {item}
@@ -262,7 +254,7 @@ export default function TeacherAnnouncementsPage({
               filteredAnnouncements
             }
             renderMeta={(announcement) => (
-              <div className="hidden items-center gap-1 text-[10px] text-gray-600 md:flex">
+              <div className="hidden items-center gap-1 text-[10px] text-talentia-primary md:flex">
                 <span>◉</span>
                 <span>
                   {announcement.views} vistas
@@ -281,7 +273,7 @@ export default function TeacherAnnouncementsPage({
                         : announcement.id
                     )
                   }
-                  className="flex h-8 w-7 items-center justify-center rounded-md text-[#3186d8] hover:bg-[#eef5fc]"
+                  className="flex h-8 w-7 items-center justify-center rounded-md text-talentia-blue hover:bg-talentia-hover"
                   aria-label="Acciones del anuncio"
                 >
                   ⋮
@@ -298,7 +290,7 @@ export default function TeacherAnnouncementsPage({
                       }
                     />
 
-                    <div className="absolute right-0 top-9 z-[50] w-[125px] overflow-hidden rounded-md border border-gray-700 bg-white shadow-lg">
+                    <div className="absolute right-0 top-9 z-[50] w-[125px] overflow-hidden rounded-md border border-talentia-border bg-talentia-surface shadow-lg">
 
                       <button
                         type="button"
@@ -308,7 +300,7 @@ export default function TeacherAnnouncementsPage({
                           );
                           setMenuOpen(null);
                         }}
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-gray-800 hover:bg-gray-100"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-talentia-primary hover:bg-talentia-hover"
                       >
                         Editar
                         <span>✎</span>
@@ -321,7 +313,7 @@ export default function TeacherAnnouncementsPage({
                             announcement
                           )
                         }
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-gray-800 hover:bg-gray-100"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-talentia-primary hover:bg-talentia-hover"
                       >
                         Duplicar
                         <span>□</span>
@@ -334,7 +326,7 @@ export default function TeacherAnnouncementsPage({
                             announcement
                           )
                         }
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-gray-800 hover:bg-gray-100"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-talentia-primary hover:bg-talentia-hover"
                       >
                         Ocultar
                         <span>◉</span>
@@ -347,7 +339,7 @@ export default function TeacherAnnouncementsPage({
                             announcement
                           )
                         }
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-red-500 hover:bg-red-50"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-[10px] text-talentia-danger hover:bg-talentia-danger-bg"
                       >
                         Eliminar
                         <span>🗑</span>
@@ -360,7 +352,7 @@ export default function TeacherAnnouncementsPage({
           />
 
           {!loading && !loadError && filteredAnnouncements.length === 0 && (
-            <div className="rounded-xl bg-white py-10 text-center text-[11px] text-gray-500">
+            <div className="rounded-xl bg-talentia-surface py-10 text-center text-[11px] text-talentia-muted">
               No hay anuncios que coincidan con
               la búsqueda.
             </div>

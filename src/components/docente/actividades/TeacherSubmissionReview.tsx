@@ -196,7 +196,7 @@ function Icon({
 }
 
 function DetailRow({ icon, label, children }: { icon: "calendar" | "check" | "star"; label: string; children: React.ReactNode }) {
-  return <div className="activity-side-item"><span className="activity-icon-circle"><Icon type={icon} size={19} /></span><div className="min-w-0 flex-1"><p className="text-[#1e66c5]">{label}</p><div className="text-[10px] leading-[1.35] text-[#252b33]">{children}</div></div></div>;
+  return <div className="activity-side-item"><span className="activity-icon-circle"><Icon type={icon} size={19} /></span><div className="min-w-0 flex-1"><p className="text-talentia-blue">{label}</p><div className="text-[10px] leading-[1.35] text-talentia-primary">{children}</div></div></div>;
 }
 
 export default function TeacherSubmissionReview({ courseId, activityId, studentId, initialSubmissionId }: Props) {
@@ -289,16 +289,17 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
     }
   }
 
-  if (loading) return <div className="activity-page-root"><div className="activity-card flex min-h-[280px] items-center justify-center p-8 text-sm text-slate-600">Cargando entrega...</div></div>;
-  if (!submission) return <div className="activity-page-root"><div className="activity-card p-8 text-sm text-slate-600">{error || "No se encontraron intentos para este alumno."}</div></div>;
+  if (loading) return <div className="activity-page-root"><div className="activity-card flex min-h-[280px] items-center justify-center p-8 text-sm text-talentia-primary">Cargando entrega...</div></div>;
+  if (!submission) return <div className="activity-page-root"><div className="activity-card p-8 text-sm text-talentia-primary">{error || "No se encontraron intentos para este alumno."}</div></div>;
 
   const published = submission.nota != null;
 
   return (
     <div className="activity-page-root activity-review-root">
       <div className="flex min-w-0 items-center gap-4">
-        <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="activity-primary inline-flex h-[24px] shrink-0 items-center gap-1 rounded-[4px] px-2 text-[10px] font-medium"><Icon type="back" size={16} /> Volver</Link>
-        <p className="truncate text-[11px] text-[#252b33]">Módulo 1: Introducción a las TIC &gt; 1.4 Práctica</p>
+        <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="app-back-link">
+          <span aria-hidden="true">{"<"}</span> Volver</Link>
+        <p className="truncate text-[11px] text-talentia-primary">Módulo 1: Introducción a las TIC &gt; 1.4 Práctica</p>
       </div>
 
       <div className="mt-[18px] grid grid-cols-1 items-start gap-[10px] md:grid-cols-[minmax(0,1fr)_244px]">
@@ -306,26 +307,26 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
           <div className="activity-success-callout flex min-h-[51px] items-center gap-3 px-4 py-2">
             <Icon type="circle-check" size={26} />
             <div>
-              <h1 className="text-[17px] font-bold leading-tight text-[#08b72a]">{published ? "Calificación publicada" : "Entrega recibida"}</h1>
-              <p className="mt-1 text-[10px] leading-tight text-[#08b72a]">{published ? `Nota del intento ${submission.numero_intento}: ${submission.nota}/${maxGrade}` : "Revisa este intento y publica su calificación"}</p>
+              <h1 className="text-[17px] font-bold leading-tight text-talentia-success">{published ? "Calificación publicada" : "Entrega recibida"}</h1>
+              <p className="mt-1 text-[10px] leading-tight text-talentia-success">{published ? `Nota del intento ${submission.numero_intento}: ${submission.nota}/${maxGrade}` : "Revisa este intento y publica su calificación"}</p>
             </div>
           </div>
 
 
-          {error && <p role="alert" className="mt-3 rounded-md bg-red-50 p-2 text-[10px] text-red-700">{error}</p>}
-          {message && <p role="status" className="mt-3 rounded-md bg-green-50 p-2 text-[10px] text-green-700">{message}</p>}
+          {error && <p role="alert" className="mt-3 rounded-md bg-talentia-danger-bg p-2 text-[10px] text-talentia-danger">{error}</p>}
+          {message && <p role="status" className="mt-3 rounded-md bg-talentia-success-bg p-2 text-[10px] text-talentia-success">{message}</p>}
 
-          <div className="mt-[34px] rounded-lg bg-[#eeeeee] p-[14px]">
-            <h2 className="mb-3 text-[12px] font-bold text-[#1c70ce]">Archivo enviado · Intento {submission.numero_intento}</h2>
-            {submission.comentario && <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-[#c8c8c8] bg-white px-[11px] py-[10px] text-[10px] leading-[1.35] text-[#171717]">{submission.comentario}</p>}
+          <div className="mt-[34px] rounded-lg bg-talentia-surface p-[14px]">
+            <h2 className="mb-3 text-[12px] font-bold text-talentia-primary">Archivo enviado · Intento {submission.numero_intento}</h2>
+            {submission.comentario && <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-talentia-border bg-talentia-surface px-[11px] py-[10px] text-[10px] leading-[1.35] text-talentia-primary">{submission.comentario}</p>}
             {submission.nombre_archivo && submission.archivo_id ? (
-              <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md bg-white px-3 py-2">
-                <span className="flex h-[38px] w-[28px] shrink-0 items-center justify-center rounded bg-[#ef5350] text-white"><Icon type="file" size={23} /></span>
-                <div className="min-w-0 flex-1"><p className="truncate text-[11px] text-[#333333]">{submission.nombre_archivo}</p><p className="mt-1 text-[9px] text-[#898989]">{formatSize(submission.tamano_bytes)}</p></div>
-                <a href={`${API_URL}/actividades/archivo/${submission.archivo_id}`} className="activity-link inline-flex h-[27px] shrink-0 items-center gap-1 rounded-md border border-[#2788f2] px-2 text-[10px]"><Icon type="download" size={14} /> Descargar</a>
+              <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md bg-talentia-surface px-3 py-2">
+                <span className="flex h-[38px] w-[28px] shrink-0 items-center justify-center rounded bg-talentia-danger text-white"><Icon type="file" size={23} /></span>
+                <div className="min-w-0 flex-1"><p className="truncate text-[11px] text-talentia-primary">{submission.nombre_archivo}</p><p className="mt-1 text-[9px] text-talentia-muted">{formatSize(submission.tamano_bytes)}</p></div>
+                <a href={`${API_URL}/actividades/archivo/${submission.archivo_id}`} className="activity-link inline-flex h-[27px] shrink-0 items-center gap-1 rounded-md border border-talentia-blue px-2 text-[10px]"><Icon type="download" size={14} /> Descargar</a>
               </div>
             ) : !submission.comentario ? (
-              <p className="rounded bg-white p-3 text-[10px] text-gray-500">El estudiante no adjuntó un documento ni un comentario.</p>
+              <p className="rounded bg-talentia-surface p-3 text-[10px] text-talentia-muted">El estudiante no adjuntó un documento ni un comentario.</p>
             ) : null}
           </div>
         </section>
@@ -342,21 +343,21 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
 
           <section className="activity-card min-h-[271px] p-3">
             <h2 className="activity-card-title">Calificación · Intento {submission.numero_intento}</h2>
-            <label htmlFor="nota-entrega" className="mt-[8px] flex min-h-[29px] items-center gap-2 rounded-md bg-[#c8e8ca] px-3 text-[10px] text-[#29973a]">
+            <label htmlFor="nota-entrega" className="mt-[8px] flex min-h-[29px] items-center gap-2 rounded-md bg-talentia-success-bg px-3 text-[10px] text-talentia-success">
               <Icon type="trophy" size={17} />
-              <input id="nota-entrega" type="number" min={0} max={maxGrade} step="0.1" value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Insertar calificación" className="min-w-0 flex-1 border-0 bg-transparent text-[10px] text-[#247c31] outline-none placeholder:text-[#65b16e]" />
+              <input id="nota-entrega" type="number" min={0} max={maxGrade} step="0.1" value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Insertar calificación" className="min-w-0 flex-1 border-0 bg-transparent text-[10px] text-talentia-success outline-none placeholder:text-[#65b16e]" />
             </label>
-            <div className="mt-[8px] flex items-center gap-[2px] text-[10px] text-[#242424]">
-              <span className="min-w-[35px] rounded-l-[4px] bg-[#eeeeee] px-2 py-[4px]">{grade || "—"}</span>
-              <span className="rounded-r-[4px] bg-[#eeeeee] px-2 py-[4px]">Pts</span>
+            <div className="mt-[8px] flex items-center gap-[2px] text-[10px] text-talentia-primary">
+              <span className="min-w-[35px] rounded-l-[4px] bg-talentia-surface px-2 py-[4px]">{grade || "—"}</span>
+              <span className="rounded-r-[4px] bg-talentia-surface px-2 py-[4px]">Pts</span>
             </div>
-            <div className="mt-[13px] flex items-center gap-2 text-[12px] font-bold text-[#287ee0]"><Icon type="chat" size={16} /> Comentarios del docente (opcional)</div>
+            <div className="mt-[13px] flex items-center gap-2 text-[12px] font-bold text-talentia-blue"><Icon type="chat" size={16} /> Comentarios del docente (opcional)</div>
             <label htmlFor="retroalimentacion-entrega" className="sr-only">Comentarios del docente</label>
-            <textarea id="retroalimentacion-entrega" rows={5} maxLength={5000} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[10px] placeholder:text-[#777777]" />
+            <textarea id="retroalimentacion-entrega" rows={5} maxLength={5000} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[10px] placeholder:text-talentia-placeholder" />
           </section>
 
           <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[12px] font-bold disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Publicando..." : `Publicar nota del intento ${submission.numero_intento}`}</button>
-          <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="flex h-[27px] w-full items-center justify-center rounded-[6px] bg-[#eee9f8] text-[12px] font-medium text-[#1450a1] hover:bg-[#e1daf1]">Cancelar</Link>
+          <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="flex h-[27px] w-full items-center justify-center rounded-[6px] bg-talentia-surface text-[12px] font-medium text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
         </aside>
       </div>
     </div>

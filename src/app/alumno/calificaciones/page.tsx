@@ -109,17 +109,17 @@ function claseEstado(
   if (
     estado === "Aprobado"
   ) {
-    return "bg-[#dcfce7] text-[#15803d]";
+    return "bg-talentia-success-bg text-talentia-success";
   }
 
   if (
     estado ===
     "Desaprobado"
   ) {
-    return "bg-[#fee2e2] text-[#b91c1c]";
+    return "bg-talentia-danger-bg text-talentia-danger";
   }
 
-  return "bg-[#fff7bf] text-[#8a6d00]";
+  return "bg-talentia-warning-bg text-talentia-warning";
 }
 
 export default function CalificacionesPage() {
@@ -256,11 +256,11 @@ export default function CalificacionesPage() {
     return (
       <div className="min-h-screen px-[30px] py-[32px] lg:px-[45px]">
 
-        <h1 className="text-[34px] font-semibold text-gray-900">
+        <h1 className="student-page-title text-[34px] font-semibold text-talentia-primary">
           Mis calificaciones
         </h1>
 
-        <p className="mt-8 text-[14px] text-gray-500">
+        <p className="mt-8 text-[14px] text-talentia-muted">
           Cargando calificaciones...
         </p>
 
@@ -272,11 +272,11 @@ export default function CalificacionesPage() {
     return (
       <div className="min-h-screen px-[30px] py-[32px] lg:px-[45px]">
 
-        <h1 className="text-[34px] font-semibold text-gray-900">
+        <h1 className="student-page-title text-[34px] font-semibold text-talentia-primary">
           Mis calificaciones
         </h1>
 
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-[14px] text-red-700">
+        <div className="mt-8 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-4 text-[14px] text-talentia-danger">
           {error}
         </div>
 
@@ -299,27 +299,27 @@ export default function CalificacionesPage() {
     <div className="min-h-screen w-full px-[30px] py-[32px] lg:px-[45px]">
 
       <header className="mb-[32px]">
-        <h1 className="text-[34px] font-semibold tracking-[-0.8px] text-gray-900">
+        <h1 className="student-page-title text-[34px] font-semibold tracking-[-0.8px] text-talentia-primary">
           Mis calificaciones
         </h1>
       </header>
 
-      <section className="mb-[20px] grid w-full grid-cols-1 overflow-hidden rounded-[16px] bg-[#dfe4eb] md:grid-cols-3">
+      <section className="mb-[20px] grid w-full grid-cols-1 overflow-hidden rounded-[16px] bg-talentia-surface md:grid-cols-3">
 
         <div className="flex min-h-[112px] items-center gap-5 px-7 py-5">
 
-          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-[#e7f2ff] text-[#2c8ee8] shadow-sm">
+          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-talentia-selected text-talentia-blue shadow-sm">
             <span className="text-[25px] font-bold">
               ∑
             </span>
           </div>
 
           <div>
-            <p className="text-[16px] font-medium text-gray-700">
+            <p className="text-[16px] font-medium text-talentia-primary">
               Promedio general
             </p>
 
-            <p className="mt-1 text-[27px] font-bold text-gray-950">
+            <p className="mt-1 text-[27px] font-bold text-talentia-primary">
               {resumen.promedioGeneral ===
               null
                 ? "--"
@@ -333,18 +333,18 @@ export default function CalificacionesPage() {
 
         <div className="flex min-h-[112px] items-center gap-5 border-y border-white/80 px-7 py-5 md:border-x md:border-y-0">
 
-          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-[#dff8f7] text-[#08aeb2] shadow-sm">
+          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-talentia-selected text-talentia-blue shadow-sm">
             <span className="text-[26px]">
               ▤
             </span>
           </div>
 
           <div>
-            <p className="text-[16px] font-medium text-gray-700">
+            <p className="text-[16px] font-medium text-talentia-primary">
               Cursos matriculados
             </p>
 
-            <p className="mt-1 text-[27px] font-bold text-gray-950">
+            <p className="mt-1 text-[27px] font-bold text-talentia-primary">
               {
                 resumen.cursosMatriculados
               }
@@ -366,7 +366,7 @@ export default function CalificacionesPage() {
                 cy="32"
                 r="27"
                 fill="none"
-                stroke="#e4e8ee"
+                stroke="var(--talentia-border)"
                 strokeWidth="6"
               />
 
@@ -375,7 +375,7 @@ export default function CalificacionesPage() {
                 cy="32"
                 r="27"
                 fill="none"
-                stroke="#2c8ee8"
+                stroke="var(--talentia-blue)"
                 strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray="169.65"
@@ -390,7 +390,7 @@ export default function CalificacionesPage() {
               />
             </svg>
 
-            <span className="text-[14px] font-bold text-gray-800">
+            <span className="text-[14px] font-bold text-talentia-primary">
               {
                 resumen.porcentajeAprobados
               }
@@ -400,11 +400,11 @@ export default function CalificacionesPage() {
           </div>
 
           <div>
-            <p className="text-[16px] font-medium text-gray-700">
+            <p className="text-[16px] font-medium text-talentia-primary">
               Progreso global
             </p>
 
-            <p className="mt-1 text-[13px] text-gray-500">
+            <p className="mt-1 text-[13px] text-talentia-muted">
               {
                 resumen.cursosAprobados
               }{" "}
@@ -422,9 +422,9 @@ export default function CalificacionesPage() {
 
       {cursos.length === 0 ? (
 
-        <div className="rounded-[14px] border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
+        <div className="rounded-[14px] border border-dashed border-talentia-border bg-talentia-surface px-6 py-14 text-center">
 
-          <p className="text-[16px] font-medium text-gray-700">
+          <p className="text-[16px] font-medium text-talentia-primary">
             No tienes cursos matriculados.
           </p>
 
@@ -451,7 +451,7 @@ export default function CalificacionesPage() {
               return (
                 <article
                   key={curso.id}
-                  className="overflow-hidden rounded-[14px] border border-[#d8dee7] bg-white shadow-sm"
+                  className="overflow-hidden rounded-[14px] border border-talentia-border bg-talentia-surface shadow-sm"
                 >
 
                   <button
@@ -486,13 +486,13 @@ export default function CalificacionesPage() {
 
                     <div className="min-w-0 flex-1">
 
-                      <h2 className="text-[18px] font-semibold text-gray-900">
+                      <h2 className="text-[18px] font-semibold text-talentia-primary">
                         {
                           curso.nombre
                         }
                       </h2>
 
-                      <p className="mt-1 text-[13px] text-gray-500">
+                      <p className="mt-1 text-[13px] text-talentia-muted">
                         {
                           curso.codigo
                         }
@@ -502,11 +502,11 @@ export default function CalificacionesPage() {
 
                     <div className="hidden text-right sm:block">
 
-                      <p className="text-[12px] text-gray-400">
+                      <p className="text-[12px] text-talentia-muted">
                         Promedio
                       </p>
 
-                      <p className="mt-1 text-[18px] font-bold text-gray-900">
+                      <p className="mt-1 text-[18px] font-bold text-talentia-primary">
                         {promedio}
                       </p>
 
@@ -522,7 +522,7 @@ export default function CalificacionesPage() {
                       }
                     </span>
 
-                    <span className="text-[22px] text-gray-500">
+                    <span className="text-[22px] text-talentia-muted">
                       {abierto
                         ? "⌃"
                         : "⌄"}
@@ -532,18 +532,18 @@ export default function CalificacionesPage() {
 
                   {abierto && (
 
-                    <div className="border-t border-gray-200 px-5 py-5">
+                    <div className="border-t border-talentia-border px-5 py-5">
 
                       {curso.componentes
                         .length === 0 ? (
 
-                        <div className="rounded-[10px] bg-[#f7f9fc] px-5 py-8 text-center">
+                        <div className="rounded-[10px] bg-talentia-surface px-5 py-8 text-center">
 
-                          <p className="text-[14px] font-medium text-gray-700">
+                          <p className="text-[14px] font-medium text-talentia-primary">
                             No hay calificaciones registradas para este curso.
                           </p>
 
-                          <p className="mt-2 text-[12px] text-gray-500">
+                          <p className="mt-2 text-[12px] text-talentia-muted">
                             Cuando existan actividades o evaluaciones calificadas, aparecerán aquí automáticamente.
                           </p>
 
@@ -551,30 +551,30 @@ export default function CalificacionesPage() {
 
                       ) : (
 
-                        <div className="overflow-x-auto rounded-[10px] border border-gray-200">
+                        <div className="overflow-x-auto rounded-[10px] border border-talentia-border">
 
                           <table className="w-full min-w-[760px] border-collapse">
 
-                            <thead className="bg-[#eef1f5]">
+                            <thead className="bg-talentia-surface">
                               <tr>
 
-                                <th className="px-5 py-3 text-left text-[12px] font-semibold text-gray-700">
+                                <th className="px-5 py-3 text-left text-[12px] font-semibold text-talentia-primary">
                                   Tipo
                                 </th>
 
-                                <th className="px-5 py-3 text-left text-[12px] font-semibold text-gray-700">
+                                <th className="px-5 py-3 text-left text-[12px] font-semibold text-talentia-primary">
                                   Descripción
                                 </th>
 
-                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-gray-700">
+                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-talentia-primary">
                                   Peso
                                 </th>
 
-                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-gray-700">
+                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-talentia-primary">
                                   Nota
                                 </th>
 
-                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-gray-700">
+                                <th className="px-5 py-3 text-center text-[12px] font-semibold text-talentia-primary">
                                   Estado
                                 </th>
 
@@ -597,22 +597,22 @@ export default function CalificacionesPage() {
                                       key={
                                         componente.id
                                       }
-                                      className="border-t border-gray-100"
+                                      className="border-t border-talentia-border"
                                     >
 
-                                      <td className="px-5 py-3 text-[13px] capitalize text-gray-700">
+                                      <td className="px-5 py-3 text-[13px] capitalize text-talentia-primary">
                                         {
                                           componente.tipo
                                         }
                                       </td>
 
-                                      <td className="px-5 py-3 text-[13px] text-gray-700">
+                                      <td className="px-5 py-3 text-[13px] text-talentia-primary">
                                         {
                                           componente.nombre
                                         }
                                       </td>
 
-                                      <td className="px-5 py-3 text-center text-[13px] text-gray-700">
+                                      <td className="px-5 py-3 text-center text-[13px] text-talentia-primary">
                                         {componente.porcentaje ===
                                         null
                                           ? "--"
@@ -621,7 +621,7 @@ export default function CalificacionesPage() {
                                             )}%`}
                                       </td>
 
-                                      <td className="px-5 py-3 text-center text-[13px] font-semibold text-gray-800">
+                                      <td className="px-5 py-3 text-center text-[13px] font-semibold text-talentia-primary">
                                         {componente.nota ===
                                         null
                                           ? "--"

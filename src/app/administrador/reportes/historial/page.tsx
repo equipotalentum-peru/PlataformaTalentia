@@ -9,17 +9,18 @@ export default function HistorialPage() {
       {/* Botón Volver */}
       <Link
         href="/administrador/reportes"
-        className="text-xs font-bold text-[#64748B] hover:text-[#0F2851] flex items-center gap-1 mb-2"
+        className="app-back-link mb-2"
       >
-        ← Volver a reportes
+          <span aria-hidden="true">{"<"}</span>
+        Volver a reportes
       </Link>
 
       {/* Encabezado */}
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+        <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
           Historial administrativo
         </h1>
-        <p className="text-xs font-semibold text-[#64748B] mt-1">
+        <p className="text-xs font-semibold text-talentia-muted mt-1">
           Trazabilidad de cambios importantes en la plataforma.
         </p>
       </div>

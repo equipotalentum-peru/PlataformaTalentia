@@ -9,7 +9,7 @@ const PdfViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[560px] items-center justify-center bg-[#666666] text-white">
+      <div className="flex h-[560px] items-center justify-center bg-talentia-border text-talentia-primary">
         Cargando visor PDF...
       </div>
     ),
@@ -21,7 +21,7 @@ const PptViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[560px] items-center justify-center bg-[#666666] text-white">
+      <div className="flex h-[560px] items-center justify-center bg-talentia-border text-talentia-primary">
         Cargando presentación...
       </div>
     ),
@@ -33,7 +33,7 @@ const DocxViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[560px] items-center justify-center bg-[#666666] text-white">
+      <div className="flex h-[560px] items-center justify-center bg-talentia-border text-talentia-primary">
         Cargando documento...
       </div>
     ),
@@ -53,7 +53,7 @@ export default function ContentViewer({
 }: ContentViewerProps) {
   if (!file) {
     return (
-      <div className="flex min-h-[500px] items-center justify-center bg-[#666666] text-white">
+      <div className="flex min-h-[500px] items-center justify-center bg-talentia-border text-talentia-primary">
         Este contenido no tiene un archivo asociado.
       </div>
     );
@@ -96,7 +96,7 @@ export default function ContentViewer({
           file={file}
         />
 
-        <div className="bg-[#666666] p-7">
+        <div className="bg-talentia-border p-7">
           <video
             controls
             preload="metadata"
@@ -111,7 +111,7 @@ export default function ContentViewer({
   }
 
   return (
-    <div className="flex min-h-[500px] items-center justify-center bg-[#666666] text-white">
+    <div className="flex min-h-[500px] items-center justify-center bg-talentia-border text-talentia-primary">
       No hay un visor disponible para este contenido.
     </div>
   );

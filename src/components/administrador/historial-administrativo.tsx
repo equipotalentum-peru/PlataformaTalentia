@@ -165,12 +165,12 @@ export default function HistorialAdministrativo({
   return (
     <div className="w-full space-y-6">
       {/* Se conserva la disposición y el estilo visual del diseño original. */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80">
+      <div className="bg-talentia-surface rounded-3xl p-6 shadow-sm border border-talentia-border/80">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           <div>
             <label
               htmlFor="historial-accion"
-              className="block text-xs font-bold text-[#0F2851] mb-2"
+              className="block text-xs font-bold text-talentia-primary mb-2"
             >
               Buscar acción
             </label>
@@ -179,7 +179,7 @@ export default function HistorialAdministrativo({
                 id="historial-accion"
                 value={accionFiltro}
                 onChange={(e) => setAccionFiltro(e.target.value)}
-                className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm font-semibold text-[#64748B] appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 cursor-pointer pr-10"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-5 py-3 text-sm font-semibold text-talentia-muted appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-talentia-blue/30 cursor-pointer pr-10"
               >
                 <option value="Todas">Todas</option>
                 {filtrosDisponibles.acciones.map((accion) => (
@@ -188,7 +188,7 @@ export default function HistorialAdministrativo({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#64748B]">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-talentia-muted">
                 <IconoChevron />
               </span>
             </div>
@@ -197,7 +197,7 @@ export default function HistorialAdministrativo({
           <div>
             <label
               htmlFor="historial-area"
-              className="block text-xs font-bold text-[#0F2851] mb-2"
+              className="block text-xs font-bold text-talentia-primary mb-2"
             >
               Área
             </label>
@@ -206,7 +206,7 @@ export default function HistorialAdministrativo({
                 id="historial-area"
                 value={areaFiltro}
                 onChange={(e) => setAreaFiltro(e.target.value)}
-                className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm font-semibold text-[#64748B] appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 cursor-pointer pr-10"
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-5 py-3 text-sm font-semibold text-talentia-muted appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-talentia-blue/30 cursor-pointer pr-10"
               >
                 <option value="Todas">Todas</option>
                 {filtrosDisponibles.areas.map((area) => (
@@ -215,7 +215,7 @@ export default function HistorialAdministrativo({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#64748B]">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-talentia-muted">
                 <IconoChevron />
               </span>
             </div>
@@ -224,7 +224,7 @@ export default function HistorialAdministrativo({
           <div>
             <label
               htmlFor="historial-fecha"
-              className="block text-xs font-bold text-[#0F2851] mb-2"
+              className="block text-xs font-bold text-talentia-primary mb-2"
             >
               Fecha
             </label>
@@ -236,7 +236,7 @@ export default function HistorialAdministrativo({
                   value={fechaFiltro}
                   onChange={(e) => setFechaFiltro(e.target.value)}
                   aria-label="Filtrar por fecha"
-                  className="w-full min-w-0 bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm font-semibold text-[#64748B] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30"
+                  className="w-full min-w-0 bg-talentia-surface border border-talentia-border rounded-2xl px-5 py-3 text-sm font-semibold text-talentia-muted shadow-sm focus:outline-none focus:ring-2 focus:ring-talentia-blue/30"
                 />
               </div>
               <button
@@ -244,7 +244,7 @@ export default function HistorialAdministrativo({
                 onClick={aplicarFiltros}
                 aria-label="Buscar en el historial"
                 title="Buscar"
-                className="p-3.5 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-[#3B82F6] transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30"
+                className="p-3.5 bg-talentia-surface hover:bg-talentia-hover border border-talentia-border rounded-2xl text-talentia-blue transition shadow-sm focus:outline-none focus:ring-2 focus:ring-talentia-blue/30"
               >
                 <IconoBuscar />
               </button>
@@ -256,17 +256,17 @@ export default function HistorialAdministrativo({
       {error && (
         <div
           role="alert"
-          className="rounded-2xl border border-red-100 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+          className="rounded-2xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-3 text-sm font-semibold text-talentia-danger"
         >
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden">
+      <div className="bg-talentia-surface rounded-3xl shadow-sm border border-talentia-border/80 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-xs font-extrabold border-b border-gray-100">
+              <tr className="bg-talentia-table-header text-talentia-primary text-xs font-extrabold border-b border-talentia-border">
                 <th className="py-4 px-6">Hora</th>
                 <th className="py-4 px-6">Acción</th>
                 <th className="py-4 px-6">Área</th>
@@ -274,29 +274,29 @@ export default function HistorialAdministrativo({
                 <th className="py-4 px-6">Resultado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-xs">
+            <tbody className="divide-y divide-talentia-border text-xs">
               {historial.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                  <td className="py-4 px-6 font-bold text-[#0F2851]">
+                <tr key={item.id} className="hover:bg-talentia-hover/50 transition">
+                  <td className="py-4 px-6 font-bold text-talentia-primary">
                     {item.hora}
                   </td>
-                  <td className="py-4 px-6 font-semibold text-[#64748B]">
+                  <td className="py-4 px-6 font-semibold text-talentia-muted">
                     {item.accion}
                   </td>
-                  <td className="py-4 px-6 font-semibold text-[#64748B]">
+                  <td className="py-4 px-6 font-semibold text-talentia-muted">
                     {item.area}
                   </td>
-                  <td className="py-4 px-6 font-semibold text-[#64748B]">
+                  <td className="py-4 px-6 font-semibold text-talentia-muted">
                     {item.usuario}
                   </td>
                   <td className="py-4 px-6">
                     <span
                       className={`inline-block px-4 py-1.5 rounded-full font-extrabold text-xs ${
                         item.resultado === "Completo"
-                          ? "bg-[#BBF7D0] text-[#166534]"
+                          ? "bg-talentia-success-bg text-talentia-success"
                           : item.resultado === "Fallido"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-[#BAE6FD] text-[#0369A1]"
+                            ? "bg-talentia-danger-bg text-talentia-danger"
+                            : "bg-talentia-selected text-talentia-blue"
                       }`}
                     >
                       {item.resultado}
@@ -308,7 +308,7 @@ export default function HistorialAdministrativo({
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-8 px-6 text-center font-semibold text-[#64748B]"
+                    className="py-8 px-6 text-center font-semibold text-talentia-muted"
                   >
                     No hay registros para los filtros seleccionados.
                   </td>
@@ -318,7 +318,7 @@ export default function HistorialAdministrativo({
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-8 px-6 text-center font-semibold text-[#64748B]"
+                    className="py-8 px-6 text-center font-semibold text-talentia-muted"
                   >
                     Cargando historial...
                   </td>

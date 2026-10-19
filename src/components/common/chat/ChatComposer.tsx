@@ -53,18 +53,18 @@ export default function ChatComposer({
   };
 
   return (
-    <div className="border-t border-gray-300 bg-white px-4 py-3">
+    <div className="shrink-0 border-t border-talentia-border bg-talentia-surface px-4 py-3">
       {uploadError && (
         <div
           role="alert"
-          className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[13px] text-talentia-danger"
         >
           <p className="min-w-0">{uploadError}</p>
 
           <button
             type="button"
             onClick={onClearUploadError}
-            className="shrink-0 font-semibold hover:text-red-900"
+            className="shrink-0 font-semibold hover:text-talentia-danger"
           >
             Cerrar
           </button>
@@ -86,7 +86,7 @@ export default function ChatComposer({
           onClick={() =>
             fileInputRef.current?.click()
           }
-          className="flex h-9 w-9 shrink-0 items-center justify-center text-gray-500 hover:text-gray-800"
+          className="flex h-9 w-9 shrink-0 items-center justify-center text-talentia-muted hover:text-talentia-primary"
           aria-label="Adjuntar archivo"
         >
           <svg
@@ -105,7 +105,7 @@ export default function ChatComposer({
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje"
-          className="h-10 min-w-0 flex-1 rounded-md border border-gray-300 px-3 text-sm leading-normal outline-none placeholder:text-gray-500 focus:border-[#3186d8]"
+          className="h-10 min-w-0 flex-1 rounded-md border border-talentia-border px-3 text-[16px] sm:text-[15px] leading-normal outline-none placeholder:text-talentia-placeholder focus:border-talentia-blue"
         />
 
         <button
@@ -113,7 +113,7 @@ export default function ChatComposer({
           onClick={
             onSend
           }
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2f80d8] text-white transition hover:bg-[#2777c1]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-talentia-action text-white transition hover:bg-talentia-primary"
           aria-label="Enviar mensaje"
         >
           <svg

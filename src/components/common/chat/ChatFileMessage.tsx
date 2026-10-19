@@ -59,10 +59,10 @@ export default function ChatFileMessage({
       }`}
     >
       <div className="w-[300px] max-w-full">
-        <div className="rounded-xl border border-gray-300 bg-white p-3 shadow-sm">
+        <div className="rounded-xl border border-talentia-border bg-talentia-surface p-3 shadow-sm">
           <div className="flex items-center gap-3">
             {/* SVG según el formato del archivo */}
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#f3f6fa] text-[#65717f]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-talentia-surface text-talentia-muted">
               <ChatAttachmentIcon
                 filename={archivo.name}
                 className="h-7 w-7"
@@ -72,13 +72,13 @@ export default function ChatFileMessage({
             {/* Nombre y tamaño */}
             <div className="min-w-0 flex-1">
               <p
-                className="truncate text-[11px] font-semibold text-gray-800"
+                className="truncate text-[13px] font-semibold text-talentia-primary"
                 title={archivo.name}
               >
                 {archivo.name}
               </p>
 
-              <p className="mt-0.5 text-[9px] text-gray-400">
+              <p className="mt-0.5 text-[12px] text-talentia-muted">
                 {archivo.size}
               </p>
             </div>
@@ -87,7 +87,7 @@ export default function ChatFileMessage({
             <button
               type="button"
               onClick={descargar}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#3186d8] transition hover:bg-[#eaf3fd] hover:text-[#1d69b5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3186d8]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-blue transition hover:bg-talentia-hover hover:text-talentia-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue"
               aria-label={`Descargar ${archivo.name}`}
               title="Descargar archivo"
             >
@@ -110,19 +110,19 @@ export default function ChatFileMessage({
             </button>
           </div>
 
-          <p className="mt-2 text-right text-[9px] text-gray-400">
+          <p className="mt-2 text-right text-[12px] text-talentia-muted">
             {formatearHoraChat(message.time)}
           </p>
         </div>
 
         {/* Eliminar solo los archivos propios */}
         {esMio && (
-          <div className="mt-1 flex justify-end text-[10px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+          <div className="mt-1 flex justify-end text-[12px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <button
               type="button"
               disabled={procesando}
               onClick={() => void borrar()}
-              className="text-red-600 hover:underline disabled:opacity-50"
+              className="text-talentia-danger hover:underline disabled:opacity-50"
             >
               {procesando
                 ? "Eliminando..."
@@ -132,7 +132,7 @@ export default function ChatFileMessage({
         )}
 
         {error && (
-          <p className="mt-1 text-[10px] text-red-600">
+          <p className="mt-1 text-[12px] text-talentia-danger">
             {error}
           </p>
         )}

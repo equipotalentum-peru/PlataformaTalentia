@@ -92,30 +92,30 @@ export default function ClassTable({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[820px] border-collapse text-left text-[10px]">
         <thead>
-          <tr className="bg-[#f1f1f1]">
-            <th className="px-4 py-2.5 font-semibold text-gray-800">
+          <tr className="bg-talentia-surface">
+            <th className="px-4 py-2.5 font-semibold text-talentia-primary">
               Sesión
             </th>
 
-            <th className="px-4 py-2.5 font-semibold text-gray-800">
+            <th className="px-4 py-2.5 font-semibold text-talentia-primary">
               Tema
             </th>
 
-            <th className="px-4 py-2.5 font-semibold text-gray-800">
+            <th className="px-4 py-2.5 font-semibold text-talentia-primary">
               Fecha y Hora
             </th>
 
-            <th className="px-4 py-2.5 font-semibold text-gray-800">
+            <th className="px-4 py-2.5 font-semibold text-talentia-primary">
               Estado
             </th>
 
             {role === "teacher" && (
-              <th className="px-4 py-2.5 font-semibold text-gray-800">
+              <th className="px-4 py-2.5 font-semibold text-talentia-primary">
                 Grabación
               </th>
             )}
 
-            <th className="px-4 py-2.5 font-semibold text-gray-800">
+            <th className="px-4 py-2.5 font-semibold text-talentia-primary">
               Acción
             </th>
           </tr>
@@ -131,22 +131,22 @@ export default function ClassTable({
             return (
               <tr
                 key={item.id}
-                className="border-t border-gray-200"
+                className="border-t border-talentia-border"
               >
-                <td className="px-4 py-2.5 text-gray-700">
+                <td className="px-4 py-2.5 text-talentia-primary">
                   {item.numero}
                 </td>
 
-                <td className="px-4 py-2.5 font-medium text-gray-800">
+                <td className="px-4 py-2.5 font-medium text-talentia-primary">
                   {item.tema}
                 </td>
 
                 <td className="px-4 py-2.5">
-                  <div className="font-medium text-gray-700">
+                  <div className="font-medium text-talentia-primary">
                     {item.fecha}
                   </div>
 
-                  <div className="text-[9px] text-gray-400">
+                  <div className="text-[9px] text-talentia-muted">
                     {item.horario}
                   </div>
                 </td>
@@ -163,13 +163,13 @@ export default function ClassTable({
                         onClick={() =>
                           onRecording?.(item)
                         }
-                        className="flex items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#00a7a2]"
+                        className="flex items-center gap-1.5 rounded-md bg-talentia-action px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-talentia-primary"
                       >
                         <VideoIcon />
                         Ver grabación
                       </button>
                     ) : (
-                      <span className="text-gray-500">—</span>
+                      <span className="text-talentia-muted">—</span>
                     )}
                   </td>
                 )}
@@ -184,7 +184,7 @@ export default function ClassTable({
                             onClick={() =>
                               onDetails?.(item)
                             }
-                            className="flex items-center gap-1 rounded-md bg-[#dbeefa] px-3 py-1.5 text-[9px] font-medium text-[#3186d8] transition hover:bg-[#c9e5f7]"
+                            className="flex items-center gap-1 rounded-md bg-talentia-selected px-3 py-1.5 text-[9px] font-medium text-talentia-blue transition hover:bg-talentia-hover"
                           >
                             Ver detalles
                           </button>
@@ -194,7 +194,7 @@ export default function ClassTable({
                             onClick={() =>
                               onDetails?.(item)
                             }
-                            className="flex h-7 w-7 items-center justify-center rounded-md bg-[#dbeefa] text-[#3186d8] transition hover:bg-[#c9e5f7]"
+                            className="flex h-7 w-7 items-center justify-center rounded-md bg-talentia-selected text-talentia-blue transition hover:bg-talentia-hover"
                             aria-label="Más acciones"
                           >
                             <MoreIcon />
@@ -209,7 +209,7 @@ export default function ClassTable({
                             onClick={() =>
                               onEdit?.(item)
                             }
-                            className="flex h-8 items-center gap-1.5 rounded-md bg-[#dbeefa] px-3 text-[9px] font-medium text-[#3186d8] transition hover:bg-[#c9e5f7]"
+                            className="flex h-8 items-center gap-1.5 rounded-md bg-talentia-selected px-3 text-[9px] font-medium text-talentia-blue transition hover:bg-talentia-hover"
                           >
                             <EditIcon />
                             Editar
@@ -220,7 +220,7 @@ export default function ClassTable({
                             onClick={() =>
                               onCancel?.(item)
                             }
-                            className="flex h-8 items-center gap-1.5 rounded-md bg-[#f7dada] px-3 text-[9px] font-medium text-[#b64a4a] transition hover:bg-[#f2cccc]"
+                            className="flex h-8 items-center gap-1.5 rounded-md bg-talentia-danger-bg px-3 text-[9px] font-medium text-talentia-danger transition hover:bg-talentia-danger-bg"
                           >
                             <TrashIcon />
                             Cancelar
@@ -234,7 +234,7 @@ export default function ClassTable({
                           onClick={() =>
                             onStart?.(item)
                           }
-                          className="flex h-8 items-center gap-1.5 rounded-md bg-[#00bbb6] px-3 text-[9px] font-medium text-white transition hover:bg-[#00aaa6]"
+                          className="flex h-8 items-center gap-1.5 rounded-md bg-talentia-action px-3 text-[9px] font-medium text-white transition hover:bg-talentia-primary"
                         >
                           <VideoIcon />
                           Ingresar
@@ -242,7 +242,7 @@ export default function ClassTable({
                       )}
 
                       {item.estado === "Cancelada" && (
-                        <span className="text-[9px] text-gray-400">
+                        <span className="text-[9px] text-talentia-muted">
                           —
                         </span>
                       )}
@@ -255,7 +255,7 @@ export default function ClassTable({
                           onClick={() =>
                             onRecording?.(item)
                           }
-                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#2777c1]"
+                          className="flex items-center gap-1.5 rounded-md bg-talentia-action px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-talentia-primary"
                         >
                           <VideoIcon />
                           Ver grabación
@@ -268,7 +268,7 @@ export default function ClassTable({
                           onClick={() =>
                             onJoin?.(item)
                           }
-                          className="flex items-center gap-1.5 rounded-md bg-[#3186d8] px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-[#2777c1]"
+                          className="flex items-center gap-1.5 rounded-md bg-talentia-action px-3 py-1.5 text-[9px] font-medium text-white transition hover:bg-talentia-primary"
                         >
                           <VideoIcon />
                           Unirse por Zoom
@@ -279,7 +279,7 @@ export default function ClassTable({
                         <button
                           type="button"
                           disabled
-                          className="flex items-center gap-1.5 rounded-md bg-gray-300 px-3 py-1.5 text-[9px] font-medium text-gray-500"
+                          className="flex items-center gap-1.5 rounded-md bg-talentia-border px-3 py-1.5 text-[9px] font-medium text-talentia-muted"
                         >
                           <VideoIcon />
                           Unirse por Zoom

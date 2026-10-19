@@ -203,10 +203,10 @@ export default function TablaCursos() {
       {/* Encabezado y Botón Crear Curso */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0F2851] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-talentia-primary tracking-tight">
             Cursos
           </h1>
-          <p className="text-sm font-semibold text-[#64748B] mt-1">
+          <p className="text-sm font-semibold text-talentia-muted mt-1">
             Administración de cursos, docentes, publicación y cupos.
           </p>
         </div>
@@ -214,7 +214,7 @@ export default function TablaCursos() {
         <button
           type="button"
           onClick={() => router.push("/administrador/cursos/crear")}
-          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-6 py-3 rounded-2xl text-sm transition-all shadow-sm self-start sm:self-auto"
+          className="bg-talentia-action hover:bg-talentia-primary text-white font-bold px-6 py-3 rounded-2xl text-sm transition-all shadow-sm self-start sm:self-auto"
         >
           Crear curso
         </button>
@@ -222,27 +222,27 @@ export default function TablaCursos() {
 
       {/* Barra de Filtros y Búsqueda */}
       <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-[#64748B]">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] font-semibold text-talentia-muted">
           Buscar
           <input
             type="text"
             placeholder="Buscar por curso o código"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-11 w-full rounded-lg border border-[#D7E0EC] bg-white px-4 text-sm font-normal text-[#0F2851] placeholder-[#94A3B8] outline-none transition-colors hover:border-[#AABDD4] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15"
+            className="h-11 w-full rounded-lg border border-talentia-border bg-talentia-surface px-4 text-sm font-normal text-talentia-primary placeholder-talentia-placeholder outline-none transition-colors hover:border-talentia-border focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </label>
 
         <div className="flex min-w-0 flex-col gap-2 lg:shrink-0">
-          <span className="text-[13px] font-semibold text-[#64748B]">Estado</span>
+          <span className="text-[13px] font-semibold text-talentia-muted">Estado</span>
           <div className="flex min-h-11 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setFiltroEstado("Todos")}
             className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Todos"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-50"
+                ? "bg-talentia-selected text-talentia-primary"
+                : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover"
             }`}
           >
             Todos
@@ -253,8 +253,8 @@ export default function TablaCursos() {
             onClick={() => setFiltroEstado("Activos")}
             className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Activos"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-50"
+                ? "bg-talentia-selected text-talentia-primary"
+                : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover"
             }`}
           >
             Activos
@@ -265,8 +265,8 @@ export default function TablaCursos() {
             onClick={() => setFiltroEstado("Inactivos")}
             className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Inactivos"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-50"
+                ? "bg-talentia-selected text-talentia-primary"
+                : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover"
             }`}
           >
             Inactivos
@@ -277,8 +277,8 @@ export default function TablaCursos() {
             onClick={() => setFiltroEstado("Borrador")}
             className={`px-5 py-2.5 rounded-full text-[13px] font-bold transition ${
               filtroEstado === "Borrador"
-                ? "bg-[#C4F1F9] text-[#0F2851]"
-                : "bg-white text-[#475569] hover:bg-gray-50"
+                ? "bg-talentia-selected text-talentia-primary"
+                : "bg-talentia-surface text-talentia-muted hover:bg-talentia-hover"
             }`}
           >
             Borrador
@@ -288,7 +288,7 @@ export default function TablaCursos() {
       </div>
 
       {/* Tabla de Cursos */}
-      <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/80">
+      <div className="bg-talentia-surface rounded-3xl overflow-hidden shadow-sm border border-talentia-border/80">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] table-fixed text-left border-collapse">
             <colgroup>
@@ -300,7 +300,7 @@ export default function TablaCursos() {
               <col className="w-24" />
             </colgroup>
             <thead>
-              <tr className="bg-[#F5F3FF] text-[#6B21A8] text-[13px] font-extrabold border-b border-gray-100">
+              <tr className="bg-talentia-table-header text-talentia-primary text-[13px] font-extrabold border-b border-talentia-border">
                 <th className="py-4 px-6">Curso</th>
                 <th className="py-4 px-4">Código</th>
                 <th className="py-4 px-4">Docente</th>
@@ -309,10 +309,10 @@ export default function TablaCursos() {
                 <th className="py-4 px-4 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-[13px] font-semibold text-[#64748B]">
+            <tbody className="divide-y divide-talentia-border text-[13px] font-semibold text-talentia-muted">
               {cargando ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#64748B]">
+                  <td colSpan={6} className="py-8 text-center text-talentia-muted">
                     Cargando cursos...
                   </td>
                 </tr>
@@ -320,7 +320,7 @@ export default function TablaCursos() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="py-8 text-center text-red-600"
+                    className="py-8 text-center text-talentia-danger"
                   >
                     {error}
                   </td>
@@ -328,19 +328,19 @@ export default function TablaCursos() {
               ) : (
                 <>
                   {cursosFiltrados.map((curso) => (
-                    <tr key={curso.id} className="hover:bg-gray-50/50 transition">
-                      <td className="py-4 px-6 break-words font-bold text-[#0F2851]">{curso.nombre}</td>
-                      <td className="py-4 px-4 whitespace-nowrap text-[#64748B]">{curso.codigo}</td>
-                      <td className="py-4 px-4 break-words text-[#64748B]">{curso.docente}</td>
-                      <td className="py-4 px-4 whitespace-nowrap text-[#64748B]">{curso.matriculas}</td>
+                    <tr key={curso.id} className="hover:bg-talentia-hover/50 transition">
+                      <td className="py-4 px-6 break-words font-bold text-talentia-primary">{curso.nombre}</td>
+                      <td className="py-4 px-4 whitespace-nowrap text-talentia-muted">{curso.codigo}</td>
+                      <td className="py-4 px-4 break-words text-talentia-muted">{curso.docente}</td>
+                      <td className="py-4 px-4 whitespace-nowrap text-talentia-muted">{curso.matriculas}</td>
                       <td className="py-4 px-4">
                         <span
                           className={`inline-block whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-extrabold ${
                             curso.estado === "Activo"
-                              ? "bg-[#BBF7D0] text-[#166534]"
+                              ? "bg-talentia-success-bg text-talentia-success"
                               : curso.estado === "Inactivo"
-                                ? "bg-[#E2E8F0] text-[#475569]"
-                                : "bg-[#F3E8FF] text-[#6B21A8]"
+                                ? "bg-talentia-surface text-talentia-muted"
+                                : "bg-talentia-purple-soft text-talentia-purple"
                           }`}
                         >
                           {curso.estado}
@@ -357,13 +357,13 @@ export default function TablaCursos() {
                               actual === curso.id ? null : curso.id
                             )
                           }
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-[#475569] transition hover:bg-[#F1F5F9] disabled:opacity-50"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-xl font-bold text-talentia-muted transition hover:bg-talentia-hover disabled:opacity-50"
                         >
                           ⋮
                         </button>
 
                         {menuAbierto === curso.id && (
-                          <div className="absolute right-6 top-14 z-30 min-w-40 rounded-xl border border-gray-200 bg-white p-1 text-left shadow-xl">
+                          <div className="absolute right-6 top-14 z-30 min-w-40 rounded-xl border border-talentia-border bg-talentia-surface p-1 text-left shadow-xl">
                             <button
                               type="button"
                               onClick={() => {
@@ -372,7 +372,7 @@ export default function TablaCursos() {
                                   `/administrador/cursos/configurar?id=${curso.id}`
                                 );
                               }}
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-[#0F2851] hover:bg-[#F1F5F9]"
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover"
                             >
                               Editar
                             </button>
@@ -382,7 +382,7 @@ export default function TablaCursos() {
                                 type="button"
                                 disabled={cursoEnAccion === curso.id}
                                 onClick={() => void cambiarEstadoCurso(curso, "Activo")}
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
                               >
                                 {cursoEnAccion === curso.id ? "Publicando..." : "Publicar"}
                               </button>
@@ -395,7 +395,7 @@ export default function TablaCursos() {
                                 onClick={() =>
                                   void cambiarEstadoCurso(curso, "Inactivo")
                                 }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-muted hover:bg-talentia-hover disabled:opacity-50"
                               >
                                 Desactivar
                               </button>
@@ -408,7 +408,7 @@ export default function TablaCursos() {
                                 onClick={() =>
                                   void cambiarEstadoCurso(curso, "Activo")
                                 }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
                               >
                                 Activar
                               </button>
@@ -420,7 +420,7 @@ export default function TablaCursos() {
                               onClick={() =>
                                 void cambiarEstadoCurso(curso, "Archivado")
                               }
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
                             >
                               Retirar
                             </button>
@@ -432,7 +432,7 @@ export default function TablaCursos() {
 
                   {cursosFiltrados.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#64748B] text-[13px]">
+                      <td colSpan={6} className="py-8 text-center text-talentia-muted text-[13px]">
                         No se encontraron cursos que coincidan con la búsqueda.
                       </td>
                     </tr>

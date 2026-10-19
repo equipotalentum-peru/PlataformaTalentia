@@ -335,7 +335,7 @@ export default function PptViewer({
         className="
           h-[560px]
           overflow-auto
-          bg-[#666666]
+          bg-talentia-border
           p-7
         "
       >
@@ -373,7 +373,7 @@ export default function PptViewer({
                 No se pudo cargar la presentación
               </p>
 
-              <p className="text-sm text-gray-200">
+              <p className="text-sm text-talentia-muted">
                 {error}
               </p>
             </div>
@@ -409,7 +409,7 @@ export default function PptViewer({
                       className="
                         shrink-0
                         rounded-sm
-                        bg-white
+                        bg-talentia-surface
                         shadow-lg
                       "
                       style={{
@@ -448,7 +448,7 @@ export default function PptViewer({
                             }}
                           />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                          <div className="flex h-full items-center justify-center text-sm text-talentia-muted">
                             No se pudo renderizar esta diapositiva.
                           </div>
                         )}
