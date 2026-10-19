@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { API_URL } from "@/lib/api";
+import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
 type PendienteRevision = {
   id: number;
@@ -468,11 +468,26 @@ export default function TeacherDashboardPage() {
                   href={`/docente/cursos/${course.id}`}
                   className="flex items-center gap-3 py-2 transition hover:bg-gray-50"
                 >
-                  <img
-                    src={course.imagen || IMAGEN_POR_DEFECTO}
-                    alt={course.nombre}
-                    className="h-10 w-14 rounded-md object-cover"
-                  />
+                  
+                <img
+                  src={resolverImagenPortadaCurso(
+                    course.imagen,
+                    course.id,
+                    IMAGEN_POR_DEFECTO
+                  )}
+                  alt={course.nombre}
+                  onError={(event) => {
+                    const imagen = event.currentTarget;
+
+                    if (imagen.dataset.fallbackApplied === "true") {
+                      return;
+                    }
+
+                    imagen.dataset.fallbackApplied = "true";
+                    imagen.src = IMAGEN_POR_DEFECTO;
+                  }}
+                  className="h-10 w-14 rounded-md object-cover"
+                />
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[11px] font-semibold text-[#3186d8]">
