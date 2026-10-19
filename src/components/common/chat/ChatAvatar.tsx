@@ -32,8 +32,14 @@ export default function ChatAvatar({
         <img
           src={src!}
           alt={`Foto de ${name}`}
+          draggable={false}
           onError={() => setFotoFallida(src ?? null)}
           className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            height: "100%",
+            width: "100%",
+            maxWidth: "none",
+          }}
         />
       ) : (
         initials || name.trim().charAt(0).toUpperCase() || "?"

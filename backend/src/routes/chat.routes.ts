@@ -12,7 +12,7 @@ import {
   eliminarMensajeChat,
 } from "../controllers/chat.controller";
 import { requireAuth } from "../middleware/auth.middleware";
-import { recibirAdjuntoChat, } from "../middleware/chat-upload.middleware";
+import { recibirAdjuntoChat, manejarErrorSubidaChat, } from "../middleware/chat-upload.middleware";
 
 const router = Router();
 
@@ -31,5 +31,6 @@ router.get("/adjuntos/:adjuntoId", requireAuth, descargarAdjuntoChat);
 router.patch("/cursos/:cursoId/contactos/:contactoId/mensajes/:mensajeId", requireAuth, editarMensajeChat);
 router.delete("/cursos/:cursoId/contactos/:contactoId/mensajes/:mensajeId", requireAuth, eliminarMensajeChat);
 router.get("/cursos/:cursoId/contactos/:contactoId/foto", requireAuth, obtenerFotoContactoChat);
+router.use(manejarErrorSubidaChat);
 
 export default router;

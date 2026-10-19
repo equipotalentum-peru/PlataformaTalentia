@@ -5,13 +5,11 @@ import type { KeyboardEvent, } from "react";
 
 type Props = {
   value: string;
-  onChange: (
-    value: string
-  ) => void;
+  onChange: (value: string) => void;
   onSend: () => void;
-  onSendFile?: (
-    file: File
-  ) => void;
+  onSendFile?: (file: File) => void;
+  uploadError?: string | null;
+  onClearUploadError?: () => void;
 };
 
 export default function ChatComposer({
@@ -19,6 +17,8 @@ export default function ChatComposer({
   onChange,
   onSend,
   onSendFile,
+  uploadError,
+  onClearUploadError,
 }: Props) {
   const fileInputRef =
     useRef<HTMLInputElement>(
@@ -54,6 +54,22 @@ export default function ChatComposer({
 
   return (
     <div className="border-t border-gray-300 bg-white px-4 py-3">
+      {uploadError && (
+        <div
+          role="alert"
+          className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          <p className="min-w-0">{uploadError}</p>
+
+          <button
+            type="button"
+            onClick={onClearUploadError}
+            className="shrink-0 font-semibold hover:text-red-900"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
       <div className="flex items-center gap-3">
 
         <input

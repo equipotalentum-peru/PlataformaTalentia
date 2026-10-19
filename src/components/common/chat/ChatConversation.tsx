@@ -5,6 +5,7 @@ import type { ChatContact, ChatMessage, } from "@/data/chat";
 import { API_URL } from "@/lib/api";
 import ChatContactList from "./ChatContactList";
 import ChatComposer from "./ChatComposer";
+import ChatAvatar from "./ChatAvatar";
 import ChatFileMessage from "./ChatFileMessage";
 import ChatMessageComponent from "./ChatMessage";
 import { crearChatSocket, type ChatSocket, type ChatMensajeNuevo, } from "@/lib/chat-socket";
@@ -36,33 +37,17 @@ export default function ChatConversation({
 
   /* Solo móvil/tablet: alterna entre la lista de contactos y la conversación */
   const [showChat, setShowChat] = useState(false);
-
-  const [messages, setMessages] =
-    useState<ChatMessage[]>([]);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [filter, setFilter] =
-    useState<
-      "Todos" | "Sin leer" | "Leídos"
-    >("Todos");
-
-  const [message, setMessage] =
-    useState("");
-
-  const [loadingContacts, setLoadingContacts] =
-    useState(true);
-
-  const [loadingMessages, setLoadingMessages] =
-    useState(false);
-
-  const [sending, setSending,] = useState(false);
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"Todos" | "Sin leer" | "Leídos">("Todos");
+  const [message, setMessage] = useState("");
+  const [loadingContacts, setLoadingContacts] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const socketRef = useRef<ChatSocket | null>(null);
-
   const mensajesEndRef = useRef<HTMLDivElement | null>(null);
-
   const selectedContactRef = useRef(selectedContact);
 
   useEffect(() => {
@@ -639,6 +624,7 @@ export default function ChatConversation({
     }
 
     try {
+      setFileError(null);
       setSending(true);
 
       const formData = new FormData();
@@ -646,32 +632,97 @@ export default function ChatConversation({
       formData.append("archivo", file);
 
       const response = await fetch(`${API_URL}/chat/cursos/${courseId}/contactos/${selectedContact}/adjuntos`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") ?? "";
+
+      const data: {
+        message?: string;
+        mensaje?: ChatMessage;
+      } = contentType.includes("application/json")
+        ? await response.json().catch(() => ({}))
+        : {};
 
       if (!response.ok) {
-        throw new Error(
+        const mensajeError =
           data.message ??
-            "No se pudo enviar el archivo."
+          (response.status === 413
+            ? "El archivo supera el límite permitido de 50 MB."
+            : `No se pudo enviar el archivo (HTTP ${response.status}).`);
+
+        throw new Error(mensajeError);
+      }
+
+      if (!data.mensaje) {
+        throw new Error(
+          "El servidor no confirmó el envío del archivo."
         );
       }
 
       setMessages((actual) => [
-          ...actual,
-          data.mensaje,
-        ]
-      );
+        ...actual,
+        data.mensaje!,
+      ]);
     } catch (error) {
-      console.error(
-        error
-      );
+      const mensajeError =
+        error instanceof Error
+          ? error.message
+          : "No se pudo enviar el archivo.";
+
+      console.error("Error enviando archivo:", error);
+      setFileError(mensajeError);
     } finally {
       setSending(false);
     }
+  };
+  
+  const handleDragEnter = (event: React.DragEvent<HTMLElement>) => {
+    const incluyeArchivos = Array.from(event.dataTransfer.types).includes("Files");
+    if (!incluyeArchivos) return;
+    event.preventDefault();
+    setIsDraggingFile(true);
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLElement>) => {
+    const incluyeArchivos = Array.from(event.dataTransfer.types).includes("Files");
+    if (!incluyeArchivos) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLElement>) => {
+    const destino = event.relatedTarget;
+
+    if (
+      destino instanceof Node &&
+      event.currentTarget.contains(destino)
+    ) {
+      return;
+    }
+
+    setIsDraggingFile(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLElement>) => {
+    const incluyeArchivos = Array.from(event.dataTransfer.types).includes("Files");
+    if (!incluyeArchivos) return;
+    event.preventDefault();
+    setIsDraggingFile(false);
+    const archivos = Array.from(event.dataTransfer.files);
+
+    if (!archivos.length || !selectedContact || sending) {
+      return;
+    }
+
+    void (async () => {
+      for (const archivo of archivos) {
+        await sendFile(archivo);
+      }
+    })();
   };
 
   const selectedUser = contacts.find((item) => item.id === selectedContact);
@@ -787,13 +838,31 @@ export default function ChatConversation({
               }
             />
 
-            <section
-              className={`${
-                showChat
-                  ? "flex"
-                  : "hidden min-[861px]:flex"
-              } min-w-0 flex-1 flex-col`}
-            >
+            
+              <section
+                className={`relative ${
+                  showChat
+                    ? "flex"
+                    : "hidden min-[861px]:flex"
+                } min-w-0 flex-1 flex-col`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                
+              {isDraggingFile && (
+                <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-blue-50/90 p-6">
+                  <div className="rounded-2xl border-2 border-dashed border-[#3186d8] bg-white px-8 py-7 text-center shadow-lg">
+                    <p className="text-base font-bold text-[#18407c]">
+                      Suelta los archivos aquí
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Se enviarán a la conversación actual.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <header className="flex items-center gap-3 border-b border-gray-300 px-3 py-3 sm:gap-4 sm:px-5">
 
@@ -817,9 +886,12 @@ export default function ChatConversation({
                   </svg>
                 </button>
 
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#11b7b8] text-[13px] font-semibold text-white sm:h-14 sm:w-14">
-                  {selectedUser?.initials}
-                </div>
+                <ChatAvatar
+                  src={selectedUser?.fotoPerfil}
+                  initials={selectedUser?.initials ?? "?"}
+                  name={selectedUser?.name ?? "Usuario"}
+                  className="h-11 w-11 bg-[#11b7b8] text-[13px] sm:h-14 sm:w-14"
+                />
 
                 <div className="min-w-0">
                   <h2 className="truncate text-[14px] font-bold text-gray-900">
@@ -881,15 +953,11 @@ export default function ChatConversation({
 
               <ChatComposer
                 value={message}
-                onChange={
-                  setMessage
-                }
-                onSend={
-                  sendMessage
-                }
-                onSendFile={
-                  sendFile
-                }
+                onChange={setMessage}
+                onSend={sendMessage}
+                onSendFile={sendFile}
+                uploadError={fileError}
+                onClearUploadError={() => setFileError(null)}
               />
 
             </section>
