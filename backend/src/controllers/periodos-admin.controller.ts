@@ -269,3 +269,49 @@ export async function cambiarEstadoPeriodo(
     });
   }
 }
+
+
+export async function eliminarPeriodo(
+  req: Request,
+  res: Response
+) {
+  const id = leerIdPeriodo(req.params.id);
+
+  if (!id) {
+    return res.status(400).json({
+      message: "El identificador del periodo no es válido.",
+    });
+  }
+
+  try {
+    const resultado = await pool.query(
+      `DELETE FROM periodos_academicos
+       WHERE id = $1
+       RETURNING id::TEXT AS id, nombre`,
+      [id]
+    );
+
+    if (!resultado.rowCount) {
+      return res.status(404).json({
+        message: "El periodo académico no existe.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "El periodo académico se eliminó correctamente. Las ofertas asociadas se conservaron sin periodo asignado.",
+      periodo: resultado.rows[0],
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === "23503") {
+      return res.status(409).json({
+        message: "No se puede eliminar este periodo porque tiene registros asociados.",
+      });
+    }
+
+    console.error("Error eliminando periodo académico:", error);
+
+    return res.status(500).json({
+      message: "No se pudo eliminar el periodo académico.",
+    });
+  }
+}

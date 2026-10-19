@@ -6,6 +6,7 @@ import { requireAdmin } from "../controllers/usuarios.controller";
 import {
   actualizarPeriodo,
   cambiarEstadoPeriodo,
+  eliminarPeriodo,
   crearPeriodo,
   listarPeriodos,
 } from "../controllers/periodos-admin.controller";
@@ -18,5 +19,6 @@ router.get("/", listarPeriodos);
 router.post("/", crearPeriodo);
 router.patch("/:id/estado", cambiarEstadoPeriodo);
 router.patch("/:id", actualizarPeriodo);
+router.delete("/:id", eliminarPeriodo);
 
 export default router;
