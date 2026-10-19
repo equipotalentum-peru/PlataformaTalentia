@@ -22,6 +22,7 @@ export default function SidebarAdmin() {
     { name: "Dashboard", href: "/administrador/dashboard", letter: "D" },
     { name: "Usuarios", href: "/administrador/usuarios", letter: "U" },
     { name: "Cursos", href: "/administrador/cursos", letter: "C" },
+    { name: "Periodos académicos", href: "/administrador/periodos", letter: "P" },
     { name: "Matrículas", href: "/administrador/matriculas", letter: "M" },
     { name: "Reportes", href: "/administrador/reportes", letter: "R" },
     {

@@ -11,6 +11,14 @@ import AsignarDocente from "./asignar-docente";
 import VistaPublicarCurso from "@/components/administrador/vista-publicar-curso";
 import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
 
+type PeriodoAcademicoOption = {
+  id: string;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+};
+
 export default function CrearCurso({
   cursoId,
 }: {
@@ -27,6 +35,7 @@ export default function CrearCurso({
     categoria: "Diseño",
     modalidad: "Virtual",
     descripcion: "",
+    periodoId: "",
   });
   const [evaluaciones, setEvaluaciones] = useState<ComponenteCalificacionDraft[]>([
     { id: "1", nombre: "Examen 1", porcentaje: "20" },
@@ -42,6 +51,9 @@ export default function CrearCurso({
   const [cargandoCurso, setCargandoCurso] = useState(Boolean(cursoId));
   const [errorCargaCurso, setErrorCargaCurso] = useState("");
   const [imagenExistente, setImagenExistente] = useState<string | null>(null);
+  const [periodos, setPeriodos] = useState<PeriodoAcademicoOption[]>([]);
+  const [cargandoPeriodos, setCargandoPeriodos] = useState(true);
+  const [errorPeriodos, setErrorPeriodos] = useState("");
 
   useEffect(() => {
     return () => {
@@ -50,6 +62,58 @@ export default function CrearCurso({
       }
     };
   }, [vistaPreviaImagen]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarPeriodos() {
+      try {
+        setCargandoPeriodos(true);
+        setErrorPeriodos("");
+
+        const response = await fetch(
+          `${API_URL}/administrador/periodos`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ?? "No se pudieron cargar los periodos académicos."
+          );
+        }
+
+        setPeriodos(
+          Array.isArray(data.periodos) ? data.periodos : []
+        );
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        setErrorPeriodos(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron cargar los periodos académicos."
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargandoPeriodos(false);
+        }
+      }
+    }
+
+    void cargarPeriodos();
+
+    return () => controller.abort();
+  }, [router]);
 
   const handleImagenPortadaChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -138,6 +202,7 @@ export default function CrearCurso({
           categoria: curso.categoria ?? "Diseño",
           modalidad: curso.modalidad ?? "Virtual",
           descripcion: curso.descripcion ?? "",
+          periodoId: String(curso.periodoId ?? ""),
         });
 
         const portada: string | null = curso.imagenPortada ?? null;
@@ -211,6 +276,13 @@ export default function CrearCurso({
       return;
     }
 
+    if (publicar && !formData.periodoId) {
+      setErrorGuardar(
+        "Selecciona un periodo académico activo antes de publicar el curso."
+      );
+      return;
+    }
+
     const filasConDatos = evaluaciones.filter(
       (item) => item.nombre.trim() || item.porcentaje.trim()
     );
@@ -254,6 +326,7 @@ export default function CrearCurso({
       modalidad: formData.modalidad,
       descripcion: formData.descripcion.trim(),
       cupos: Number(formData.cupos),
+      periodoId: formData.periodoId || null,
       docenteId: docenteSeleccionado?.id ?? null,
       componentes,
       publicar,
@@ -476,6 +549,55 @@ export default function CrearCurso({
                 <option value="Hibrido">Híbrido</option>
               </select>
             </div>
+          </div>
+          
+          <div>
+            <label
+              htmlFor="periodoId"
+              className="mb-2 block text-xs font-extrabold text-[#0F2851]"
+            >
+              Periodo académico
+            </label>
+
+            <select
+              id="periodoId"
+              name="periodoId"
+              value={formData.periodoId}
+              onChange={handleChange}
+              disabled={cargandoPeriodos}
+              className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-sm font-medium text-[#0F2851] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#3B82F6] disabled:opacity-50"
+            >
+              <option value="">
+                Sin periodo asignado (solo borrador)
+              </option>
+
+              {periodos
+                .filter(
+                  (periodo) =>
+                    periodo.activo || periodo.id === formData.periodoId
+                )
+                .map((periodo) => (
+                  <option
+                    key={periodo.id}
+                    value={periodo.id}
+                    disabled={!periodo.activo}
+                  >
+                    {periodo.nombre}
+                    {!periodo.activo ? " (Inactivo)" : ""}
+                  </option>
+                ))}
+            </select>
+
+            <p className="mt-2 text-xs text-[#64748B]">
+              El periodo define las fechas de la oferta. Es obligatorio
+              para publicar el curso.
+            </p>
+
+            {errorPeriodos && (
+              <p role="alert" className="mt-2 text-sm text-red-600">
+                {errorPeriodos}
+              </p>
+            )}
           </div>
 
           <div>

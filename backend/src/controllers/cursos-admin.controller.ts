@@ -31,6 +31,7 @@ type DatosCrearCurso = {
   modalidad?: unknown;
   descripcion?: unknown;
   cupos?: unknown;
+  periodoId?: unknown;
   docenteId?: unknown;
   componentes?: unknown;
   publicar?: unknown;
@@ -396,6 +397,19 @@ export async function crearCursoAdministrador(
     const cupos = Number(datos.cupos);
     const publicar = datos.publicar === true;
     const docenteId = datos.docenteId == null || datos.docenteId === "" ? null : Number(datos.docenteId);
+    const periodoId = datos.periodoId == null || datos.periodoId === "" ? null : Number(datos.periodoId);
+
+    if (periodoId !== null && (!Number.isSafeInteger(periodoId) || periodoId <= 0)) {
+      return res.status(400).json({
+        message: "El periodo académico seleccionado no es válido.",
+      });
+    }
+
+    if (publicar && periodoId === null) {
+      return res.status(400).json({
+        message: "Asigna un periodo académico antes de publicar el curso.",
+      });
+    }
 
     if (!nombre || nombre.length > 200) {
       return res.status(400).json({ message: "El nombre del curso es obligatorio y admite hasta 200 caracteres." });
@@ -475,6 +489,24 @@ export async function crearCursoAdministrador(
     await client.query("BEGIN");
     transaccionAbierta = true;
 
+    if (periodoId !== null) {
+      const periodoResult = await client.query(
+        `SELECT id
+        FROM periodos_academicos
+        WHERE id = $1
+          AND activo = TRUE
+        FOR SHARE`,
+        [periodoId]
+      );
+
+      if (!periodoResult.rowCount) {
+        throw errorHttp(
+          "El periodo seleccionado no existe o está inactivo.",
+          400
+        );
+      }
+    }
+
     const cursoResult = await client.query<{
       id: string;
       nombre: string;
@@ -494,10 +526,15 @@ export async function crearCursoAdministrador(
 
     const ofertaResult = await client.query<{ id: string }>(
       `INSERT INTO ofertas_curso (
-         curso_id, cupo_maximo, docente_id, estado, publicado
-       ) VALUES ($1, $2, $3, 'Programado', $4)
-       RETURNING id::TEXT AS id`,
-      [curso.id, cupos, docenteId, publicar]
+        curso_id,
+        periodo_id,
+        cupo_maximo,
+        docente_id,
+        estado,
+        publicado
+      ) VALUES ($1, $2, $3, $4, 'Programado', $5)
+      RETURNING id::TEXT AS id`,
+      [curso.id, periodoId, cupos, docenteId, publicar]
     );
 
     const ofertaCursoId = ofertaResult.rows[0].id;
@@ -526,6 +563,14 @@ export async function crearCursoAdministrador(
     if (archivoR2Key) {
       await deleteObjectFromR2(archivoR2Key).catch((cleanupError) => {
         console.error("No se pudo eliminar una portada de R2 tras fallar el registro:", cleanupError);
+      });
+    }
+
+    const codigoHttp = (error as ErrorHttp).statusCode;
+
+    if (codigoHttp) {
+      return res.status(codigoHttp).json({
+        message: (error as Error).message,
       });
     }
 
@@ -655,6 +700,9 @@ export async function obtenerCursoAdministrador(
          c.imagen_portada,
          c.estado,
          oc.id::TEXT AS oferta_id,
+         oc.periodo_id::TEXT AS periodo_id,
+         p.nombre AS periodo_nombre,
+         p.activo AS periodo_activo,
          COALESCE(oc.cupo_maximo, 0)::INTEGER AS cupos,
          oc.docente_id::TEXT AS docente_id,
          BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS docente_nombre,
@@ -674,6 +722,7 @@ export async function obtenerCursoAdministrador(
          ORDER BY actualizado_en DESC, id DESC
          LIMIT 1
        ) oc ON TRUE
+       LEFT JOIN periodos_academicos p ON p.id = oc.periodo_id
        LEFT JOIN usuarios u ON u.id = oc.docente_id
        WHERE c.id = $1
        LIMIT 1`,
@@ -727,6 +776,9 @@ export async function obtenerCursoAdministrador(
         cupos: String(fila.cupos),
         estado: fila.estado,
         imagenPortada: fila.imagen_portada,
+        periodoId: fila.periodo_id ? String(fila.periodo_id) : "",
+        periodoNombre: fila.periodo_nombre ?? null,
+        periodoActivo: fila.periodo_activo ?? false,
       },
       evaluaciones: componentes.rows.map((componente) => ({
         id: `db-${componente.id}`,
@@ -783,6 +835,16 @@ export async function actualizarCursoAdministrador(
     const cupos = Number(datos.cupos);
     const publicar = datos.publicar === true;
     const docenteId = datos.docenteId == null || datos.docenteId === "" ? null : Number(datos.docenteId);
+    const periodoId = datos.periodoId == null || datos.periodoId === "" ? null : Number(datos.periodoId);
+
+    if (
+      periodoId !== null &&
+      (!Number.isSafeInteger(periodoId) || periodoId <= 0)
+    ) {
+      return res.status(400).json({
+        message: "El periodo académico seleccionado no es válido.",
+      });
+    }
 
     if (!nombre || nombre.length > 200) {
       return res.status(400).json({ message: "El nombre del curso no es válido." });
@@ -907,7 +969,11 @@ export async function actualizarCursoAdministrador(
     }
 
     const ofertaResult = await client.query(
-      `SELECT id, docente_id, publicado
+      `SELECT
+        id,
+        docente_id,
+        publicado,
+        periodo_id::TEXT AS periodo_id
        FROM ofertas_curso
        WHERE curso_id = $1
        ORDER BY actualizado_en DESC, id DESC
@@ -925,9 +991,52 @@ export async function actualizarCursoAdministrador(
 
     const oferta = ofertaResult.rows[0];
     const ofertaId = String(oferta.id);
-    const publicarEfectivamente =
-      publicar ||
-      (cursoActual.estado === "Activo" && oferta.publicado === true);
+    const publicarEfectivamente = publicar || (cursoActual.estado === "Activo" && oferta.publicado === true);
+    const periodoAnteriorId = oferta.periodo_id ? String(oferta.periodo_id) : null;
+    const periodoNuevoId = periodoId === null ? null : String(periodoId);
+    const cambiaPeriodo = periodoAnteriorId !== periodoNuevoId;
+
+    if (publicarEfectivamente && periodoId === null) {
+      throw errorHttp(
+        "Asigna un periodo académico antes de publicar el curso.",
+        400
+      );
+    }
+
+    if (periodoId !== null && (cambiaPeriodo || publicarEfectivamente)) {
+      const periodoResult = await client.query(
+        `SELECT id
+        FROM periodos_academicos
+        WHERE id = $1
+          AND activo = TRUE
+        FOR SHARE`,
+        [periodoId]
+      );
+
+      if (!periodoResult.rowCount) {
+        throw errorHttp(
+          "El periodo seleccionado no existe o está inactivo.",
+          400
+        );
+      }
+    }
+
+    if (cambiaPeriodo) {
+      const matriculasExistentes = await client.query(
+        `SELECT 1
+        FROM matriculas
+        WHERE oferta_curso_id = $1
+        LIMIT 1`,
+        [ofertaId]
+      );
+
+      if (matriculasExistentes.rowCount) {
+        throw errorHttp(
+          "Esta oferta ya tiene matrículas y no puede cambiar de periodo. Crea una nueva oferta para el nuevo periodo.",
+          409
+        );
+      }
+    }
 
     if (publicarEfectivamente) {
       const suma = componentes.reduce(
@@ -977,15 +1086,16 @@ export async function actualizarCursoAdministrador(
     const publicacionFinal =
       publicar ||
       (cursoActual.estado === "Activo" && oferta.publicado === true);
-
+    
     await client.query(
       `UPDATE ofertas_curso
-       SET cupo_maximo = $2,
-           docente_id = $3,
-           publicado = $4,
-           actualizado_en = CURRENT_TIMESTAMP
-       WHERE id = $1`,
-      [ofertaId, cupos, docenteId, publicacionFinal]
+      SET periodo_id = $2,
+          cupo_maximo = $3,
+          docente_id = $4,
+          publicado = $5,
+          actualizado_en = CURRENT_TIMESTAMP
+      WHERE id = $1`,
+      [ofertaId, periodoId, cupos, docenteId, publicacionFinal]
     );
 
     const existentesResult = await client.query(
@@ -1182,7 +1292,7 @@ export async function cambiarEstadoCursoAdministrador(
     }
 
     const ofertaResult = await client.query(
-      `SELECT id, docente_id
+      `SELECT id, docente_id, periodo_id
        FROM ofertas_curso
        WHERE curso_id = $1
        ORDER BY actualizado_en DESC, id DESC
@@ -1197,6 +1307,29 @@ export async function cambiarEstadoCursoAdministrador(
       }
 
       const oferta = ofertaResult.rows[0];
+
+      if (!oferta.periodo_id) {
+        throw errorHttp(
+          "No puedes publicar el curso sin asignar un periodo académico.",
+          400
+        );
+      }
+
+      const periodoResult = await client.query(
+        `SELECT id
+        FROM periodos_academicos
+        WHERE id = $1
+          AND activo = TRUE
+        FOR SHARE`,
+        [oferta.periodo_id]
+      );
+
+      if (!periodoResult.rowCount) {
+        throw errorHttp(
+          "El periodo académico de esta oferta está inactivo. Selecciona un periodo activo antes de publicar.",
+          400
+        );
+      }
 
       if (!oferta.docente_id) {
         throw errorHttp(

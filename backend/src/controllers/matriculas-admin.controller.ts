@@ -117,7 +117,8 @@ export async function obtenerOpcionesMatricula(_req: Request, res: Response) {
          WHERE c.estado = 'Activo'
            AND oc.publicado = TRUE
            AND oc.estado IN ('Programado', 'En curso')
-           AND (oc.periodo_id IS NULL OR p.activo = TRUE)
+           AND oc.periodo_id IS NOT NULL
+           AND p.activo = TRUE
            AND oc.cupo_maximo > COALESCE(ins.ocupadas, 0)
          ORDER BY c.nombre, p.fecha_inicio NULLS LAST, oc.id DESC`
       ),
@@ -139,7 +140,6 @@ export async function obtenerOpcionesMatricula(_req: Request, res: Response) {
 export async function registrarMatricula(req: Request, res: Response) {
   const estudianteId = leerIdPositivo(req.body?.estudianteId);
   const ofertaCursoId = leerIdPositivo(req.body?.ofertaCursoId);
-  const periodoIdSolicitado = leerIdPositivo(req.body?.periodoId);
   const estadoPago = req.body?.estadoPago;
 
   if (!estudianteId) {
@@ -147,9 +147,6 @@ export async function registrarMatricula(req: Request, res: Response) {
   }
   if (!ofertaCursoId) {
     return res.status(400).json({ message: "Selecciona una oferta de curso válida." });
-  }
-  if (!periodoIdSolicitado) {
-    return res.status(400).json({ message: "Selecciona un periodo académico activo." });
   }
   if (typeof estadoPago !== "string" || !ESTADOS_PAGO.has(estadoPago)) {
     return res.status(400).json({ message: "Selecciona un estado de pago válido." });
@@ -214,49 +211,31 @@ export async function registrarMatricula(req: Request, res: Response) {
       });
     }
 
+    if (!oferta.periodo_id) {
+      await client.query("ROLLBACK");
+
+      return res.status(409).json({
+        message:
+          "Esta oferta todavía no tiene un periodo académico asignado. Ve a Cursos y edita la oferta antes de matricular alumnos.",
+      });
+    }
+
     const periodoResult = await client.query(
-      `SELECT id, nombre, fecha_inicio, fecha_fin
-       FROM periodos_academicos
-       WHERE id = $1
-         AND activo = TRUE
-       FOR SHARE`,
-      [periodoIdSolicitado]
+      `SELECT id
+      FROM periodos_academicos
+      WHERE id = $1
+        AND activo = TRUE
+      FOR SHARE`,
+      [oferta.periodo_id]
     );
 
     if (!periodoResult.rowCount) {
       await client.query("ROLLBACK");
-      return res.status(400).json({
-        message: "El periodo seleccionado no existe o está inactivo.",
-      });
-    }
 
-    if (
-      oferta.periodo_id !== null &&
-      String(oferta.periodo_id) !== periodoIdSolicitado
-    ) {
-      await client.query("ROLLBACK");
       return res.status(409).json({
-        message: "La oferta ya pertenece a otro periodo. Recarga el formulario.",
+        message:
+          "El periodo académico de esta oferta está inactivo. No se pueden registrar nuevas matrículas.",
       });
-    }
-
-    // Compatibilidad con ofertas antiguas: si no tienen periodo, la primera
-    // matrícula lo asigna a nivel de oferta. Las siguientes usarán ese mismo periodo.
-    if (oferta.periodo_id === null) {
-      await client.query(
-        `UPDATE ofertas_curso
-         SET periodo_id = $2,
-             fecha_inicio = COALESCE(fecha_inicio, $3::DATE),
-             fecha_fin = COALESCE(fecha_fin, $4::DATE),
-             actualizado_en = CURRENT_TIMESTAMP
-         WHERE id = $1`,
-        [
-          ofertaCursoId,
-          periodoIdSolicitado,
-          periodoResult.rows[0].fecha_inicio,
-          periodoResult.rows[0].fecha_fin,
-        ]
-      );
     }
 
     const cuposResult = await client.query(

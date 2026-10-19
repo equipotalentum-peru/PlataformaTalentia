@@ -9,7 +9,6 @@ export type EstadoPagoMatricula = "Pendiente" | "Pagado" | "No aplica";
 export interface MatriculaFormData {
   estudianteId: string;
   ofertaCursoId: string;
-  periodoId: string;
   estadoPago: EstadoPagoMatricula;
 }
 
@@ -17,13 +16,6 @@ interface AlumnoOption {
   id: string;
   nombre: string;
   codigo: string;
-}
-
-interface PeriodoOption {
-  id: string;
-  nombre: string;
-  fechaInicio: string;
-  fechaFin: string;
 }
 
 interface OfertaOption {
@@ -43,7 +35,6 @@ interface OfertaOption {
 
 interface OpcionesMatricula {
   alumnos: AlumnoOption[];
-  periodos: PeriodoOption[];
   ofertas: OfertaOption[];
 }
 
@@ -72,7 +63,6 @@ export default function RegistrarMatricula({
   const router = useRouter();
   const [opciones, setOpciones] = useState<OpcionesMatricula>({
     alumnos: [],
-    periodos: [],
     ofertas: [],
   });
   const [cargando, setCargando] = useState(true);
@@ -80,7 +70,6 @@ export default function RegistrarMatricula({
   const [estudianteId, setEstudianteId] = useState("");
   const [ofertaTexto, setOfertaTexto] = useState("");
   const [ofertaCursoId, setOfertaCursoId] = useState("");
-  const [periodoId, setPeriodoId] = useState("");
   const [mostrarSugerenciasOferta, setMostrarSugerenciasOferta] = useState(false);
   const [estadoPago, setEstadoPago] = useState<EstadoPagoMatricula>("Pendiente");
   const [guardando, setGuardando] = useState(false);
@@ -112,7 +101,6 @@ export default function RegistrarMatricula({
 
         setOpciones({
           alumnos: Array.isArray(data.alumnos) ? data.alumnos : [],
-          periodos: Array.isArray(data.periodos) ? data.periodos : [],
           ofertas: Array.isArray(data.ofertas) ? data.ofertas : [],
         });
       } catch (cause) {
@@ -169,7 +157,6 @@ const ofertasFiltradas = useMemo(() => {
     setOfertaTexto(value);
     
     setOfertaCursoId("");
-    setPeriodoId("");
     setMostrarSugerenciasOferta(true);
     setError("");
   };
@@ -177,7 +164,6 @@ const ofertasFiltradas = useMemo(() => {
   const seleccionarOferta = (oferta: OfertaOption) => {
     setOfertaTexto(etiquetaOferta(oferta));
     setOfertaCursoId(oferta.id);
-    setPeriodoId(oferta.periodoId ?? "");
     setMostrarSugerenciasOferta(false);
     setError("");
   };
@@ -193,12 +179,6 @@ const ofertasFiltradas = useMemo(() => {
 
     if (!ofertaSeleccionada) {
       setError("Selecciona una oferta de curso publicada y con cupos disponibles.");
-      return;
-    }
-
-    const periodoFinalId = ofertaSeleccionada.periodoId ?? periodoId;
-    if (!periodoFinalId) {
-      setError("Selecciona un periodo académico para esta oferta.");
       return;
     }
 
@@ -218,7 +198,6 @@ const ofertasFiltradas = useMemo(() => {
       await onRegistrar({
         estudianteId,
         ofertaCursoId: ofertaSeleccionada.id,
-        periodoId: periodoFinalId,
         estadoPago,
       });
     } catch (cause) {
@@ -337,36 +316,24 @@ const ofertasFiltradas = useMemo(() => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="periodoMatricula" className="block text-xs font-bold text-[#0F2851] mb-2">
-                Periodo *
+              <label
+                htmlFor="periodoMatricula"
+                className="mb-2 block text-xs font-bold text-[#0F2851]"
+              >
+                Periodo académico
               </label>
-              {ofertaSeleccionada?.periodoId ? (
-                <input
-                  id="periodoMatricula"
-                  type="text"
-                  readOnly
-                  value={ofertaSeleccionada.periodoNombre ?? "Periodo asignado"}
-                  className={`${CLASE_INPUT} cursor-not-allowed bg-[#F8FAFC]`}
-                />
-              ) : (
-                <select
-                  id="periodoMatricula"
-                  value={periodoId}
-                  onChange={(event) => setPeriodoId(event.target.value)}
-                  disabled={!ofertaSeleccionada || cargando}
-                  required
-                  className={`${CLASE_INPUT} cursor-pointer disabled:cursor-not-allowed disabled:text-[#94A3B8]`}
-                >
-                  <option value="">
-                    {ofertaSeleccionada ? "Seleccionar periodo" : "Primero selecciona un curso"}
-                  </option>
-                  {opciones.periodos.map((periodo) => (
-                    <option key={periodo.id} value={periodo.id}>
-                      {periodo.nombre}
-                    </option>
-                  ))}
-                </select>
-              )}
+
+              <input
+                id="periodoMatricula"
+                type="text"
+                readOnly
+                value={
+                  ofertaSeleccionada
+                    ? ofertaSeleccionada.periodoNombre ?? "Periodo no disponible"
+                    : "Selecciona una oferta"
+                }
+                className={`${CLASE_INPUT} cursor-not-allowed bg-[#F8FAFC]`}
+              />
             </div>
 
             <div>
