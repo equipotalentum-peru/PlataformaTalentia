@@ -58,7 +58,7 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
 
   return <div className="min-h-screen px-4 py-4 lg:px-5"><div className="mx-auto max-w-[1000px]">
     <div className="mb-3 flex min-w-0 items-center gap-3">
-      <Link href={`/docente/cursos/${courseId}`} className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-gray-700 transition hover:text-[#3186d8]">
+      <Link href={`/docente/cursos/${courseId}`} className="flex shrink-0 items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
         Volver a cursos
       </Link>

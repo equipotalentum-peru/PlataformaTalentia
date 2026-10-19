@@ -83,9 +83,9 @@ function DottedMenu({ onEdit, onDelete, onPublish, status, disabled }: { onEdit:
         <>
           <button type="button" className="fixed inset-0 z-[40] cursor-default" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-8 z-[50] w-40 whitespace-nowrap rounded-md border border-[#e0e5eb] bg-white py-1 shadow-lg">
-            <button type="button" onClick={() => { setOpen(false); onPublish(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-gray-700 hover:bg-[#f4f8fc]">{status === "Borrador" ? "Publicar" : "Volver a borrador"}</button>
-            <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-gray-700 hover:bg-[#f4f8fc]">Editar</button>
-            <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="block w-full px-3 py-1.5 text-left text-[10px] text-red-600 hover:bg-red-50">Eliminar</button>
+            <button type="button" onClick={() => { setOpen(false); onPublish(); }} className="block w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-[#f4f8fc]">{status === "Borrador" ? "Publicar" : "Volver a borrador"}</button>
+            <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="block w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-[#f4f8fc]">Editar</button>
+            <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="block w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50">Eliminar</button>
           </div>
         </>
       )}
@@ -341,15 +341,29 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
     catch (error) { showNotice(error instanceof Error ? error.message : "No se pudo cambiar el estado."); }
   };
 
-  if (loading || loadError) return <div className="min-h-screen px-3 py-4 lg:px-5"><div className="mx-auto max-w-[1000px]">
-    <Link href="/docente/cursos" className="text-[11px] text-gray-700">Volver a cursos</Link>
-    <p role={loadError ? "alert" : "status"} className="mt-4 text-[12px] text-gray-600">{loadError || "Cargando curso..."}</p>
-  </div></div>;
+  if (loading || loadError) {
+    return (
+      <div className="min-h-screen px-3 py-4 lg:px-5">
+        <div className="mx-auto max-w-[1000px]">
+          <Link
+            href="/docente/cursos"
+            className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]"
+          >
+            <BackIcon />
+            Volver a cursos
+          </Link>
+          <p role={loadError ? "alert" : "status"} className="mt-4 text-[12px] text-gray-600">
+            {loadError || "Cargando curso..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-3 py-4 lg:px-5">
       <div className="mx-auto max-w-[1000px]">
-        <Link href="/docente/cursos" className="mb-2 flex w-fit items-center gap-1.5 text-[11px] font-medium text-gray-700 transition hover:text-[#3186d8]">
+        <Link href="/docente/cursos" className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
           <BackIcon />
           Volver a cursos
         </Link>
@@ -367,7 +381,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
           <section className="min-w-0 flex-1">
             <div className="rounded-xl bg-white p-2 shadow-[0_1px_5px_rgba(15,36,61,0.08)] sm:p-3">
               <div className="flex justify-end pb-2">
-                <button type="button" onClick={() => setCreateModuleOpen(true)} className="flex h-8 items-center gap-1.5 rounded-md bg-[#3186d8] px-3 text-[10px] font-semibold text-white shadow-sm transition hover:bg-[#2777c1]">
+                <button type="button" onClick={() => setCreateModuleOpen(true)} className="flex h-9 items-center gap-1.5 rounded-md bg-[#3186d8] px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#2777c1]">
                   <PlusIcon />
                   Agregar módulo
                 </button>
@@ -381,11 +395,11 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                   return (
                     <div key={module.id} className="rounded-lg">
                       <div className="flex items-center" style={{ backgroundColor: color }}>
-                      <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[31px] min-w-0 flex-1 items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" aria-expanded={open}>
-                        <span className="flex-1 text-[10px] font-semibold text-[#173f63]">Modulo {module.number}: {module.title}</span>
+                      <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" aria-expanded={open}>
+                        <span className="flex-1 break-words text-[14px] font-semibold text-[#173f63]">Modulo {module.number}: {module.title}</span>
                         <ChevronIcon open={open} />
                       </button>
-                      <button type="button" disabled={deletingModuleId !== null} onClick={() => void deleteModule(module)} aria-label={`Eliminar módulo ${module.title}`} className="shrink-0 px-3 py-2 text-[10px] font-semibold text-[#173f63] hover:bg-white/20 disabled:opacity-50">
+                      <button type="button" disabled={deletingModuleId !== null} onClick={() => void deleteModule(module)} aria-label={`Eliminar módulo ${module.title}`} className="shrink-0 px-3 py-2 text-xs font-semibold text-[#173f63] hover:bg-white/20 disabled:opacity-50">
                         Eliminar
                       </button>
                       </div>
@@ -413,9 +427,9 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                               <>
                                 <CourseContentIcon
                                   type={content.type}
-                                  className="h-4 w-4 shrink-0 text-[#667482]"
+                                  className="h-5 w-5 shrink-0 text-[#667482]"
                                 />
-                                <span className="min-w-0 flex-1 truncate text-[10px] text-gray-800">
+                                <span className="min-w-0 flex-1 break-words text-[14px] text-gray-800">
                                   {module.number}.{contentIndex + 1} {content.title}
                                 </span>
                               </>
@@ -424,7 +438,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                             return (
                               <div
                                 key={content.id}
-                                className="group flex min-h-[31px] items-center gap-2 border-b border-[#eff2f5] px-3"
+                                className="group flex min-h-[48px] items-center gap-3 border-b border-[#eff2f5] px-3 py-2"
                               >
                                 {isExternalLink && externalUrl ? (
                                   <a
@@ -447,7 +461,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                                 )}
 
                                 <span
-                                  className={`flex h-4 min-w-[53px] shrink-0 items-center justify-center rounded-[4px] px-1 text-[7px] font-medium ${
+                                  className={`flex min-h-5 min-w-[68px] shrink-0 items-center justify-center rounded-[4px] px-1.5 text-[10px] font-medium ${
                                     content.status === "Publicado"
                                       ? "bg-[#c9ecc9] text-[#5eb36a]"
                                       : "bg-[#d59af5] text-white"
@@ -479,7 +493,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                             );
                           })}
 
-                          <button type="button" onClick={() => { setSelectedModuleId(module.id); setAddContentOpen(true); }} className="flex w-full items-center gap-1 px-3 py-1.5 text-[9px] font-medium text-[#3186d8] hover:bg-[#f6faff]">
+                          <button type="button" onClick={() => { setSelectedModuleId(module.id); setAddContentOpen(true); }} className="flex min-h-9 w-full items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#3186d8] hover:bg-[#f6faff]">
                             <PlusIcon />
                             Agregar contenido
                           </button>

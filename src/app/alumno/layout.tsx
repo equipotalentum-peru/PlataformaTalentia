@@ -1,5 +1,4 @@
 import StudentSidebar from "@/components/alumno/StudentSidebar";
-import ResponsiveFooter from "@/components/common/layout/ResponsiveFooter";
 
 export default function StudentLayout({
   children,
@@ -13,7 +12,6 @@ export default function StudentLayout({
         <main className="app-layout-main">
           <div className="app-page">{children}</div>
         </main>
-        <ResponsiveFooter />
       </div>
     </div>
   );

@@ -170,9 +170,20 @@ export default function TeacherAnnouncementsPage({
         {/* VOLVER */}
         <Link
           href="/docente/cursos"
-          className="mb-2 flex w-fit items-center gap-2 text-[11px] font-medium text-gray-700 hover:text-[#3186d8]"
+          className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]"
         >
-          ← Volver a cursos
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+
+          Volver a cursos
         </Link>
 
         {/* BANNER */}

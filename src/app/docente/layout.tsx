@@ -1,5 +1,4 @@
 import TeacherSidebar from "@/components/docente/TeacherSidebar";
-import ResponsiveFooter from "@/components/common/layout/ResponsiveFooter";
 
 export default function TeacherLayout({
   children,
@@ -13,7 +12,6 @@ export default function TeacherLayout({
         <main className="app-layout-main">
           <div className="app-page">{children}</div>
         </main>
-        <ResponsiveFooter />
       </div>
     </div>
   );

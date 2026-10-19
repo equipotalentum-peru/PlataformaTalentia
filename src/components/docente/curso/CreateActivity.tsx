@@ -217,7 +217,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
   return (
     <div className="min-h-screen px-3 py-3 lg:px-5">
       <div className="mx-auto max-w-[1000px]">
-        <Link href={backHref} className="mb-2 flex w-fit items-center gap-1.5 text-[11px] font-medium text-gray-700 hover:text-[#3186d8]">
+        <Link href={backHref} className="mb-3 flex w-fit items-center gap-2 text-[12px] font-medium text-gray-700 transition hover:text-[#3186d8]">
           <BackIcon />
           Volver a cursos
         </Link>
