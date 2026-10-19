@@ -695,16 +695,25 @@ const [
                   {/* Columna Acciones */}
                   <td className="py-4 px-4 whitespace-nowrap text-center relative">
                     <div className="relative inline-block text-left" ref={menuAbiertoId === item.id ? menuRef : null}>
-                      <button
-                        type="button"
-                        onClick={() => toggleMenu(item.id)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F4F7FC] hover:bg-slate-200 text-[#0F2851] text-[13px] font-bold rounded-xl transition-all cursor-pointer border border-slate-200/60"
+                     <button
+                       type="button"
+                       onClick={() => toggleMenu(item.id)}
+                       aria-label="Abrir acciones"
+                       title="Acciones"
+                       className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-slate-100 hover:text-[#0F2851] cursor-pointer"
                       >
-                        <span>Acciones</span>
-                        <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${menuAbiertoId === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="h-5 w-5"
+                          aria-hidden="true"
+                        >
+                         <circle cx="12" cy="5" r="1.7" />
+                         <circle cx="12" cy="12" r="1.7" />
+                         <circle cx="12" cy="19" r="1.7" />
+                       </svg>
+                     </button>
 
                       {/* Dropdown Menu */}
                       {menuAbiertoId === item.id && (
