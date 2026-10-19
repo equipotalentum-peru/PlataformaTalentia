@@ -1032,7 +1032,7 @@ export async function actualizarCursoAdministrador(
 
       if (matriculasExistentes.rowCount) {
         throw errorHttp(
-          "Esta oferta ya tiene matrículas y no puede cambiar de periodo. Crea una nueva oferta para el nuevo periodo.",
+          "Este curso ya tiene matrículas y no puede cambiar de periodo. Crea un nuevo curso para cambiar de periodo.",
           409
         );
       }
