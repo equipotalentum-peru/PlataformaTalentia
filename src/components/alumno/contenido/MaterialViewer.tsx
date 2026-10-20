@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import ContentViewer from "@/components/common/contenido/ContentViewer";
+import QuizViewer from "@/components/common/contenido/QuizViewer";
 import SectionNavigation from "@/components/alumno/SectionNavigation";
 import ActivityViewer from "./ActivityViewer";
 import { activities, type ActivityDefinition } from "@/data/activities";
@@ -24,7 +25,7 @@ type Props = {
 export default function MaterialViewer({ courseId, contentId }: Props) {
   const [material, setMaterial] = useState<{
     titulo: string;
-    tipo: "pdf" | "ppt" | "word" | "video" | "activity";
+    tipo: "pdf" | "ppt" | "word" | "video" | "activity" | "evaluation";
 
     archivo: string;
     previousHref?: string;
@@ -104,6 +105,17 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
             ? `/alumno/cursos/${courseId}/contenido/${materiales[indice + 1].id}?material=1`
             : undefined,
         };
+        if (contenido.tipo === "evaluacion") {
+          if (controller.signal.aborted) return;
+          setMaterial({
+            titulo: contenido.titulo,
+            tipo: "evaluation",
+            archivo: "",
+            ...navegacion,
+          });
+          return;
+        }
+
         if (contenido.tipo === "actividad") {
           if (controller.signal.aborted) return;
           const plantilla = activities.find((item) => item.id === 6);
@@ -179,15 +191,23 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
   return (
     <>
       {material.tipo === "activity" ? (
-          <ActivityViewer
-            activityId={contentId}
-            courseId={courseId}
-            activityDefinition={material.actividad}
-            previousHref={material.previousHref}
-            nextHref={material.nextHref}
-            exitHref={`/alumno/cursos/${courseId}`}
-            trackLocalProgress={true}
-          />
+        <ActivityViewer
+          activityId={contentId}
+          courseId={courseId}
+          activityDefinition={material.actividad}
+          previousHref={material.previousHref}
+          nextHref={material.nextHref}
+          exitHref={`/alumno/cursos/${courseId}`}
+          trackLocalProgress={true}
+        />
+      ) : material.tipo === "evaluation" ? (
+        <QuizViewer
+          databaseContentId={contentId}
+          courseId={courseId}
+          previousHref={material.previousHref}
+          nextHref={material.nextHref}
+          exitHref={`/alumno/cursos/${courseId}`}
+        />
       ) : (
         <ContentViewer
           title={material.titulo}
@@ -195,14 +215,16 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
           file={material.archivo}
         />
       )}
-      <SectionNavigation
-        courseId={courseId}
-        currentContentId={contentId}
-        currentContentType={material.tipo}
-        previousHref={material.previousHref}
-        nextHref={material.nextHref}
-        trackLocalProgress={false}
-      />
+      {material.tipo !== "evaluation" && (
+        <SectionNavigation
+          courseId={courseId}
+          currentContentId={contentId}
+          currentContentType={material.tipo}
+          previousHref={material.previousHref}
+          nextHref={material.nextHref}
+          trackLocalProgress={false}
+        />
+      )}
     </>
   );
 }
