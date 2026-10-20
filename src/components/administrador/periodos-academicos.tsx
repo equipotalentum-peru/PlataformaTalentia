@@ -89,6 +89,17 @@ export default function PeriodosAcademicos() {
   }, [cargarPeriodos]);
 
   useEffect(() => {
+    const mensajeGuardado = window.sessionStorage.getItem(
+      "talentia-periodo-academico-mensaje"
+    );
+
+    if (mensajeGuardado) {
+      setMensaje(mensajeGuardado);
+      window.sessionStorage.removeItem("talentia-periodo-academico-mensaje");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!menu) return;
 
     function cerrarFuera(event: MouseEvent) {
@@ -132,16 +143,7 @@ export default function PeriodosAcademicos() {
   }
 
   function abrirFormularioNuevo() {
-    if (mostrarFormulario) {
-      limpiarFormulario();
-      return;
-    }
-
-    setEditandoId(null);
-    setForm(FORMULARIO_VACIO);
-    setError("");
-    setMensaje("");
-    setMostrarFormulario(true);
+    router.push("/administrador/periodos/crear");
   }
 
   async function guardarPeriodo(event: FormEvent<HTMLFormElement>) {
@@ -336,7 +338,9 @@ export default function PeriodosAcademicos() {
 
         <button
           type="button"
-          onClick={abrirFormularioNuevo}
+          onClick={() =>
+            mostrarFormulario ? limpiarFormulario() : abrirFormularioNuevo()
+          }
           className="self-start rounded-2xl bg-talentia-action px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-talentia-primary sm:self-auto"
         >
           {mostrarFormulario ? "Cerrar formulario" : "Registrar periodo"}
