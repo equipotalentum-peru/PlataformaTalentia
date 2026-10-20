@@ -189,7 +189,7 @@ export default function TeacherAnnouncementsPage({
         {/* TABS */}
         <CourseTabs role="docente" courseId={courseId} active="anuncios" />
 
-        <div className="mt-2 space-y-2">
+        <div className="teacher-course-typography mt-2 space-y-2">
           {loadError && (
             <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[11px] text-talentia-danger">
               <span>{loadError}</span>

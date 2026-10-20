@@ -373,7 +373,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
 
         <CourseTabs role="docente" courseId={courseId} active="contenido" />
 
-        <div className="flex flex-col gap-5 py-4 xl:flex-row">
+        <div className="teacher-course-typography flex flex-col gap-5 py-4 xl:flex-row">
           <section className="min-w-0 flex-1">
             <div className="rounded-xl bg-talentia-surface p-2 shadow-[0_1px_5px_rgba(15,36,61,0.08)] sm:p-3">
               <div className="flex justify-end pb-2">
@@ -392,7 +392,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                     <div key={module.id} className="rounded-lg">
                       <div className="flex items-center" style={{ backgroundColor: color }}>
                       <button type="button" onClick={() => toggleModule(module.id)} className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 px-3 text-left transition hover:brightness-[0.98]" aria-expanded={open}>
-                        <span className="flex-1 break-words text-[14px] font-semibold text-talentia-primary">Modulo {module.number}: {module.title}</span>
+                        <span className="teacher-course-module-title flex-1 break-words text-[14px] font-semibold text-talentia-primary">Modulo {module.number}: {module.title}</span>
                         <ChevronIcon open={open} />
                       </button>
                       <button type="button" disabled={deletingModuleId !== null} onClick={() => void deleteModule(module)} aria-label={`Eliminar módulo ${module.title}`} className="shrink-0 px-3 py-2 text-xs font-semibold text-talentia-primary hover:bg-talentia-surface/20 disabled:opacity-50">

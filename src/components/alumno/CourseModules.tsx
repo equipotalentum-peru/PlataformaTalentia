@@ -342,7 +342,7 @@ export default function CourseModules({
                 </span>
 
                 {/* NOMBRE DEL MÓDULO */}
-                <span className="min-w-0 flex-1 break-words text-[14px] font-semibold text-talentia-primary">
+                <span className="min-w-0 flex-1 break-words text-[15px] font-semibold text-talentia-primary">
                   Módulo{" "}
                   {modulo.numero}:{" "}
                   {modulo.titulo}
@@ -421,7 +421,7 @@ const visto =
                           items-center
                           gap-3
                           py-3
-                          text-[14px]
+                          text-[13px]
                           text-talentia-primary
                         "
                       >

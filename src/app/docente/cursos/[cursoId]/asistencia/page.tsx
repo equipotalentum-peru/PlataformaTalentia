@@ -49,7 +49,7 @@ export default async function TeacherAttendancePage({
         {/* TABS */}
         <CourseTabs role="docente" courseId={courseId} active="asistencia" />
 
-        <div className="mt-2">
+        <div className="teacher-course-typography mt-2">
           <TeacherAttendance courseId={courseId} />
         </div>
 

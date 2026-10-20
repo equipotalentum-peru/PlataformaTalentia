@@ -88,7 +88,7 @@ export default function EditAnnouncementModal({
       <div className="w-full max-w-[460px] rounded-xl bg-talentia-surface px-6 py-5 shadow-2xl">
 
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-talentia-primary">
+          <h2 className="text-[15px] font-bold text-talentia-primary">
             Editar anuncio:
           </h2>
 
@@ -104,7 +104,7 @@ export default function EditAnnouncementModal({
 
         <div className="space-y-3">
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-talentia-blue">
+            <span className="mb-1 block text-[13px] font-semibold text-talentia-blue">
               Título:
             </span>
 
@@ -114,12 +114,12 @@ export default function EditAnnouncementModal({
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[10px] outline-none"
+              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[13px] outline-none"
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-talentia-blue">
+            <span className="mb-1 block text-[13px] font-semibold text-talentia-blue">
               Contenido:
             </span>
 
@@ -128,14 +128,14 @@ export default function EditAnnouncementModal({
               onChange={(event) =>
                 setContent(event.target.value)
               }
-              className="h-[150px] w-full resize-none rounded-md bg-talentia-surface p-3 text-[10px] outline-none"
+              className="h-[150px] w-full resize-none rounded-md bg-talentia-surface p-3 text-[13px] outline-none"
             />
           </label>
 
           {error && (
             <p
               role="alert"
-              className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[10px] text-talentia-danger"
+              className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[13px] text-talentia-danger"
             >
               {error}
             </p>
@@ -147,7 +147,7 @@ export default function EditAnnouncementModal({
             type="button"
             onClick={close}
             disabled={saving}
-            className="rounded-md bg-talentia-surface px-5 py-2 text-[10px] font-medium text-talentia-primary disabled:opacity-60 border border-talentia-border"
+            className="rounded-md bg-talentia-surface px-5 py-2 text-[13px] font-medium text-talentia-primary disabled:opacity-60 border border-talentia-border"
           >
             Cancelar
           </button>
@@ -156,7 +156,7 @@ export default function EditAnnouncementModal({
             type="button"
             onClick={() => void submit()}
             disabled={saving}
-            className="rounded-md bg-talentia-action px-5 py-2 text-[10px] font-semibold text-white disabled:opacity-60"
+            className="rounded-md bg-talentia-action px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
           >
             {saving ? "Guardando..." : "Guardar cambios"}
           </button>

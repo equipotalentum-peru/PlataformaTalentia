@@ -8,7 +8,7 @@ export default function CourseInfo({
   return (
     <aside className="order-first w-full xl:order-last xl:w-[220px] xl:shrink-0">
       <div className="mb-3">
-        <h3 className="text-[13px] font-semibold text-talentia-primary">
+        <h3 className="text-[15px] font-semibold text-talentia-primary">
           Información del curso
         </h3>
       </div>
@@ -16,11 +16,11 @@ export default function CourseInfo({
       {/* PROGRESO */}
       <div className="mb-3 rounded-xl bg-talentia-surface p-3 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-[11px] font-medium text-talentia-blue">
+          <span className="text-[13px] font-medium text-talentia-blue">
             Progreso
           </span>
 
-          <span className="text-[9px] text-talentia-blue">
+          <span className="text-[12px] text-talentia-blue">
             {progress}% completado
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function CourseInfo({
 
       <a
         href="#"
-        className="mt-8 flex h-12 items-center justify-center rounded-lg bg-talentia-action text-[14px] font-semibold text-white transition hover:bg-talentia-primary"
+        className="mt-8 flex h-12 items-center justify-center rounded-lg bg-talentia-action text-[13px] font-semibold text-white transition hover:bg-talentia-primary"
       >
         Ver Asistencia
       </a>
@@ -104,8 +104,8 @@ function InfoItem({
       </div>
 
       <div>
-        <p className="text-[10px] text-talentia-muted">{label}</p>
-        <p className="text-[11px] font-medium text-talentia-blue">{value}</p>
+        <p className="text-[12px] text-talentia-muted">{label}</p>
+        <p className="text-[13px] font-medium text-talentia-blue">{value}</p>
       </div>
     </div>
   );

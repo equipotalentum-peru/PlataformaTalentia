@@ -69,7 +69,7 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-8" role="dialog" aria-modal="true" aria-labelledby="upload-file-title">
-      <div className="w-full max-w-[365px] rounded-xl bg-talentia-surface px-4 pb-4 pt-4 shadow-2xl">
+      <div className="max-h-[calc(100dvh-4rem)] w-full max-w-[480px] overflow-y-auto rounded-xl bg-talentia-surface px-4 pb-4 pt-4 shadow-2xl">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-talentia-selected text-talentia-blue">
@@ -80,8 +80,8 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
               </svg>
             </div>
             <div>
-              <h2 id="upload-file-title" className="text-[14px] font-bold text-talentia-primary">Insertar archivo</h2>
-              <p className="text-[8px] text-talentia-muted">Sube un documento, presentación o video.</p>
+              <h2 id="upload-file-title" className="text-[15px] font-bold text-talentia-primary">Insertar archivo</h2>
+              <p className="text-[13px] text-talentia-muted">Sube un documento, presentación o video.</p>
             </div>
           </div>
           <button type="button" onClick={close} className="rounded-full p-1 text-[24px] leading-none text-talentia-primary hover:bg-talentia-hover" aria-label="Cerrar">×</button>
@@ -99,14 +99,14 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
             <path d="m7 8 5-5 5 5" />
             <path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" />
           </svg>
-          <p className="mt-2 text-[9px] text-talentia-primary">Arrastra y suelta el archivo aquí</p>
-          <p className="text-[9px] text-talentia-primary">o</p>
-          <button type="button" onClick={() => inputRef.current?.click()} className="mt-1 rounded-md border border-talentia-blue bg-talentia-surface px-3 py-1.5 text-[10px] font-semibold text-talentia-blue hover:bg-talentia-hover">
+          <p className="mt-2 text-[13px] text-talentia-primary">Arrastra y suelta el archivo aquí</p>
+          <p className="text-[13px] text-talentia-primary">o</p>
+          <button type="button" onClick={() => inputRef.current?.click()} className="mt-1 rounded-md border border-talentia-blue bg-talentia-surface px-3 py-1.5 text-[13px] font-semibold text-talentia-blue hover:bg-talentia-hover">
             Seleccionar archivo
           </button>
-          {selectedFile && <p className="mt-2 truncate text-[9px] font-semibold text-talentia-blue">{selectedFile.name}</p>}
-          <p className="mt-2 text-[6.5px] text-talentia-muted">Tamaño máximo: 200 MB</p>
-          <p className="mt-1 text-[6.5px] text-talentia-muted">Formatos permitidos: PDF, DOCX, PPTX, MP4</p>
+          {selectedFile && <p className="mt-2 truncate text-[13px] font-semibold text-talentia-blue">{selectedFile.name}</p>}
+          <p className="mt-2 text-[12px] text-talentia-muted">Tamaño máximo: 200 MB</p>
+          <p className="mt-1 text-[12px] text-talentia-muted">Formatos permitidos: PDF, DOCX, PPTX, MP4</p>
         </div>
 
         <input
@@ -118,11 +118,11 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
           onChange={(event) => pickFile(event.target.files?.[0])}
         />
 
-        {error && <p role="alert" className="mt-2 text-center text-[9px] font-medium text-talentia-danger">{error}</p>}
+        {error && <p role="alert" className="mt-2 text-center text-[13px] font-medium text-talentia-danger">{error}</p>}
 
         <div className="mt-3 flex justify-end gap-2">
-          <button type="button" onClick={close} className="h-8 rounded-md bg-talentia-surface px-4 text-[10px] font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</button>
-          <button type="button" onClick={() => void submit()} disabled={uploading} className="h-8 rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{uploading ? "Subiendo..." : "Subir archivo"}</button>
+          <button type="button" onClick={close} className="h-8 rounded-md bg-talentia-surface px-4 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</button>
+          <button type="button" onClick={() => void submit()} disabled={uploading} className="h-8 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{uploading ? "Subiendo..." : "Subir archivo"}</button>
         </div>
       </div>
     </div>

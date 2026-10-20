@@ -98,7 +98,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full text-[13px] text-talentia-primary">
 
       {/* ==========================================
           TÍTULO
@@ -106,13 +106,13 @@ export default function LoginForm() {
 
       <div className="mb-8 text-center">
 
-        <p className="mt-5 text-[16px] font-semibold leading-5 text-gray-900">
+        <p className="mt-5 text-[15px] font-semibold leading-5 text-talentia-primary">
           ¡Bienvenido a nuestra nueva experiencia de
           <br />
           aprendizaje de Talentia!
         </p>
 
-        <p className="mt-8 text-left text-[13px] text-gray-800">
+        <p className="mt-8 text-left text-[13px] text-talentia-primary">
           Ingresa tus datos para iniciar sesión
         </p>
 
@@ -133,7 +133,7 @@ export default function LoginForm() {
 
           <label
             htmlFor="username"
-            className="mb-2 block text-[12px] font-medium text-[#2f73c9]"
+            className="mb-2 block text-[13px] font-medium text-talentia-blue"
           >
             Usuario
           </label>
@@ -155,17 +155,17 @@ export default function LoginForm() {
                 w-full
                 rounded-[7px]
                 border
-                border-[#d7d9df]
-                bg-white
+                border-talentia-border
+                bg-talentia-surface
                 px-3
                 pr-11
                 text-[13px]
-                text-gray-800
+                text-talentia-primary
                 outline-none
                 transition
-                focus:border-[#2e86dc]
+                focus:border-talentia-blue
                 focus:ring-2
-                focus:ring-[#2e86dc]/15
+                focus:ring-talentia-blue/15
               "
             />
 
@@ -178,7 +178,7 @@ export default function LoginForm() {
                 right-3
                 top-1/2
                 -translate-y-1/2
-                text-[#2f73c9]
+                text-talentia-blue
               "
               aria-label="Usuario"
             >
@@ -209,7 +209,7 @@ export default function LoginForm() {
 
           <label
             htmlFor="password"
-            className="mb-2 block text-[12px] font-medium text-[#2f73c9]"
+            className="mb-2 block text-[13px] font-medium text-talentia-blue"
           >
             Contraseña
           </label>
@@ -235,17 +235,17 @@ export default function LoginForm() {
                 w-full
                 rounded-[7px]
                 border
-                border-[#d7d9df]
-                bg-white
+                border-talentia-border
+                bg-talentia-surface
                 px-3
                 pr-11
                 text-[13px]
-                text-gray-800
+                text-talentia-primary
                 outline-none
                 transition
-                focus:border-[#2e86dc]
+                focus:border-talentia-blue
                 focus:ring-2
-                focus:ring-[#2e86dc]/15
+                focus:ring-talentia-blue/15
               "
             />
 
@@ -261,9 +261,9 @@ export default function LoginForm() {
                 right-3
                 top-1/2
                 -translate-y-1/2
-                text-[#2f73c9]
+                text-talentia-blue
                 transition
-                hover:text-[#1554a0]
+                hover:text-talentia-primary
               "
               aria-label={
                 showPassword
@@ -310,9 +310,9 @@ export default function LoginForm() {
   type="button"
   onClick={() => router.push("/restablecer-contrasena")}
   className=" 
-    text-[11px] 
+    text-[12px]
     font-medium 
-    text-[#2867bd] 
+    text-talentia-blue
     hover:underline 
   " 
 > 
@@ -330,11 +330,11 @@ export default function LoginForm() {
             className="
               rounded-md
               border
-              border-red-200
-              bg-red-50
+              border-talentia-danger/20
+              bg-talentia-danger-bg
               px-3 py-2
-              text-[12px]
-              text-red-600
+              text-[13px]
+              text-talentia-danger
             "
           >
             {error}
@@ -351,13 +351,13 @@ export default function LoginForm() {
             h-[45px]
             w-full
             rounded-[8px]
-            bg-[#2d97e8]
+            bg-talentia-action
             text-[13px]
             font-bold
             text-white
             shadow-sm
             transition
-            hover:bg-[#2088d8]
+            hover:bg-talentia-primary
             disabled:cursor-not-allowed
             disabled:opacity-70
           "

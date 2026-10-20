@@ -23,11 +23,11 @@ export default function ForumReply({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-[11px] font-bold text-talentia-primary">
+          <span className="forum-reply-author text-[11px] font-bold text-talentia-primary">
             {reply.author}
           </span>
 
-          <span className="text-[9px] text-talentia-muted">
+          <span className="forum-reply-date text-[9px] text-talentia-muted">
             {reply.date}
           </span>
         </div>

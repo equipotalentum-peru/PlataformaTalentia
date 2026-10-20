@@ -224,6 +224,65 @@ a {
   color: var(--talentia-blue);
 }
 
+.student-forum-typography :where(p, input, button, textarea, label, select) {
+  font-size: 14px;
+}
+
+.student-forum-typography :where(h2, h3) {
+  font-size: 16px;
+}
+
+.student-forum-list-typography :where(p, input, button, label, select) {
+  font-size: 13px;
+}
+
+.student-forum-list-typography :where(h2, h3) {
+  font-size: 15px;
+}
+
+.student-forum-typography .student-forum-meta,
+.student-forum-typography .student-forum-meta p {
+  font-size: 12px;
+}
+
+.student-forum-typography .forum-reply-author {
+  font-size: 14px;
+}
+
+.student-forum-typography .forum-reply-date {
+  font-size: 12px;
+}
+
+.teacher-course-typography {
+  font-size: 13px;
+}
+
+.teacher-course-typography :where(p, input, button, textarea, label, select, table) {
+  font-size: 13px;
+}
+
+.teacher-course-typography :where(p, a, div, span, label, select)[class~="text-[11px]"],
+.teacher-course-typography :where(div, span)[class~="text-[14px]"] {
+  font-size: 13px;
+}
+
+.teacher-course-typography :where([class~="text-[9px]"], [class~="text-[10px]"], .forum-reply-date) {
+  font-size: 12px;
+}
+
+.teacher-course-typography :where(p:not(.text-talentia-muted):not(.text-talentia-placeholder):not(.uppercase), input, button, textarea, select, table) {
+  font-size: 13px;
+}
+
+.teacher-course-typography :where(h1, h2, h3),
+.teacher-course-typography .teacher-course-module-title {
+  font-size: 15px;
+}
+
+.teacher-course-typography .forum-reply-author {
+  font-size: 14px;
+}
+
 .app-shell--student .app-layout-main .student-page-title,
 .app-shell--teacher .app-layout-main .teacher-page-title {
   font-size: 34px !important;

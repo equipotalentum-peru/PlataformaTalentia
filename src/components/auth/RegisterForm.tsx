@@ -186,16 +186,16 @@ const handleChange = (
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full text-[13px] text-talentia-primary">
       {/* Título adaptable */}
-      <h1 className="text-[20px] min-[380px]:text-[22px] min-[480px]:text-[24px] min-[600px]:text-[26px] min-[1100px]:text-[28px] font-bold tracking-[-0.5px] text-black text-center mb-3 min-[480px]:mb-5 min-[1100px]:mb-6">
+      <h1 className="text-[15px] font-bold tracking-normal text-talentia-primary text-center mb-3 min-[480px]:mb-5 min-[1100px]:mb-6">
         REGISTRO
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-2.5 min-[380px]:space-y-3 min-[480px]:space-y-4">
         {/* Nombres */}
         <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Nombre Completo
           </label>
           <input
@@ -204,14 +204,14 @@ const handleChange = (
   value={formData.nombres}
   readOnly
   required
-  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
+  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-border/50 px-3 text-talentia-muted cursor-not-allowed"
           />
         </div>
 
       
 
         <div>
-          <label htmlFor="registro-dni" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-dni" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             DNI
           </label>
           <input
@@ -220,13 +220,13 @@ const handleChange = (
   value={formData.dni}
   readOnly
   type="text"
-  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-3 text-gray-600 cursor-not-allowed"
+  className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-border/50 px-3 text-talentia-muted cursor-not-allowed"
           />
         </div>
 
         {rolInvitado === "Estudiante" && (
         <div>
-          <label htmlFor="registro-empresa" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-empresa" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Empresa aliada
           </label>
           <input
@@ -241,10 +241,10 @@ const handleChange = (
       ? "No aplica para alumno externo"
       : "Empresa aliada"
   }
-  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] px-3 text-[13px] outline-none ${
+  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border px-3 text-[13px] outline-none ${
     tipoAlumnoInvitado === "Externo"
-      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-      : "bg-white text-gray-800 focus:border-[#2e86dc]"
+      ? "bg-talentia-border/50 text-talentia-disabled-text cursor-not-allowed"
+      : "bg-talentia-surface text-talentia-primary focus:border-talentia-blue"
   }`}
           />
         </div>
@@ -253,7 +253,7 @@ const handleChange = (
 
         {/* Usuario */}
         <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Usuario
           </label>
           <input
@@ -262,12 +262,12 @@ const handleChange = (
             value={formData.usuario}
             onChange={handleChange}
             required
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </div>
 
         <div>
-          <label htmlFor="registro-genero" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-genero" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Género
           </label>
           <select
@@ -275,7 +275,7 @@ const handleChange = (
             name="genero"
             value={formData.genero}
             onChange={handleChange}
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface px-2.5 min-[380px]:px-3 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           >
             <option value="" disabled>Seleccionar</option>
             <option value="M">Masculino</option>
@@ -284,7 +284,7 @@ const handleChange = (
         </div>
 
         <div>
-          <label htmlFor="registro-telefono" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-telefono" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Teléfono
           </label>
           <input
@@ -296,12 +296,12 @@ const handleChange = (
   required
   maxLength={20}
   type="tel"
-  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] px-3 ${rolInvitado === "Estudiante" ? "bg-gray-100 text-gray-600 cursor-not-allowed" : "bg-white text-gray-800"}`}
+  className={`h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border px-3 ${rolInvitado === "Estudiante" ? "bg-talentia-border/50 text-talentia-muted cursor-not-allowed" : "bg-talentia-surface text-talentia-primary"}`}
           />
         </div>
 
         <div>
-          <label htmlFor="registro-fecha-nacimiento" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-fecha-nacimiento" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Fecha de nacimiento
           </label>
           <input
@@ -311,12 +311,12 @@ const handleChange = (
             onChange={handleChange}
             type="date"
             autoComplete="bday"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface px-2.5 min-[380px]:px-3 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </div>
 
         <div>
-          <label htmlFor="registro-direccion" className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label htmlFor="registro-direccion" className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Dirección
           </label>
           <input
@@ -326,13 +326,13 @@ const handleChange = (
             onChange={handleChange}
             type="text"
             autoComplete="street-address"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface autofill:shadow-[inset_0_0_0_1000px_white] px-2.5 min-[380px]:px-3 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
           />
         </div>
 
         {/* Correo electrónico */}
         <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Correo electrónico
           </label>
           <input
@@ -343,13 +343,13 @@ const handleChange = (
              required
              autoComplete="email"
              inputMode="email"
-            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-gray-100 px-2.5 min-[380px]:px-3 text-[12px] min-[380px]:text-[13px] text-gray-600 outline-none cursor-not-allowed"
+            className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-border/50 px-2.5 min-[380px]:px-3 text-[13px] text-talentia-muted outline-none cursor-not-allowed"
           />
         </div>
 
         {/* Contraseña */}
         <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Contraseña
           </label>
           <div className="relative">
@@ -359,12 +359,12 @@ const handleChange = (
               value={formData.password}
               onChange={handleChange}
               required
-              className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 pr-9 min-[380px]:pr-11 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+              className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface px-2.5 min-[380px]:px-3 pr-9 min-[380px]:pr-11 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2.5 min-[380px]:right-3 top-1/2 -translate-y-1/2 text-[#2f73c9] transition hover:text-[#1554a0]"
+              className="absolute right-2.5 min-[380px]:right-3 top-1/2 -translate-y-1/2 text-talentia-blue transition hover:text-talentia-primary"
             >
               {showPassword ? (
                 <svg className="h-4 w-4 min-[380px]:h-5 min-[380px]:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -385,7 +385,7 @@ const handleChange = (
 
         {/* Confirmar Contraseña */}
         <div>
-          <label className="mb-0.5 min-[480px]:mb-1 block text-[11px] min-[380px]:text-[12px] font-medium text-[#2f73c9]">
+          <label className="mb-0.5 min-[480px]:mb-1 block text-[13px] font-medium text-talentia-blue">
             Confirmar Contraseña
           </label>
           <div className="relative">
@@ -395,12 +395,12 @@ const handleChange = (
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-[#d7d9df] bg-white px-2.5 min-[380px]:px-3 pr-9 min-[380px]:pr-11 text-[12px] min-[380px]:text-[13px] text-gray-800 outline-none transition focus:border-[#2e86dc] focus:ring-2 focus:ring-[#2e86dc]/15"
+              className="h-[36px] min-[380px]:h-[38px] min-[480px]:h-[40px] w-full rounded-[7px] border border-talentia-border bg-talentia-surface px-2.5 min-[380px]:px-3 pr-9 min-[380px]:pr-11 text-[13px] text-talentia-primary outline-none transition focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-2.5 min-[380px]:right-3 top-1/2 -translate-y-1/2 text-[#2f73c9] transition hover:text-[#1554a0]"
+              className="absolute right-2.5 min-[380px]:right-3 top-1/2 -translate-y-1/2 text-talentia-blue transition hover:text-talentia-primary"
             >
               {showConfirmPassword ? (
                 <svg className="h-4 w-4 min-[380px]:h-5 min-[380px]:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -420,7 +420,7 @@ const handleChange = (
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-[11px] min-[380px]:text-[12px] text-red-600">
+          <div className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-2.5 py-1.5 text-[13px] text-talentia-danger">
             {error}
           </div>
         )}
@@ -433,7 +433,7 @@ const handleChange = (
   validandoInvitacion ||
   !invitacionValida
 }
-          className="mt-3 min-[480px]:mt-4 h-[38px] min-[380px]:h-[42px] min-[480px]:h-[45px] w-full rounded-[8px] bg-[#1554ad] text-[12px] min-[380px]:text-[13px] font-bold text-white shadow-sm transition hover:bg-[#0d4697] disabled:cursor-not-allowed disabled:opacity-70"
+          className="mt-3 min-[480px]:mt-4 h-[38px] min-[380px]:h-[42px] min-[480px]:h-[45px] w-full rounded-[8px] bg-talentia-action text-[13px] font-bold text-white shadow-sm transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? "REGISTRANDO..." : "REGISTRARSE"}
         </button>

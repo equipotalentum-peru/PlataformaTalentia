@@ -229,18 +229,18 @@ export default function ClassesPage({
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-talentia-muted">
+                  <p className="text-[12px] font-medium uppercase text-talentia-muted">
                     {proximaClase.estado === "En curso"
                       ? "Clase en curso"
                       : "Próxima clase"}
                   </p>
 
-                  <h2 className="text-[17px] font-bold text-talentia-primary">
+                  <h2 className="text-[15px] font-bold text-talentia-primary">
                     Sesión {proximaClase.numero}:{" "}
                     {proximaClase.tema}
                   </h2>
 
-                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-talentia-primary">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-talentia-primary">
                     <span className="flex items-center gap-1">
                       <svg
                         className="h-3.5 w-3.5"
@@ -327,7 +327,7 @@ export default function ClassesPage({
                     console.error(error);
                   }
                 }}
-                className="flex h-10 items-center justify-center gap-2 rounded-md bg-talentia-action px-5 text-[12px] font-medium text-white transition hover:bg-talentia-primary"
+                className="flex h-10 items-center justify-center gap-2 rounded-md bg-talentia-action px-5 text-[13px] font-medium text-white transition hover:bg-talentia-primary"
               >
                 <svg
                   className="h-4 w-4"
@@ -358,13 +358,13 @@ export default function ClassesPage({
         <section className="mt-3 rounded-xl bg-talentia-surface shadow-sm">
 
           <div className="px-4 pt-3">
-            <h2 className="text-[14px] font-bold text-talentia-primary">
+            <h2 className="text-[15px] font-bold text-talentia-primary">
               Todas las clases
             </h2>
           </div>
 
           <div className="mt-2 overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left text-[11px]">
+            <table className="w-full min-w-[760px] border-collapse text-left text-[13px]">
               <thead>
                 <tr className="border-y border-talentia-border bg-talentia-surface">
                   <th className="px-4 py-2.5 font-semibold text-talentia-primary">
@@ -415,14 +415,14 @@ export default function ClassesPage({
                           {clase.fecha}
                         </div>
 
-                        <div className="text-[10px] text-talentia-muted">
+                        <div className="text-[12px] text-talentia-muted">
                           {clase.horario}
                         </div>
                       </td>
 
                       <td className="px-4 py-2.5">
                         <span
-                          className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-medium ${
+                          className={`inline-flex rounded-md px-2.5 py-1 text-[13px] font-medium ${
                             clase.estado === "Finalizada"
                               ? "bg-talentia-success-bg text-talentia-success"
                               : clase.estado === "En curso"
@@ -443,7 +443,7 @@ export default function ClassesPage({
                             onClick={() =>
                               void handleRecording(clase)
                             }
-                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[13px] font-medium text-white transition hover:bg-talentia-primary"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -477,7 +477,7 @@ export default function ClassesPage({
                             onClick={() =>
                               void handleJoin(clase)
                             }
-                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
+                            className="inline-flex h-8 min-w-[125px] items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[13px] font-medium text-white transition hover:bg-talentia-primary"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -509,7 +509,7 @@ export default function ClassesPage({
                           <button
                             type="button"
                             disabled
-                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[10px] font-medium text-talentia-muted"
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[13px] font-medium text-talentia-muted"
                           >
                             <svg
                               className="h-3.5 w-3.5"
@@ -541,7 +541,7 @@ export default function ClassesPage({
                           <button
                             type="button"
                             disabled
-                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[10px] font-medium text-talentia-muted"
+                            className="inline-flex h-8 min-w-[125px] cursor-not-allowed items-center justify-center gap-2 rounded-md bg-talentia-border px-4 text-[13px] font-medium text-talentia-muted"
                           >
                             <svg
                               className="h-3.5 w-3.5"

@@ -92,13 +92,13 @@ export default function ForumFormModal({
             </div>
 
             <div>
-              <h2 className="text-[16px] font-bold text-talentia-primary">
+              <h2 className="text-[15px] font-bold text-talentia-primary">
                 {mode === "create"
                   ? "Crear nuevo foro"
                   : "Editar foro"}
               </h2>
 
-              <p className="text-[9px] leading-tight text-talentia-primary">
+              <p className="text-[13px] leading-tight text-talentia-primary">
                 Configura la información y las opciones de
                 participación.
               </p>
@@ -119,7 +119,7 @@ export default function ForumFormModal({
         <div className="space-y-3">
 
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-talentia-primary">
+            <span className="mb-1 block text-[13px] font-semibold text-talentia-primary">
               Título del foro<span className="text-talentia-danger">*</span>
             </span>
 
@@ -131,12 +131,12 @@ export default function ForumFormModal({
               onChange={(event) =>
                 setTitle(event.target.value)
               }
-              className="h-9 w-full rounded-md border border-talentia-border px-3 text-[10px] outline-none focus:border-talentia-blue"
+              className="h-9 w-full rounded-md border border-talentia-border px-3 text-[13px] outline-none focus:border-talentia-blue"
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-[10px] font-semibold text-talentia-primary">
+            <span className="mb-1 block text-[13px] font-semibold text-talentia-primary">
               Descripción<span className="text-talentia-danger">*</span>
             </span>
 
@@ -147,16 +147,16 @@ export default function ForumFormModal({
               onChange={(event) =>
                 setDescription(event.target.value)
               }
-              className="h-[80px] w-full resize-none rounded-md border border-talentia-border p-3 text-[10px] outline-none focus:border-talentia-blue"
+              className="h-[80px] w-full resize-none rounded-md border border-talentia-border p-3 text-[13px] outline-none focus:border-talentia-blue"
             />
           </label>
 
           <div>
-            <p className="mb-1 text-[10px] font-semibold text-talentia-primary">
+            <p className="mb-1 text-[13px] font-semibold text-talentia-primary">
               Configuración del foro
             </p>
 
-            <label className="mb-2 block text-[10px] text-talentia-primary">
+            <label className="mb-2 block text-[13px] text-talentia-primary">
               Fecha de cierre (opcional)
             </label>
 
@@ -167,10 +167,10 @@ export default function ForumFormModal({
               onChange={(event) =>
                 setCloseDate(event.target.value)
               }
-              className="h-9 w-full max-w-[185px] rounded-md border border-talentia-border px-3 text-[10px]"
+              className="h-9 w-full max-w-[185px] rounded-md border border-talentia-border px-3 text-[13px]"
             />
 
-            <label className="mt-3 flex items-center gap-2 text-[10px] text-talentia-primary">
+            <label className="mt-3 flex items-center gap-2 text-[13px] text-talentia-primary">
               <input
                 type="checkbox"
                 disabled={saving}
@@ -186,7 +186,7 @@ export default function ForumFormModal({
               Permitir respuesta de estudiantes
             </label>
 
-            <label className="mt-2 flex items-center gap-2 text-[10px] text-talentia-primary">
+            <label className="mt-2 flex items-center gap-2 text-[13px] text-talentia-primary">
               <input
                 type="checkbox"
                 disabled={saving}
@@ -205,7 +205,7 @@ export default function ForumFormModal({
 
           {(
             <div>
-              <p className="mb-1 text-[10px] font-semibold text-talentia-primary">
+              <p className="mb-1 text-[13px] font-semibold text-talentia-primary">
                 Estado
               </p>
 
@@ -214,7 +214,7 @@ export default function ForumFormModal({
                   (item) => (
                     <label
                       key={item}
-                      className="flex items-center gap-2 text-[10px] text-talentia-primary"
+                      className="flex items-center gap-2 text-[13px] text-talentia-primary"
                     >
                       <input
                         type="radio"
@@ -236,14 +236,14 @@ export default function ForumFormModal({
 
         </div>
 
-        {error && <p role="alert" className="mt-3 text-[11px] text-talentia-danger">{error}</p>}
+        {error && <p role="alert" className="mt-3 text-[13px] text-talentia-danger">{error}</p>}
         <div className="mt-5 flex flex-wrap justify-end gap-2">
 
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-md bg-talentia-surface px-4 py-2 text-[10px] font-semibold text-talentia-blue border border-talentia-border"
+            className="rounded-md bg-talentia-surface px-4 py-2 text-[13px] font-semibold text-talentia-blue border border-talentia-border"
           >
             Cancelar
           </button>
@@ -253,7 +253,7 @@ export default function ForumFormModal({
               type="button"
               disabled={saving || !title.trim() || !description.trim()}
               onClick={() => handleSubmit("Borrador")}
-              className="rounded-md bg-talentia-selected px-4 py-2 text-[10px] font-semibold text-talentia-blue"
+              className="rounded-md bg-talentia-selected px-4 py-2 text-[13px] font-semibold text-talentia-blue"
             >
               Guardar borrador
             </button>
@@ -263,7 +263,7 @@ export default function ForumFormModal({
             type="button"
             disabled={saving || !title.trim() || !description.trim()}
             onClick={() => handleSubmit()}
-            className="rounded-md bg-talentia-action px-4 py-2 text-[10px] font-semibold text-white"
+            className="rounded-md bg-talentia-action px-4 py-2 text-[13px] font-semibold text-white"
           >
             {saving ? "Guardando..." : mode === "edit" ? "Guardar cambios" : status === "Borrador" ? "Guardar borrador" : "Publicar foro"}
           </button>

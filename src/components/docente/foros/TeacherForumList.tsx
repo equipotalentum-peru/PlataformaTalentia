@@ -90,7 +90,7 @@ export default function TeacherForumList({ courseId, ofertaId }: { courseId: num
   return <>
     <ForumHeader search={search} onSearchChange={setSearch} action={
       <button type="button" disabled={cargando || saving} onClick={() => { setFormError(""); setCreateOpen(true); }}
-        className="flex h-9 items-center justify-center gap-2 rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white disabled:opacity-50">
+        className="flex h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-talentia-action px-4 text-[10px] font-semibold text-white disabled:opacity-50">
         <span className="text-[16px] leading-none">+</span>Crear Foro
       </button>} />
     <div className="my-2 flex flex-wrap gap-2">{(['Todos', 'Publicados', 'Borradores', 'Cerrados'] as Filter[]).map(item =>

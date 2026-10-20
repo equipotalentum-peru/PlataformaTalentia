@@ -53,7 +53,7 @@ export default function ForumCourse({ courseId, role, forumId }: {
               fetchIfMissing={false}
             />
             <CourseTabs role={role} courseId={courseId} active="foro" />
-            <div className="mt-2 space-y-2">
+            <div className={`mt-2 space-y-2 ${role === "alumno" ? `student-forum-typography ${!forumId ? "student-forum-list-typography" : ""}` : "teacher-course-typography"}`}>
               {!forumId && context.ofertas.length > 1 && <label className="flex items-center gap-2 text-[11px] text-talentia-primary">
                 Oferta del curso
                 <select value={ofertaId} onChange={event => setOfertaId(event.target.value)} className="rounded-md border border-talentia-border bg-talentia-surface p-2">

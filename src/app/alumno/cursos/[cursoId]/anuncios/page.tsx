@@ -154,11 +154,11 @@ export default function AnnouncementsPage({
               </div>
 
               <div>
-                <h2 className="text-[14px] font-bold text-talentia-primary">
+                <h2 className="text-[15px] font-bold text-talentia-primary">
                   Anuncios
                 </h2>
 
-                <p className="mt-1 text-[11px] leading-snug text-talentia-muted">
+                <p className="mt-1 text-[13px] leading-snug text-talentia-muted">
                   Mantente al día con las novedades, recordatorios o
                   comunicados hechos por el docente del curso.
                 </p>
@@ -167,13 +167,13 @@ export default function AnnouncementsPage({
           </section>
 
           {error && (
-            <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[11px] text-talentia-danger">
+            <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] text-talentia-danger">
               <span>{error}</span>
               <button type="button" onClick={() => window.location.reload()} className="shrink-0 font-semibold underline">Reintentar</button>
             </div>
           )}
           {loading && announcements.length === 0 && (
-            <div className="mt-2 rounded-lg bg-talentia-surface px-4 py-6 text-center text-[11px] text-talentia-muted">Cargando anuncios...</div>
+            <div className="mt-2 rounded-lg bg-talentia-surface px-4 py-6 text-center text-[13px] text-talentia-muted">Cargando anuncios...</div>
           )}
 
           {/* FILTROS */}
@@ -184,7 +184,7 @@ export default function AnnouncementsPage({
                   key={item}
                   type="button"
                   onClick={() => setFilter(item)}
-                  className={`rounded-full px-4 py-1.5 text-[10px] font-medium transition ${
+                  className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${
                     filter === item
                       ? "bg-talentia-action text-white"
                       : "bg-talentia-surface text-talentia-primary hover:bg-talentia-primary"
@@ -230,16 +230,16 @@ export default function AnnouncementsPage({
 
                       <div className="min-w-0">
 
-                        <h3 className="text-[14px] font-bold text-talentia-primary">
+                        <h3 className="text-[15px] font-bold text-talentia-primary">
                           {announcement.title}
                         </h3>
 
-                        <p className="mt-0.5 text-[10px] text-talentia-muted">
+                        <p className="mt-0.5 text-[12px] text-talentia-muted">
                           {announcement.date}
                         </p>
 
                         {/* 2 LÍNEAS + ... */}
-                        <p className="mt-1 line-clamp-2 max-w-[620px] text-[11px] leading-snug text-talentia-primary">
+                        <p className="mt-1 line-clamp-2 max-w-[620px] text-[13px] leading-snug text-talentia-primary">
                           {announcement.content}
                         </p>
                       </div>
@@ -252,7 +252,7 @@ export default function AnnouncementsPage({
                         onClick={() =>
                           openAnnouncement(announcement)
                         }
-                        className="flex items-center gap-2 rounded-md bg-talentia-action px-4 py-1.5 text-[10px] font-medium text-white transition hover:bg-talentia-primary"
+                        className="flex items-center gap-2 rounded-md bg-talentia-action px-4 py-1.5 text-[13px] font-medium text-white transition hover:bg-talentia-primary"
                       >
                         Ver detalles
 
@@ -276,7 +276,7 @@ export default function AnnouncementsPage({
 
           {/* SIN RESULTADOS */}
           {!loading && !error && filteredAnnouncements.length === 0 && (
-            <div className="rounded-xl bg-talentia-surface py-10 text-center text-[12px] text-talentia-muted">
+            <div className="rounded-xl bg-talentia-surface py-10 text-center text-[13px] text-talentia-muted">
               No hay anuncios en esta categoría.
             </div>
           )}
@@ -321,12 +321,12 @@ export default function AnnouncementsPage({
                 <div>
                   <h2
                     id="announcement-title"
-                    className="text-[16px] font-bold text-talentia-primary"
+                    className="text-[15px] font-bold text-talentia-primary"
                   >
                     {selectedAnnouncement.title}
                   </h2>
 
-                  <p className="mt-1 text-[10px] text-talentia-muted">
+                  <p className="mt-1 text-[12px] text-talentia-muted">
                     {selectedAnnouncement.date}
                   </p>
                 </div>
@@ -367,7 +367,7 @@ export default function AnnouncementsPage({
                 onClick={() =>
                   setSelectedAnnouncement(null)
                 }
-                className="rounded-md bg-talentia-action px-5 py-2 text-[11px] font-medium text-white transition hover:bg-talentia-primary"
+                className="rounded-md bg-talentia-action px-5 py-2 text-[13px] font-medium text-white transition hover:bg-talentia-primary"
               >
                 Cerrar
               </button>

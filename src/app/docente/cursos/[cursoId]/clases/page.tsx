@@ -338,7 +338,7 @@ export default function TeacherClassesPage({
             {/* TABS */}
             <CourseTabs role="docente" courseId={courseId} active="clases" />
 
-            <div className="py-4">
+            <div className="teacher-course-typography py-4">
 
             {/* HEADER */}
             <ClassHeader
