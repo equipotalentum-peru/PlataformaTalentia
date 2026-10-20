@@ -46,7 +46,37 @@ type GradeComponent = {
 type CreateEvaluationProps = {
   course: Course;
   moduleId?: string;
+  contentId?: string;
 };
+
+type SavedEvaluation = {
+  contenido: { titulo: string; descripcion: string; estado: string; moduloId: string };
+  evaluacion: {
+    tipo: EvaluationKind; instrucciones: string; intentosPermitidos: number;
+    tiempoLimiteMinutos: number | null; puntajeTotal: number | null;
+    fechaInicio: string | null; fechaFin: string | null; calificada: boolean;
+    componenteCalificacionId: string | null;
+  };
+  preguntas: Array<{
+    id: string; tipo: EvaluationDbType; enunciado: string; puntaje: number; permiteArchivos: boolean;
+    opciones: Array<{ id: string; texto: string; esCorrecta: boolean }>;
+    relaciones: Array<{ id: string; elementoIzquierda: string; elementoDerecha: string }>;
+  }>;
+};
+
+const questionTypes: Record<EvaluationDbType, EvaluationQuestionType> = {
+  seleccion_unica: "single", seleccion_multiple: "multiple", verdadero_falso: "boolean",
+  respuesta_abierta: "text", relacional: "relational",
+};
+
+function dateInputValue(value: string | null) {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find(item => item.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
 
 const DEFAULT_OPTIONS: EvaluationOption[] = [
   { id: "option-A", text: "", correct: false },
@@ -139,8 +169,13 @@ function MinusIcon() {
   );
 }
 
-export default function CreateEvaluation({ course, moduleId }: CreateEvaluationProps) {
+export default function CreateEvaluation({ course, moduleId, contentId }: CreateEvaluationProps) {
   const router = useRouter();
+  const editing = contentId !== undefined;
+  const [loadingEvaluation, setLoadingEvaluation] = useState(editing);
+  const [evaluationError, setEvaluationError] = useState("");
+  const [savedStatus, setSavedStatus] = useState<EvaluationStatus>("Borrador");
+  const [initialDates, setInitialDates] = useState<{ start: string | null; end: string | null }>({ start: null, end: null });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(40);
@@ -185,14 +220,30 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
         setComponents([]);
         setLoadingComponents(false);
         setComponentsError("");
+        if (editing) {
+          setEvaluationError("Falta el módulo de la evaluación. Vuelve al curso y selecciona Editar.");
+          setLoadingEvaluation(false);
+        }
         return;
       }
 
       try {
         setLoadingComponents(true);
         setComponentsError("");
+        let saved: SavedEvaluation | null = null;
+        if (editing) {
+          const response = await fetch(
+            `${API_URL}/cursos/${encodeURIComponent(String(course.id))}/contenidos/${encodeURIComponent(contentId!)}/evaluacion`,
+            { credentials: "include", cache: "no-store", signal: controller.signal }
+          );
+          if (response.status === 401) { router.push("/login"); return; }
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message ?? "No se pudo cargar la evaluación.");
+          saved = data as SavedEvaluation;
+          if (String(saved.contenido.moduloId) !== moduleId) throw new Error("La evaluación no pertenece a este módulo.");
+        }
         const response = await fetch(
-          `${API_URL}/cursos/${encodeURIComponent(String(course.id))}/modulos/${encodeURIComponent(moduleId)}/evaluaciones/componentes-calificacion`,
+          `${API_URL}/cursos/${encodeURIComponent(String(course.id))}/modulos/${encodeURIComponent(moduleId)}/evaluaciones/componentes-calificacion${editing ? `?contenidoId=${encodeURIComponent(contentId!)}` : ""}`,
           { credentials: "include", cache: "no-store", signal: controller.signal }
         );
         const data = await response.json().catch(() => ({}));
@@ -214,19 +265,45 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
               periodo: String(item.periodo ?? "Sin periodo"),
             }))
           : [];
+        if (controller.signal.aborted) return;
         setComponents(rows);
-        setComponentId((current) => rows.some((item) => item.id === current) ? current : "");
+        if (saved) {
+          setTitle(saved.contenido.titulo);
+          setDescription(saved.evaluacion.instrucciones || saved.contenido.descripcion);
+          setDuration(saved.evaluacion.tiempoLimiteMinutos ?? 0);
+          setAttempts(saved.evaluacion.intentosPermitidos);
+          setTotalPoints(saved.evaluacion.puntajeTotal ?? 0);
+          setStartDate(dateInputValue(saved.evaluacion.fechaInicio));
+          setEndDate(dateInputValue(saved.evaluacion.fechaFin));
+          setInitialDates({ start: saved.evaluacion.fechaInicio, end: saved.evaluacion.fechaFin });
+          setGraded(saved.evaluacion.calificada);
+          setComponentId(saved.evaluacion.componenteCalificacionId ?? "");
+          setUngradedKind(saved.evaluacion.tipo);
+          setSavedStatus(saved.contenido.estado === "Publicado" ? "Publicado" : "Borrador");
+          setQuestions(saved.preguntas.map(question => ({
+            id: Number(question.id), type: questionTypes[question.tipo], prompt: question.enunciado,
+            points: question.puntaje, allowFiles: question.permiteArchivos,
+            options: question.opciones.map(option => ({ id: option.id, text: option.texto, correct: option.esCorrecta })),
+            pairs: question.relaciones.map(pair => ({ id: pair.id, left: pair.elementoIzquierda, right: pair.elementoDerecha })),
+          })));
+        } else {
+          setComponentId((current) => rows.some((item) => item.id === current) ? current : "");
+        }
       } catch (error) {
         if (controller.signal.aborted) return;
         setComponentsError(error instanceof Error ? error.message : "No se pudieron cargar los componentes de calificación.");
+        if (editing) setEvaluationError(error instanceof Error ? error.message : "No se pudo cargar la evaluación.");
       } finally {
-        if (!controller.signal.aborted) setLoadingComponents(false);
+        if (!controller.signal.aborted) {
+          setLoadingComponents(false);
+          setLoadingEvaluation(false);
+        }
       }
     }
 
     void loadGradeComponents();
     return () => controller.abort();
-  }, [course.id, moduleId, router]);
+  }, [course.id, moduleId, contentId, editing, router]);
 
   const showNotice = (message: string) => {
     setNotice(message);
@@ -382,7 +459,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
   };
 
   const submit = async (status: EvaluationStatus) => {
-    if (saving || !validateBeforeSubmit(status)) return;
+    if (saving || loadingEvaluation || evaluationError || !validateBeforeSubmit(status)) return;
 
     setSaving(true);
     setNotice("");
@@ -396,8 +473,8 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
       tiempoLimiteMinutos: duration > 0 ? duration : null,
       intentosPermitidos: attempts,
       puntajeTotal: totalPoints,
-      fechaInicio: startDate ? `${startDate}T00:00:00-05:00` : null,
-      fechaFin: endDate ? `${endDate}T23:59:59-05:00` : null,
+      fechaInicio: editing && startDate === dateInputValue(initialDates.start) ? initialDates.start : startDate ? `${startDate}T00:00:00-05:00` : null,
+      fechaFin: editing && endDate === dateInputValue(initialDates.end) ? initialDates.end : endDate ? `${endDate}T23:59:59-05:00` : null,
       calificada: graded,
       estado: status,
       preguntas: questions.map((question) => ({
@@ -418,9 +495,9 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
 
     try {
       const response = await fetch(
-        `${API_URL}/cursos/${encodeURIComponent(String(course.id))}/modulos/${encodeURIComponent(moduleId!)}/evaluaciones`,
+        `${API_URL}/cursos/${encodeURIComponent(String(course.id))}/modulos/${encodeURIComponent(moduleId!)}/evaluaciones${editing ? `/${encodeURIComponent(contentId!)}` : ""}`,
         {
-          method: "POST",
+          method: editing ? "PATCH" : "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -461,24 +538,27 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
         <CourseHeader courseId={course.id} nombre={course.nombre} imagen={course.imagen} fetchIfMissing={false} />
         <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
 
+        {loadingEvaluation ? <p role="status" className="py-4 text-[13px] text-talentia-muted">Cargando evaluación...</p> : evaluationError ?
+          <p role="alert" className="py-4 text-[13px] text-talentia-danger">{evaluationError}</p> : <>
         <div className="grid grid-cols-1 gap-3 py-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(290px,1fr)]">
           <section className="rounded-md bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
+            <h2 className="mb-4 text-2xl font-semibold text-talentia-primary">{editing ? "Editar evaluación" : "Crear evaluación"}</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_190px]">
               <div>
-                <label htmlFor="evaluation-title" className="mb-1 block text-xs font-medium text-talentia-blue">Título:</label>
-                <input id="evaluation-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} className="h-8 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-xs outline-none focus:border-talentia-blue" />
+                <label htmlFor="evaluation-title" className="mb-1 block text-[13px] font-medium text-talentia-primary">Título:</label>
+                <input id="evaluation-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} className="h-8 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] outline-none focus:border-talentia-blue" />
 
-                <label htmlFor="evaluation-description" className="mb-1 mt-2 block text-xs font-medium text-talentia-blue">Descripción e instrucciones:</label>
-                <textarea id="evaluation-description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={20000} className="h-[74px] w-full resize-none rounded-md border border-talentia-border bg-talentia-surface p-2 text-xs outline-none focus:border-talentia-blue" />
+                <label htmlFor="evaluation-description" className="mb-1 mt-2 block text-[13px] font-medium text-talentia-primary">Descripción e instrucciones:</label>
+                <textarea id="evaluation-description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={20000} className="h-[74px] w-full resize-none rounded-md border border-talentia-border bg-talentia-surface p-2 text-[13px] outline-none focus:border-talentia-blue" />
               </div>
 
               <div>
-                <label htmlFor="evaluation-component" className="mb-1 block text-xs font-medium text-talentia-blue">
+                <label htmlFor="evaluation-component" className="mb-1 block text-[13px] font-medium text-talentia-primary">
                   Tipo de Evaluación:
                 </label>
                 <div className="relative">
                   {graded ? (
-                    <select id="evaluation-component" value={componentId} onChange={(event) => setComponentId(event.target.value)} disabled={loadingComponents || components.length === 0} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-xs outline-none focus:border-talentia-blue disabled:opacity-60">
+                    <select id="evaluation-component" value={componentId} onChange={(event) => setComponentId(event.target.value)} disabled={loadingComponents || components.length === 0} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue disabled:opacity-60">
                       <option value="">{loadingComponents ? "Cargando..." : "Selecciona una evaluación"}</option>
                       {components.map((component) => (
                         <option key={component.id} value={component.id}>
@@ -487,7 +567,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                       ))}
                     </select>
                   ) : (
-                    <select id="evaluation-component" value={ungradedKind} onChange={(event) => setUngradedKind(event.target.value as EvaluationKind)} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-xs outline-none focus:border-talentia-blue">
+                    <select id="evaluation-component" value={ungradedKind} onChange={(event) => setUngradedKind(event.target.value as EvaluationKind)} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue">
                       <option value="Practica">Práctica no calificada</option>
                       <option value="Cuestionario">Cuestionario de repaso</option>
                       <option value="Evaluacion">Autoevaluación</option>
@@ -496,25 +576,25 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   <span className="pointer-events-none absolute right-2 top-3 text-talentia-muted"><ChevronDownIcon /></span>
                 </div>
                 {graded && !loadingComponents && components.length === 0 && (
-                  <p className="mt-2 text-xs leading-relaxed text-talentia-danger">
+                  <p className="mt-2 text-[13px] leading-relaxed text-talentia-danger">
                     No hay componentes de calificación disponibles. Comprueba que el administrador haya configurado evaluaciones para una oferta asignada a tu usuario.
                   </p>
                 )}
-                {componentsError && graded && <p role="alert" className="mt-2 text-xs text-talentia-danger">{componentsError}</p>}
+                {componentsError && graded && <p role="alert" className="mt-2 text-[13px] text-talentia-danger">{componentsError}</p>}
               </div>
             </div>
 
             <div className="mt-3 flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-talentia-primary">Preguntas:</h2>
-              <span className="text-xs text-talentia-muted">{questions.length} preguntas · {totalQuestionPoints} pts</span>
+              <h2 className="text-[15px] font-semibold text-talentia-primary">Preguntas:</h2>
+              <span className="text-[12px] text-talentia-muted">{questions.length} preguntas · {totalQuestionPoints} pts</span>
             </div>
 
             <div className="mt-2 space-y-2.5">
               {questions.map((question, questionIndex) => (
                 <div key={question.id} className="rounded-md border border-talentia-border bg-talentia-surface">
                   <div className="flex flex-wrap items-center gap-1.5 rounded-t-md bg-talentia-selected px-2 py-1">
-                    <span className="flex-1 text-xs font-semibold text-talentia-blue">Pregunta {questionIndex + 1}</span>
-                    <select value={question.type} onChange={(event) => updateQuestionType(question.id, event.target.value as EvaluationQuestionType)} className="h-6 max-w-full rounded border border-white/80 bg-talentia-surface/80 px-1 text-xs text-talentia-primary outline-none" aria-label={`Tipo de pregunta ${questionIndex + 1}`}>
+                    <span className="flex-1 text-[13px] font-semibold text-talentia-primary">Pregunta {questionIndex + 1}</span>
+                    <select value={question.type} onChange={(event) => updateQuestionType(question.id, event.target.value as EvaluationQuestionType)} className="h-6 max-w-full rounded border border-talentia-border bg-talentia-surface/80 px-1 text-[13px] text-talentia-primary outline-none" aria-label={`Tipo de pregunta ${questionIndex + 1}`}>
                       <option value="single">Selección única</option>
                       <option value="multiple">Selección múltiple</option>
                       <option value="boolean">Verdadero / Falso</option>
@@ -527,25 +607,25 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   <div className="p-2">
                     <div className="grid grid-cols-[minmax(0,1fr)_48px] gap-2">
                       <div>
-                        <label htmlFor={`question-${question.id}`} className="block text-xs font-medium text-talentia-blue">Enunciado:</label>
+                        <label htmlFor={`question-${question.id}`} className="block text-[13px] font-medium text-talentia-primary">Enunciado:</label>
                         {question.type === "text" ? (
-                          <textarea id={`question-${question.id}`} value={question.prompt} onChange={(event) => updateQuestion(question.id, { prompt: event.target.value })} maxLength={5000} className="mt-1 min-h-[58px] w-full resize-y rounded border border-talentia-border bg-talentia-surface px-2 py-1.5 text-xs outline-none focus:border-talentia-blue" />
+                          <textarea id={`question-${question.id}`} value={question.prompt} onChange={(event) => updateQuestion(question.id, { prompt: event.target.value })} maxLength={5000} className="mt-1 min-h-[58px] w-full resize-y rounded border border-talentia-border bg-talentia-surface px-2 py-1.5 text-[13px] outline-none focus:border-talentia-blue" />
                         ) : (
-                          <input id={`question-${question.id}`} value={question.prompt} onChange={(event) => updateQuestion(question.id, { prompt: event.target.value })} maxLength={5000} className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-2 text-xs outline-none focus:border-talentia-blue" />
+                          <input id={`question-${question.id}`} value={question.prompt} onChange={(event) => updateQuestion(question.id, { prompt: event.target.value })} maxLength={5000} className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-2 text-[13px] outline-none focus:border-talentia-blue" />
                         )}
                       </div>
                       <div>
-                        <label htmlFor={`points-${question.id}`} className="block text-xs font-medium text-talentia-blue">Pts</label>
-                        <input id={`points-${question.id}`} type="number" min={0} max={100} step="0.25" value={question.points} onChange={(event) => updateQuestion(question.id, { points: Math.max(0, Number(event.target.value) || 0) })} className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-1 text-center text-xs outline-none focus:border-talentia-blue" />
+                        <label htmlFor={`points-${question.id}`} className="block text-[13px] font-medium text-talentia-primary">Pts</label>
+                        <input id={`points-${question.id}`} type="number" min={0} max={100} step="0.25" value={question.points} onChange={(event) => updateQuestion(question.id, { points: Math.max(0, Number(event.target.value) || 0) })} className="mt-1 h-7 w-full rounded border border-talentia-border bg-talentia-surface px-1 text-center text-[13px] outline-none focus:border-talentia-blue" />
                       </div>
                     </div>
 
                     {question.type === "text" && (
-                      <div className="mt-2 space-y-2 rounded-md bg-slate-50 p-2">
-                        <label className="block text-xs font-medium text-talentia-blue">Respuesta que verá el alumno:</label>
-                        <textarea disabled placeholder="El alumno escribirá su respuesta aquí..." className="h-14 w-full resize-none rounded border border-talentia-border bg-white p-2 text-xs text-talentia-muted" />
-                        <label className="flex items-center gap-2 text-xs text-talentia-primary">
-                          <input type="checkbox" checked={question.allowFiles} onChange={(event) => updateQuestion(question.id, { allowFiles: event.target.checked })} className="h-3.5 w-3.5 accent-[#1689d8]" />
+                      <div className="mt-2 space-y-2 rounded-md bg-talentia-hover p-2">
+                        <label className="block text-[13px] font-medium text-talentia-primary">Respuesta que verá el alumno:</label>
+                        <textarea disabled placeholder="El alumno escribirá su respuesta aquí..." className="h-14 w-full resize-none rounded border border-talentia-border bg-talentia-surface p-2 text-[12px] text-talentia-muted" />
+                        <label className="flex items-center gap-2 text-[13px] text-talentia-primary">
+                          <input type="checkbox" checked={question.allowFiles} onChange={(event) => updateQuestion(question.id, { allowFiles: event.target.checked })} className="h-3.5 w-3.5 accent-talentia-blue" />
                           Permitir que el alumno inserte archivos en su respuesta
                         </label>
                       </div>
@@ -553,39 +633,39 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
 
                     {question.type === "relational" && (
                       <div className="mt-2">
-                        <p className="mb-1 text-xs font-medium text-talentia-blue">Pares correctos que el alumno deberá relacionar:</p>
+                        <p className="mb-1 text-[13px] font-medium text-talentia-primary">Pares correctos que el alumno deberá relacionar:</p>
                         <div className="space-y-1.5">
                           {question.pairs.map((pair, pairIndex) => (
                             <div key={pair.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_18px] items-center gap-1.5">
-                              <input aria-label={`Elemento izquierdo ${pairIndex + 1}`} value={pair.left} onChange={(event) => updatePair(question.id, pair.id, { left: event.target.value })} placeholder={`Elemento ${pairIndex + 1}`} className="h-7 min-w-0 rounded border border-talentia-border px-2 text-xs outline-none focus:border-talentia-blue" />
-                              <input aria-label={`Relación correcta ${pairIndex + 1}`} value={pair.right} onChange={(event) => updatePair(question.id, pair.id, { right: event.target.value })} placeholder="Se relaciona con..." className="h-7 min-w-0 rounded border border-talentia-border px-2 text-xs outline-none focus:border-talentia-blue" />
+                              <input aria-label={`Elemento izquierdo ${pairIndex + 1}`} value={pair.left} onChange={(event) => updatePair(question.id, pair.id, { left: event.target.value })} placeholder={`Elemento ${pairIndex + 1}`} className="h-7 min-w-0 rounded border border-talentia-border px-2 text-[13px] outline-none focus:border-talentia-blue" />
+                              <input aria-label={`Relación correcta ${pairIndex + 1}`} value={pair.right} onChange={(event) => updatePair(question.id, pair.id, { right: event.target.value })} placeholder="Se relaciona con..." className="h-7 min-w-0 rounded border border-talentia-border px-2 text-[13px] outline-none focus:border-talentia-blue" />
                               <button type="button" onClick={() => removePair(question.id, pair.id)} disabled={question.pairs.length <= 2} aria-label={`Eliminar relación ${pairIndex + 1}`} className="flex h-5 w-5 items-center justify-center text-talentia-danger disabled:opacity-30"><TrashIcon /></button>
                             </div>
                           ))}
                         </div>
-                        <button type="button" onClick={() => addPair(question.id)} disabled={question.pairs.length >= 30} className="mt-2 flex h-6 items-center gap-1 rounded bg-talentia-selected px-2.5 text-xs font-semibold text-talentia-blue hover:bg-talentia-hover disabled:opacity-40"><PlusIcon /> Añadir relación</button>
+                        <button type="button" onClick={() => addPair(question.id)} disabled={question.pairs.length >= 30} className="mt-2 flex h-6 items-center gap-1 rounded bg-talentia-selected px-2.5 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover disabled:opacity-40"><PlusIcon /> Añadir relación</button>
                       </div>
                     )}
 
                     {["single", "multiple", "boolean"].includes(question.type) && (
                       <>
-                        <div className="mt-1.5 text-xs text-talentia-blue">Opciones de respuesta: <span className="text-talentia-muted">marca las respuestas correctas</span></div>
+                        <div className="mt-1.5 text-[13px] text-talentia-primary">Opciones de respuesta: <span className="text-talentia-muted">marca las respuestas correctas</span></div>
                         <div className="mt-1 space-y-1">
                           {question.options.map((option, optionIndex) => (
                             <div key={option.id} className="grid grid-cols-[16px_18px_minmax(0,1fr)_16px] items-center gap-1">
                               {question.type === "multiple" ? (
-                                <input type="checkbox" aria-label={`Opción correcta ${optionIndex + 1}`} checked={option.correct} onChange={(event) => updateCorrectOption(question.id, option.id, event.target.checked)} className="h-3 w-3 accent-[#1689d8]" />
+                                <input type="checkbox" aria-label={`Opción correcta ${optionIndex + 1}`} checked={option.correct} onChange={(event) => updateCorrectOption(question.id, option.id, event.target.checked)} className="h-3 w-3 accent-talentia-blue" />
                               ) : (
-                                <input type="radio" name={`correct-${question.id}`} aria-label={`Opción correcta ${optionIndex + 1}`} checked={option.correct} onChange={() => updateCorrectOption(question.id, option.id, true)} className="h-3 w-3 accent-[#1689d8]" />
+                                <input type="radio" name={`correct-${question.id}`} aria-label={`Opción correcta ${optionIndex + 1}`} checked={option.correct} onChange={() => updateCorrectOption(question.id, option.id, true)} className="h-3 w-3 accent-talentia-blue" />
                               )}
-                              <span className="text-xs text-talentia-primary">{String.fromCharCode(65 + optionIndex)}</span>
-                              <input aria-label={`Texto de opción ${optionIndex + 1} de pregunta ${questionIndex + 1}`} value={option.text} onChange={(event) => updateOption(question.id, option.id, event.target.value)} className="h-6 min-w-0 rounded border border-talentia-border bg-talentia-surface px-1.5 text-xs outline-none focus:border-talentia-blue" disabled={question.type === "boolean"} />
+                              <span className="text-[13px] text-talentia-primary">{String.fromCharCode(65 + optionIndex)}</span>
+                              <input aria-label={`Texto de opción ${optionIndex + 1} de pregunta ${questionIndex + 1}`} value={option.text} onChange={(event) => updateOption(question.id, option.id, event.target.value)} className="h-6 min-w-0 rounded border border-talentia-border bg-talentia-surface px-1.5 text-[13px] outline-none focus:border-talentia-blue" disabled={question.type === "boolean"} />
                               <button type="button" onClick={() => removeOption(question.id, option.id)} disabled={question.type === "boolean" || question.options.length <= 2} className="flex h-4 w-4 items-center justify-center text-talentia-danger disabled:opacity-30" aria-label={`Eliminar opción ${optionIndex + 1}`}><TrashIcon /></button>
                             </div>
                           ))}
                         </div>
                         {question.type !== "boolean" && (
-                          <button type="button" onClick={() => addOption(question.id)} className="mt-2 flex h-6 items-center gap-1 rounded bg-talentia-selected px-2.5 text-xs font-semibold text-talentia-blue hover:bg-talentia-hover disabled:opacity-40" disabled={question.options.length >= 6}><PlusIcon /> Añadir opción</button>
+                          <button type="button" onClick={() => addOption(question.id)} className="mt-2 flex h-6 items-center gap-1 rounded bg-talentia-selected px-2.5 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover disabled:opacity-40" disabled={question.options.length >= 6}><PlusIcon /> Añadir opción</button>
                         )}
                       </>
                     )}
@@ -594,17 +674,17 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
               ))}
             </div>
 
-            <button type="button" onClick={addQuestion} className="mt-2.5 flex h-7 w-full items-center justify-center gap-1 rounded-md bg-talentia-selected text-xs font-semibold text-talentia-blue hover:bg-talentia-hover"><PlusIcon /> Agregar pregunta</button>
+            <button type="button" onClick={addQuestion} className="mt-2.5 flex h-7 w-full items-center justify-center gap-1 rounded-md bg-talentia-selected text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover"><PlusIcon /> Agregar pregunta</button>
           </section>
 
           <aside className="h-fit rounded-xl border border-talentia-border bg-talentia-surface p-4 shadow-[0_1px_5px_rgba(15,36,61,0.08)] sm:p-5">
-            <h2 className="text-base font-semibold text-talentia-primary">
+            <h2 className="text-[15px] font-semibold text-talentia-primary">
               Configuración de evaluación
             </h2>
 
-            <div className="mt-5 space-y-4 text-sm text-talentia-primary">
+            <div className="mt-5 space-y-4 text-[13px] text-talentia-primary">
               <div className="grid grid-cols-[minmax(0,1fr)_88px_auto] items-center gap-3">
-                <label htmlFor="evaluation-duration" className="text-sm text-talentia-blue">
+                <label htmlFor="evaluation-duration" className="text-[13px] text-talentia-primary">
                   Tiempo límite
                 </label>
                 <input
@@ -616,13 +696,13 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   onChange={(event) =>
                     setDuration(Math.max(0, Math.min(1440, Number(event.target.value) || 0)))
                   }
-                  className="h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-sm text-center outline-none focus:border-talentia-blue"
+                  className="h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] text-center outline-none focus:border-talentia-blue"
                 />
-                <span className="text-xs text-talentia-muted">min</span>
+                <span className="text-[12px] text-talentia-muted">min</span>
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <span className="text-sm text-talentia-blue">Intentos permitidos</span>
+                <span className="text-[13px] text-talentia-primary">Intentos permitidos</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -632,7 +712,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   >
                     <MinusIcon />
                   </button>
-                  <span className="flex h-9 min-w-14 items-center justify-center rounded-md border border-talentia-border bg-talentia-surface px-3 text-sm font-semibold">
+                  <span className="flex h-9 min-w-14 items-center justify-center rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] font-semibold">
                     {attempts}
                   </span>
                   <button
@@ -647,7 +727,7 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_88px_auto] items-center gap-3">
-                <label htmlFor="evaluation-total-points" className="text-sm text-talentia-blue">
+                <label htmlFor="evaluation-total-points" className="text-[13px] text-talentia-primary">
                   Puntaje total
                 </label>
                 <input
@@ -660,21 +740,21 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   onChange={(event) =>
                     setTotalPoints(Math.max(0, Number(event.target.value) || 0))
                   }
-                  className="h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-sm text-center outline-none focus:border-talentia-blue"
+                  className="h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] text-center outline-none focus:border-talentia-blue"
                 />
-                <span className="text-xs text-talentia-muted">pts</span>
+                <span className="text-[12px] text-talentia-muted">pts</span>
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_88px_auto] items-center gap-3">
-                <span className="text-sm text-talentia-blue">Preguntas</span>
-                <span className="flex h-9 w-full items-center justify-center rounded-md border border-talentia-border bg-talentia-surface text-sm font-semibold">
+                <span className="text-[13px] text-talentia-primary">Preguntas</span>
+                <span className="flex h-9 w-full items-center justify-center rounded-md border border-talentia-border bg-talentia-surface text-[13px] font-semibold">
                   {questions.length}
                 </span>
-                <span className="text-xs text-talentia-muted">total</span>
+                <span className="text-[12px] text-talentia-muted">total</span>
               </div>
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,165px)] sm:items-center">
-                <label htmlFor="evaluation-start-date" className="text-sm text-talentia-blue">
+                <label htmlFor="evaluation-start-date" className="text-[13px] text-talentia-primary">
                   Fecha de inicio
                 </label>
                 <input
@@ -682,12 +762,12 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   type="date"
                   value={startDate}
                   onChange={(event) => setStartDate(event.target.value)}
-                  className="h-9 min-w-0 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-sm outline-none focus:border-talentia-blue"
+                  className="h-9 min-w-0 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] outline-none focus:border-talentia-blue"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,165px)] sm:items-center">
-                <label htmlFor="evaluation-end-date" className="text-sm text-talentia-blue">
+                <label htmlFor="evaluation-end-date" className="text-[13px] text-talentia-primary">
                   Fecha final
                 </label>
                 <input
@@ -696,12 +776,12 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   min={startDate || undefined}
                   value={endDate}
                   onChange={(event) => setEndDate(event.target.value)}
-                  className="h-9 min-w-0 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-sm outline-none focus:border-talentia-blue"
+                  className="h-9 min-w-0 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] outline-none focus:border-talentia-blue"
                 />
               </div>
 
               <div className="flex flex-col gap-3 border-t border-talentia-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-sm font-medium text-talentia-blue">
+                <span className="text-[13px] font-medium text-talentia-primary">
                   ¿Es una actividad calificada?
                 </span>
                 <button
@@ -710,25 +790,25 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
                   className="flex shrink-0 items-center gap-2 self-start sm:self-auto"
                   aria-pressed={graded}
                 >
-                  <span className="text-sm text-talentia-primary">No</span>
+                  <span className="text-[13px] text-talentia-primary">No</span>
                   <span className={`flex h-5 w-10 items-center rounded-full p-0.5 transition ${graded ? "bg-talentia-selected justify-end" : "bg-talentia-border justify-start"}`}>
                     <span className={`h-4 w-4 rounded-full transition ${graded ? "bg-talentia-blue" : "bg-talentia-surface"}`} />
                   </span>
-                  <span className="text-sm text-talentia-primary">Sí</span>
+                  <span className="text-[13px] text-talentia-primary">Sí</span>
                 </button>
               </div>
 
               {graded && (
-                <p className="rounded-lg bg-talentia-selected/50 p-3 text-xs leading-relaxed text-talentia-muted">
+                <p className="rounded-lg bg-talentia-selected/50 p-3 text-[12px] leading-relaxed text-talentia-muted">
                   Se vinculará al componente de calificación seleccionado. El cálculo de notas se implementará en otra etapa.
                 </p>
               )}
             </div>
 
-            <div className="mt-5 rounded-lg border border-talentia-border bg-talentia-selected/40 px-3 py-3 text-sm text-talentia-primary">
+            <div className="mt-5 rounded-lg border border-talentia-border bg-talentia-selected/40 px-3 py-3 text-[13px] text-talentia-primary">
               <div className="flex items-center justify-between gap-3">
                 <span>Puntos distribuidos</span>
-                <span className={`font-semibold ${Math.round(totalQuestionPoints * 100) === Math.round(totalPoints * 100) ? "text-talentia-success" : "text-talentia-blue"}`}>
+                <span className={`font-semibold ${Math.round(totalQuestionPoints * 100) === Math.round(totalPoints * 100) ? "text-talentia-success" : "text-talentia-primary"}`}>
                   {totalQuestionPoints} / {totalPoints}
                 </span>
               </div>
@@ -745,13 +825,16 @@ export default function CreateEvaluation({ course, moduleId }: CreateEvaluationP
         </div>
 
         <div className="flex flex-wrap justify-end gap-2 pb-3 pt-1">
-          <Link href={backHref} className="flex h-8 items-center justify-center rounded-md bg-talentia-surface px-4 text-xs font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
-          <button type="button" disabled={saving} onClick={() => void submit("Borrador")} className="h-8 rounded-md bg-talentia-surface px-4 text-xs font-semibold text-talentia-primary shadow-sm hover:bg-talentia-hover disabled:opacity-50">{saving ? "Guardando..." : "Guardar como borrador"}</button>
-          <button type="button" disabled={saving} onClick={() => void submit("Publicado")} className="h-8 rounded-md bg-talentia-action px-4 text-xs font-semibold text-white shadow-sm hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Publicar"}</button>
+          <Link href={backHref} className="flex h-8 items-center justify-center rounded-md bg-talentia-surface px-4 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
+          {editing ? <button type="button" disabled={saving} onClick={() => void submit(savedStatus)} className="h-8 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white shadow-sm hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button> : <>
+            <button type="button" disabled={saving} onClick={() => void submit("Borrador")} className="h-8 rounded-md bg-talentia-surface px-4 text-[13px] font-semibold text-talentia-primary shadow-sm hover:bg-talentia-hover disabled:opacity-50">{saving ? "Guardando..." : "Guardar como borrador"}</button>
+            <button type="button" disabled={saving} onClick={() => void submit("Publicado")} className="h-8 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white shadow-sm hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Publicar"}</button>
+          </>}
         </div>
+        </>}
       </div>
 
-      {notice && <div role="status" className="fixed bottom-5 right-5 z-[140] max-w-[min(90vw,420px)] rounded-lg bg-talentia-action px-4 py-2.5 text-xs font-medium text-white shadow-xl">{notice}</div>}
+      {notice && <div role="status" className="fixed bottom-5 right-5 z-[140] max-w-[min(90vw,420px)] rounded-lg bg-talentia-action px-4 py-2.5 text-[13px] font-medium text-white shadow-xl">{notice}</div>}
     </div>
   );
 }

@@ -55,6 +55,38 @@ export async function gestionarContenido(req: AuthenticatedRequest, res: Respons
         const content = found.rows[0];
         if (!content) return await abort(404, "Contenido no disponible o sin permiso.");
 
+        if (content.tipo === "evaluacion") {
+          const evaluation = await client.query(
+            "SELECT id FROM evaluaciones WHERE contenido_id = $1 FOR UPDATE", [contentId]
+          );
+          if (!evaluation.rowCount) return await abort(409, "No se encontró la evaluación asociada al contenido.");
+          const evaluationId = evaluation.rows[0].id;
+          const components = await client.query(
+            "SELECT id FROM componentes_calificacion WHERE evaluacion_id = $1 ORDER BY id FOR UPDATE", [evaluationId]
+          );
+          const componentIds = components.rows.map(item => item.id);
+          await client.query(
+            `DELETE FROM calificaciones
+             WHERE componente_id = ANY($1::BIGINT[])
+                OR intento_evaluacion_id IN (SELECT id FROM intentos_evaluacion WHERE evaluacion_id = $2)`,
+            [componentIds, evaluationId]
+          );
+          await client.query(
+            "UPDATE componentes_calificacion SET evaluacion_id = NULL WHERE id = ANY($1::BIGINT[]) AND evaluacion_id = $2",
+            [componentIds, evaluationId]
+          );
+          await client.query("DELETE FROM contenidos_curso WHERE id = $1", [contentId]);
+          await client.query("COMMIT");
+          return res.json({
+            contenido: content,
+            eliminadoDefinitivamente: true,
+            componentesLiberados: componentIds.length,
+            message: componentIds.length
+              ? "Evaluación eliminada. Su componente de calificación vuelve a estar disponible."
+              : "Evaluación eliminada.",
+          });
+        }
+
         if (["pdf", "pptx", "docx", "video"].includes(content.tipo)) {
           if (content.compartido || content.vinculado) {
             return await abort(409, "Este archivo tiene otros registros vinculados. No se eliminará.");

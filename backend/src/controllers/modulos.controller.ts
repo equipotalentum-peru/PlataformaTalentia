@@ -57,6 +57,39 @@ export async function crearModulo(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+export async function editarModulo(req: AuthenticatedRequest, res: Response) {
+  const courseId = Number(req.params.cursoId);
+  const moduleId = Number(req.params.moduloId);
+  const title = req.body?.titulo;
+  if (![courseId, moduleId].every(id => Number.isSafeInteger(id) && id > 0) ||
+      typeof title !== "string" || !title.trim() || title.trim().length > 200) {
+    return res.status(400).json({ message: "Escribe un título de hasta 200 caracteres para un módulo válido." });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE modulos_curso mc SET titulo = $1
+       FROM cursos c
+       WHERE mc.id = $2 AND mc.curso_id = $3 AND c.id = mc.curso_id
+         AND mc.activo = TRUE AND c.estado = 'Activo'
+         AND EXISTS (
+           SELECT 1 FROM ofertas_curso oc JOIN usuarios u ON u.id = oc.docente_id
+           WHERE oc.curso_id = c.id AND u.id = $4 AND u.rol = 'Docente'
+             AND u.activo = TRUE AND oc.estado <> 'Cancelado'
+         )
+       RETURNING mc.id, mc.numero, mc.titulo`,
+      [title.trim(), moduleId, courseId, req.userId]
+    );
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Módulo no disponible o sin permiso." });
+    }
+    return res.json({ modulo: result.rows[0] });
+  } catch (error) {
+    console.error("Error editando módulo:", error);
+    return res.status(500).json({ message: "No se pudo guardar el nombre del módulo." });
+  }
+}
+
 export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
   const courseId = Number(req.params.cursoId), moduleId = Number(req.params.moduloId);
   if (![courseId, moduleId].every(id => Number.isSafeInteger(id) && id > 0)) {

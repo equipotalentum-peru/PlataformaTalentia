@@ -212,7 +212,8 @@ export async function listarComponentesCalificacionDocente(
 ) {
   const cursoId = idPositivo(req.params.cursoId);
   const moduloId = idPositivo(req.params.moduloId);
-  if (!cursoId || !moduloId || !req.userId) {
+  const contenidoId = req.query.contenidoId == null ? null : idPositivo(req.query.contenidoId);
+  if (!cursoId || !moduloId || !req.userId || (req.query.contenidoId != null && !contenidoId)) {
     return res.status(400).json({ message: "Curso, módulo o sesión no válidos." });
   }
 
@@ -234,10 +235,14 @@ export async function listarComponentesCalificacionDocente(
        WHERE oc.curso_id = $1
          AND oc.docente_id = $2
          AND oc.estado <> 'Cancelado'
-         AND cc.evaluacion_id IS NULL
+         AND (cc.evaluacion_id IS NULL OR cc.evaluacion_id IN (
+           SELECT e.id FROM evaluaciones e
+           JOIN contenidos_curso contenido ON contenido.id = e.contenido_id
+           WHERE contenido.id = $3 AND contenido.modulo_id = $4
+         ))
          AND cc.actividad_id IS NULL
        ORDER BY p.fecha_inicio DESC NULLS LAST, cc.id`,
-      [cursoId, req.userId]
+      [cursoId, req.userId, contenidoId, moduloId]
     );
 
     return res.status(200).json({ componentes: resultado.rows });
@@ -252,11 +257,20 @@ export async function crearEvaluacionCurso(
   req: AuthenticatedRequest,
   res: Response
 ) {
+  return guardarEvaluacionCurso(req, res, false);
+}
+
+export async function editarEvaluacionCurso(req: AuthenticatedRequest, res: Response) {
+  return guardarEvaluacionCurso(req, res, true);
+}
+
+async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, editing: boolean) {
   const cursoId = idPositivo(req.params.cursoId);
   const moduloId = idPositivo(req.params.moduloId);
+  const contenidoExistenteId = editing ? idPositivo(req.params.contenidoId) : null;
   const usuarioId = req.userId;
 
-  if (!cursoId || !moduloId || !usuarioId) {
+  if (!cursoId || !moduloId || !usuarioId || (editing && !contenidoExistenteId)) {
     return res.status(400).json({ message: "Curso, módulo o sesión no válidos." });
   }
 
@@ -356,6 +370,43 @@ export async function crearEvaluacionCurso(
       return res.status(403).json({ message: "No tienes permiso para crear evaluaciones en este módulo." });
     }
 
+    let evaluacionId: string;
+    let contenidoId: string;
+    if (editing) {
+      const existente = await client.query(
+        `SELECT e.id::TEXT AS id, cc.id::TEXT AS "contenidoId"
+         FROM evaluaciones e JOIN contenidos_curso cc ON cc.id = e.contenido_id
+         WHERE cc.id = $1 AND cc.modulo_id = $2 AND cc.tipo = 'evaluacion'
+         FOR UPDATE OF e, cc`,
+        [contenidoExistenteId, moduloId]
+      );
+      if (!existente.rowCount) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ message: "La evaluación no existe en este módulo." });
+      }
+      evaluacionId = String(existente.rows[0].id);
+      contenidoId = String(existente.rows[0].contenidoId);
+      const intentosGuardados = await client.query(
+        "SELECT id FROM intentos_evaluacion WHERE evaluacion_id = $1 LIMIT 1", [evaluacionId]
+      );
+      if (intentosGuardados.rowCount) {
+        await client.query("ROLLBACK");
+        return res.status(409).json({ message: "Esta evaluación ya tiene intentos de alumnos y no se puede modificar para conservar sus respuestas." });
+      }
+      const componentesVinculados = await client.query(
+        `SELECT cc.id, oc.docente_id::TEXT AS "docenteId"
+         FROM componentes_calificacion cc JOIN ofertas_curso oc ON oc.id = cc.oferta_curso_id
+         WHERE cc.evaluacion_id = $1 ORDER BY cc.id FOR UPDATE OF cc`, [evaluacionId]
+      );
+      if (componentesVinculados.rows.length > 1 || componentesVinculados.rows.some(item => String(item.docenteId) !== String(usuarioId))) {
+        await client.query("ROLLBACK");
+        return res.status(409).json({ message: "La evaluación tiene vínculos de calificación compartidos y no se puede modificar desde esta oferta." });
+      }
+    } else {
+      evaluacionId = "";
+      contenidoId = "";
+    }
+
     if (calificada && componenteId) {
       const componente = await client.query(
         `SELECT cc.id
@@ -365,10 +416,10 @@ export async function crearEvaluacionCurso(
            AND oc.curso_id = $2
            AND oc.docente_id = $3
            AND oc.estado <> 'Cancelado'
-           AND cc.evaluacion_id IS NULL
+           AND (cc.evaluacion_id IS NULL OR cc.evaluacion_id = $4::BIGINT)
            AND cc.actividad_id IS NULL
          FOR UPDATE OF cc`,
-        [componenteId, cursoId, usuarioId]
+        [componenteId, cursoId, usuarioId, editing ? evaluacionId : null]
       );
 
       if (!componente.rowCount) {
@@ -380,42 +431,57 @@ export async function crearEvaluacionCurso(
     const estadoContenido = estado === "Publicado" ? "Publicado" : "Borrador";
     const estadoEvaluacion = estado === "Publicado" ? "Publicada" : "Borrador";
 
-    const contenidoResult = await client.query(
-      `INSERT INTO contenidos_curso (
-         modulo_id, titulo, tipo, descripcion, orden, estado, creado_por
-       )
-       SELECT $1, $2, 'evaluacion', $3,
-              COALESCE(MAX(orden), 0) + 1, $4, $5
-       FROM contenidos_curso
-       WHERE modulo_id = $1
-       RETURNING id::TEXT AS id`,
-      [moduloId, titulo, descripcion || null, estadoContenido, usuarioId]
-    );
-    const contenidoId = String(contenidoResult.rows[0].id);
+    if (editing) {
+      await client.query(
+        "UPDATE contenidos_curso SET titulo = $1, descripcion = $2, estado = $3 WHERE id = $4",
+        [titulo, descripcion || null, estadoContenido, contenidoId]
+      );
+      await client.query(
+        `UPDATE evaluaciones SET tipo = $1, instrucciones = $2, intentos_permitidos = $3,
+         tiempo_limite_minutos = $4, puntaje_total = $5, fecha_inicio = $6::TIMESTAMPTZ,
+         fecha_fin = $7::TIMESTAMPTZ, calificada = $8, estado = $9 WHERE id = $10`,
+        [tipo, descripcion || null, intentos, tiempo, puntajeTotal, fechaInicio, fechaFin, calificada, estadoEvaluacion, evaluacionId]
+      );
+      await client.query("DELETE FROM preguntas_evaluacion WHERE evaluacion_id = $1", [evaluacionId]);
+      await client.query("UPDATE componentes_calificacion SET evaluacion_id = NULL WHERE evaluacion_id = $1", [evaluacionId]);
+    } else {
+      const contenidoResult = await client.query(
+        `INSERT INTO contenidos_curso (
+           modulo_id, titulo, tipo, descripcion, orden, estado, creado_por
+         )
+         SELECT $1, $2, 'evaluacion', $3,
+                COALESCE(MAX(orden), 0) + 1, $4, $5
+         FROM contenidos_curso
+         WHERE modulo_id = $1
+         RETURNING id::TEXT AS id`,
+        [moduloId, titulo, descripcion || null, estadoContenido, usuarioId]
+      );
+      contenidoId = String(contenidoResult.rows[0].id);
 
-    const evaluacionResult = await client.query(
-      `INSERT INTO evaluaciones (
-         contenido_id, tipo, instrucciones, intentos_permitidos,
-         tiempo_limite_minutos, puntaje_total, fecha_inicio, fecha_fin,
-         calificada, estado
-       ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7::TIMESTAMPTZ, $8::TIMESTAMPTZ, $9, $10
-       )
-       RETURNING id::TEXT AS id`,
-      [
-        contenidoId,
-        tipo,
-        descripcion || null,
-        intentos,
-        tiempo,
-        puntajeTotal,
-        fechaInicio,
-        fechaFin,
-        calificada,
-        estadoEvaluacion,
-      ]
-    );
-    const evaluacionId = String(evaluacionResult.rows[0].id);
+      const evaluacionResult = await client.query(
+        `INSERT INTO evaluaciones (
+           contenido_id, tipo, instrucciones, intentos_permitidos,
+           tiempo_limite_minutos, puntaje_total, fecha_inicio, fecha_fin,
+           calificada, estado
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7::TIMESTAMPTZ, $8::TIMESTAMPTZ, $9, $10
+         )
+         RETURNING id::TEXT AS id`,
+        [
+          contenidoId,
+          tipo,
+          descripcion || null,
+          intentos,
+          tiempo,
+          puntajeTotal,
+          fechaInicio,
+          fechaFin,
+          calificada,
+          estadoEvaluacion,
+        ]
+      );
+      evaluacionId = String(evaluacionResult.rows[0].id);
+    }
 
     for (let index = 0; index < preguntas.length; index += 1) {
       const pregunta = preguntas[index];
@@ -465,8 +531,8 @@ export async function crearEvaluacionCurso(
 
     await client.query("COMMIT");
 
-    return res.status(201).json({
-      message: estado === "Publicado"
+    return res.status(editing ? 200 : 201).json({
+      message: editing ? "La evaluación se actualizó correctamente." : estado === "Publicado"
         ? "La evaluación se creó y publicó correctamente."
         : "La evaluación se guardó como borrador.",
       contenidoId,
@@ -520,6 +586,7 @@ export async function obtenerEvaluacionCurso(
          cc.descripcion,
          cc.estado AS "estadoContenido",
          mc.numero AS "numeroModulo",
+         mc.id::TEXT AS "moduloId",
          mc.titulo AS "tituloModulo",
          e.id::TEXT AS "evaluacionId",
          e.tipo,
@@ -582,6 +649,12 @@ export async function obtenerEvaluacionCurso(
     const cabecera = cabeceraResult.rows[0];
     const evaluacionId = String(cabecera.evaluacionId);
     const esDocente = cabecera.rol === "Docente";
+    const componenteResult = esDocente ? await pool.query(
+      `SELECT cc.id::TEXT AS id FROM componentes_calificacion cc
+       JOIN ofertas_curso oc ON oc.id = cc.oferta_curso_id
+       WHERE cc.evaluacion_id = $1 AND oc.docente_id = $2
+       ORDER BY cc.id LIMIT 1`, [evaluacionId, usuarioId]
+    ) : { rows: [] };
 
     const preguntasResult = await pool.query(
       `SELECT
@@ -698,6 +771,7 @@ export async function obtenerEvaluacionCurso(
         descripcion: cabecera.descripcion ?? "",
         estado: cabecera.estadoContenido,
         numeroModulo: Number(cabecera.numeroModulo),
+        moduloId: String(cabecera.moduloId),
         tituloModulo: cabecera.tituloModulo,
       },
       evaluacion: {
@@ -714,6 +788,7 @@ export async function obtenerEvaluacionCurso(
         fechaInicio: cabecera.fechaInicio,
         fechaFin: cabecera.fechaFin,
         calificada: cabecera.calificada === true,
+        ...(esDocente ? { componenteCalificacionId: componenteResult.rows[0]?.id ?? null } : {}),
         estado: cabecera.estadoEvaluacion,
       },
       preguntas: preguntasRespuesta,

@@ -65,20 +65,28 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 
 
-function DottedMenu({ onEdit, onDelete, onPublish, status, disabled }: { onEdit: () => void; onDelete: () => void; onPublish: () => void; status: string; disabled: boolean }) {
+function DottedMenu({ onEdit, onDelete, onPublish, status, disabled, label = "Acciones del contenido", editLabel = "Editar" }: {
+  onEdit: () => void;
+  onDelete: () => void;
+  onPublish?: () => void;
+  status?: string;
+  disabled: boolean;
+  label?: string;
+  editLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <button type="button" disabled={disabled} onClick={() => setOpen((value) => !value)} className="flex h-7 w-7 items-center justify-center rounded-md text-talentia-muted hover:bg-talentia-hover" aria-label="Acciones del contenido">
+    <div className="relative shrink-0" onKeyDown={event => { if (event.key === "Escape") setOpen(false); }}>
+      <button type="button" disabled={disabled} onClick={() => setOpen((value) => !value)} className="flex h-7 w-7 items-center justify-center rounded-md text-talentia-muted hover:bg-talentia-hover" aria-label={label} aria-expanded={open}>
         <MoreIcon />
       </button>
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[40] cursor-default" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-8 z-[50] w-40 whitespace-nowrap rounded-md border border-talentia-border bg-talentia-surface py-1 shadow-lg">
-            <button type="button" onClick={() => { setOpen(false); onPublish(); }} className="block w-full px-3 py-2 text-left text-xs text-talentia-primary hover:bg-talentia-hover">{status === "Borrador" ? "Publicar" : "Volver a borrador"}</button>
-            <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="block w-full px-3 py-2 text-left text-xs text-talentia-primary hover:bg-talentia-hover">Editar</button>
+            {onPublish && <button type="button" onClick={() => { setOpen(false); onPublish(); }} className="block w-full px-3 py-2 text-left text-xs text-talentia-primary hover:bg-talentia-hover">{status === "Borrador" ? "Publicar" : "Volver a borrador"}</button>}
+            <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="block w-full px-3 py-2 text-left text-xs text-talentia-primary hover:bg-talentia-hover">{editLabel}</button>
             <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="block w-full px-3 py-2 text-left text-xs text-talentia-danger hover:bg-talentia-danger-bg">Eliminar</button>
           </div>
         </>
@@ -115,6 +123,9 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
   const [createModuleOpen, setCreateModuleOpen] = useState(false);
   const [createModuleTitle, setCreateModuleTitle] = useState("");
   const [savingModule, setSavingModule] = useState(false);
+  const [editingModule, setEditingModule] = useState<LocalModule | null>(null);
+  const [moduleTitle, setModuleTitle] = useState("");
+  const [moduleError, setModuleError] = useState("");
   const [deletingModuleId, setDeletingModuleId] = useState<number | null>(null);
   const [addContentOpen, setAddContentOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -203,6 +214,34 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
       showNotice("Módulo publicado.");
     } catch (error) {
       showNotice(error instanceof Error ? error.message : "No se pudo guardar el módulo.");
+    } finally {
+      setSavingModule(false);
+    }
+  };
+
+  const saveModuleTitle = async () => {
+    if (!editingModule || savingModule) return;
+    const title = moduleTitle.trim();
+    if (!title || title.length > 200) {
+      setModuleError("Escribe un nombre de hasta 200 caracteres.");
+      return;
+    }
+    setSavingModule(true);
+    setModuleError("");
+    try {
+      const response = await fetch(`${API_URL}/cursos/${courseId}/modulos/${editingModule.id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: title }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "No se pudo guardar el nombre del módulo.");
+      setModules(current => current.map(item => item.id === editingModule.id ? { ...item, title: data.modulo.titulo } : item));
+      setEditingModule(null);
+      showNotice("Nombre del módulo actualizado.");
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : "No se pudo guardar el nombre del módulo.");
     } finally {
       setSavingModule(false);
     }
@@ -320,12 +359,15 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
       const data = await response.json();
       if (!response.ok) throw new Error(data.message ?? "No se pudo guardar el cambio.");
       setContents(current => deleting ? current.filter(content => content.id !== contentId) : current.map(content => content.id === contentId ? { ...content, title: data.contenido.titulo, status: data.contenido.estado } : content));
-      showNotice(deleting ? "Contenido eliminado." : "Cambio guardado.");
+      showNotice(data.message ?? (deleting ? "Contenido eliminado." : "Cambio guardado."));
     } finally { setSaving(false); }
   };
 
   const deleteContent = async (content: LocalContent) => {
-    if (!window.confirm(`¿Eliminar "${content.title}" del curso?`)) return;
+    const message = content.type === "quiz"
+      ? `¿Eliminar definitivamente la evaluación "${content.title}"?\n\nSe eliminarán sus preguntas, respuestas, intentos y calificaciones asociadas. El componente de calificación conservará su nombre y porcentaje y quedará disponible para otra evaluación.\n\nEsta acción no se puede deshacer.`
+      : `¿Eliminar "${content.title}" del curso?`;
+    if (!window.confirm(message)) return;
     try { await updateContent(content.id, {}, true); }
     catch (error) { showNotice(error instanceof Error ? error.message : "No se pudo eliminar."); }
   };
@@ -395,9 +437,13 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                         <span className="teacher-course-module-title flex-1 break-words text-[14px] font-semibold text-talentia-primary">Modulo {module.number}: {module.title}</span>
                         <ChevronIcon open={open} />
                       </button>
-                      <button type="button" disabled={deletingModuleId !== null} onClick={() => void deleteModule(module)} aria-label={`Eliminar módulo ${module.title}`} className="shrink-0 px-3 py-2 text-xs font-semibold text-talentia-primary hover:bg-talentia-surface/20 disabled:opacity-50">
-                        Eliminar
-                      </button>
+                      <DottedMenu
+                        label={`Acciones del módulo ${module.title}`}
+                        editLabel="Editar nombre"
+                        disabled={deletingModuleId !== null || savingModule}
+                        onEdit={() => { setEditingModule(module); setModuleTitle(module.title); setModuleError(""); }}
+                        onDelete={() => void deleteModule(module)}
+                      />
                       </div>
 
                       {open && (
@@ -479,6 +525,11 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                                       router.push(`/docente/cursos/${course.id}/crear-actividad?${query}`);
                                       return;
                                     }
+                                    if (content.type === "quiz") {
+                                      const query = new URLSearchParams({ moduleId: String(content.moduleId), contenidoId: String(content.id) });
+                                      router.push(`/docente/cursos/${course.id}/crear-evaluacion?${query}`);
+                                      return;
+                                    }
                                     setEditing(content);
                                     setEditTitle(content.title);
                                     setEditError("");
@@ -527,6 +578,17 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
       </div>}
 
       <CreateModuleModal open={createModuleOpen} value={createModuleTitle} saving={savingModule} onChange={setCreateModuleTitle} onClose={() => setCreateModuleOpen(false)} onSave={saveModule} />
+      <CreateModuleModal
+        open={editingModule !== null}
+        title="Editar nombre del módulo"
+        submitLabel="Guardar cambios"
+        value={moduleTitle}
+        error={moduleError}
+        saving={savingModule}
+        onChange={value => { setModuleTitle(value); setModuleError(""); }}
+        onClose={() => { if (!savingModule) setEditingModule(null); }}
+        onSave={saveModuleTitle}
+      />
       <AddContentModal open={addContentOpen} onClose={() => setAddContentOpen(false)} onSelect={selectContentType} />
       <UploadFileModal open={uploadOpen} onClose={() => setUploadOpen(false)} onSubmit={handleFileSubmit} />
       <AddLinkModal open={linkOpen} onClose={() => setLinkOpen(false)} onSubmit={handleLinkSubmit} />

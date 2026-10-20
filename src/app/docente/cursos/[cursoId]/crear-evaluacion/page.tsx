@@ -33,6 +33,7 @@ export default function CreateEvaluationPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const moduleId = searchParams.get("moduleId") ?? undefined;
+  const contentId = searchParams.get("contenidoId") ?? undefined;
   const courseId = Number(cursoId);
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -131,5 +132,5 @@ export default function CreateEvaluationPage({
     );
   }
 
-  return <CreateEvaluation course={course} moduleId={moduleId} />;
+  return <CreateEvaluation key={`${courseId}-${moduleId}-${contentId}`} course={course} moduleId={moduleId} contentId={contentId} />;
 }
