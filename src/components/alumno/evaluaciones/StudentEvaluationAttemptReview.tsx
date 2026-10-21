@@ -39,6 +39,7 @@ type QuestionDetail = {
     texto: string | null;
     esCorrecta: boolean | null;
     puntosObtenidos: number | null;
+    calificada: boolean;
   };
   archivos: AttachedFile[];
   opciones: OptionDetail[];
@@ -321,16 +322,26 @@ export default function StudentEvaluationAttemptReview({
             )}
 
             <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-talentia-border pt-4 text-xs">
-              {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Respuesta correcta</span>}
-              {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Respuesta incorrecta</span>}
-              {question.respuesta.esCorrecta === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
+              {question.tipo === "respuesta_abierta" ? (
+                question.respuesta.calificada ? (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Pregunta calificada</span>
+                ) : (
+                  <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>
+                )
+              ) : (
+                <>
+                  {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Respuesta correcta</span>}
+                  {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Respuesta incorrecta</span>}
+                  {question.respuesta.esCorrecta === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
+                </>
+              )}
               {detail.intento.estado === "Calificado" ? (
                 <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">
                   {Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts
                 </span>
               ) : (
                 <span className="rounded-full bg-amber-50 px-3 py-1.5 font-semibold text-amber-800">
-                  Puntaje pendiente
+                  {question.tipo === "respuesta_abierta" && question.respuesta.calificada ? "Nota final pendiente" : "Puntaje pendiente"}
                 </span>
               )}
             </div>

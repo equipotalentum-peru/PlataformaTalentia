@@ -1090,6 +1090,10 @@ async function construirDetalleIntento(
           pregunta.puntosObtenidos === null || pregunta.puntosObtenidos === undefined
             ? null
             : Number(pregunta.puntosObtenidos),
+        // Permite indicar al alumno que esta pregunta ya fue revisada,
+        // sin revelar el puntaje hasta que todo el intento esté calificado.
+        calificada:
+          pregunta.puntosObtenidos !== null && pregunta.puntosObtenidos !== undefined,
       },
       archivos: archivosResult.rows
         .filter((archivo) => respuestaId !== null && String(archivo.respuestaId) === respuestaId)
