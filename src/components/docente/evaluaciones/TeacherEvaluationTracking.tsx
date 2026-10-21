@@ -37,6 +37,8 @@ type StudentSummary = {
   correo: string;
   intentosUsados: number;
   ultimoIntento: LastAttempt | null;
+  /** Nota general guardada en calificaciones (puede diferir del puntaje del intento). */
+  notaCalificacion: number | null;
 };
 
 type AttemptSummary = {
@@ -299,8 +301,8 @@ export default function TeacherEvaluationTracking({
                           )}
                         </td>
                         <td className="px-4 py-3 text-center font-semibold text-talentia-primary">
-                          {student.ultimoIntento && student.ultimoIntento.estado === "Calificado"
-                            ? `${student.ultimoIntento.puntosObtenidos.toFixed(2)} / ${Number(evaluation.puntajeTotal ?? 0).toFixed(2)}`
+                          {student.notaCalificacion !== null && Number.isFinite(student.notaCalificacion)
+                            ? `${student.notaCalificacion.toFixed(2)} / 20.00`
                             : "—"}
                         </td>
                       </tr>

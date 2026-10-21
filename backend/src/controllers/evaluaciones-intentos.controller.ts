@@ -1293,7 +1293,18 @@ export async function obtenerSeguimientoEvaluacionDocente(
          m.id::TEXT AS "matriculaId",
          TRIM(CONCAT(u.nombres, ' ', COALESCE(u.apellidos, ''))) AS alumno,
          u.correo,
-         m.estado AS "estadoMatricula"
+         m.estado AS "estadoMatricula",
+         (
+           SELECT cal.nota::NUMERIC
+           FROM componentes_calificacion comp
+           JOIN calificaciones cal
+             ON cal.componente_id = comp.id
+            AND cal.matricula_id = m.id
+           WHERE comp.evaluacion_id = $3
+             AND comp.oferta_curso_id = m.oferta_curso_id
+           ORDER BY cal.calificado_en DESC NULLS LAST, cal.id DESC
+           LIMIT 1
+         ) AS "notaCalificacion"
        FROM ofertas_curso oc
        JOIN matriculas m ON m.oferta_curso_id = oc.id
        JOIN usuarios u ON u.id = m.estudiante_id
@@ -1311,7 +1322,7 @@ export async function obtenerSeguimientoEvaluacionDocente(
            ELSE 3
          END,
          m.id DESC`,
-      [cursoId, usuarioId]
+      [cursoId, usuarioId, String(evaluacion.evaluacionId)]
     );
 
     const matriculaIds = alumnosResult.rows.map((row) => String(row.matriculaId));
@@ -1354,6 +1365,7 @@ export async function obtenerSeguimientoEvaluacionDocente(
         alumno: String(alumno.alumno),
         correo: String(alumno.correo ?? ""),
         intentosUsados: intentos.length,
+        notaCalificacion: alumno.notaCalificacion == null ? null : Number(alumno.notaCalificacion),
         ultimoIntento: ultimo
           ? {
               id: String(ultimo.id),
