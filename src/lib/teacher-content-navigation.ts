@@ -53,7 +53,7 @@ export function getTeacherContentHref(
   }
 
   if (content.type === "quiz") {
-    return `/docente/cursos/${courseId}/evaluaciones/${content.id}`;
+    return `/docente/cursos/${courseId}/evaluaciones/${content.id}/seguimiento`;
   }
 
   return `/docente/cursos/${courseId}/contenido/${content.id}`;

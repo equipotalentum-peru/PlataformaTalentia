@@ -462,7 +462,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                               content.type === "activity"
                                 ? `/docente/cursos/${course.id}/actividades/${content.id}`
                                 : content.type === "quiz"
-                                  ? `/docente/cursos/${course.id}/evaluaciones/${content.id}`
+                                  ? `/docente/cursos/${course.id}/evaluaciones/${content.id}/seguimiento`
                                   : `/docente/cursos/${course.id}/contenido/${content.id}`;
 
                             const linkContent = (

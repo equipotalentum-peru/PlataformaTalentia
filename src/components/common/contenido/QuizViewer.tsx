@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 import { quizzes, type QuizOption } from "@/data/quizzes";
@@ -74,9 +74,44 @@ type EvaluationResponse = {
   evaluacion?: {
     id: string | number;
     instrucciones?: string;
+    intentosPermitidos: number;
     tiempoLimiteMinutos: number | null;
   };
   preguntas?: ApiQuestion[];
+  message?: string;
+};
+
+
+type AttemptSummary = {
+  id: string;
+  numeroIntento: number;
+  iniciadoEn: string;
+  enviadoEn: string | null;
+  estado: string;
+  puntosObtenidos: number;
+  puntajeTotal: number | null;
+  tiempoUsadoSegundos: number | null;
+  tiempoRestanteSegundos: number | null;
+};
+
+type AttemptStatusResponse = {
+  intentosPermitidos: number;
+  intentosUsados: number;
+  intentosRestantes: number;
+  puedeIniciarNuevo: boolean;
+  intentoEnCurso: AttemptSummary | null;
+  intentos: AttemptSummary[];
+  message?: string;
+};
+
+type StartAttemptResponse = {
+  intento?: {
+    id: string;
+    numeroIntento: number;
+    iniciadoEn: string;
+    tiempoRestanteSegundos: number | null;
+  };
+  reanudado?: boolean;
   message?: string;
 };
 
@@ -185,6 +220,42 @@ export default function QuizViewer({
   const [textAnswers, setTextAnswers] = useState<Record<string, string>>({});
   const [relationAnswers, setRelationAnswers] = useState<Record<string, Record<string, string>>>({});
   const [selectedFiles, setSelectedFiles] = useState<Record<string, string[]>>({});
+  const [attemptStatus, setAttemptStatus] = useState<AttemptStatusResponse | null>(null);
+  const [activeAttemptId, setActiveAttemptId] = useState<string | null>(null);
+  const [activeAttemptNumber, setActiveAttemptNumber] = useState<number | null>(null);
+  const [attemptError, setAttemptError] = useState("");
+  const [startingAttempt, setStartingAttempt] = useState(false);
+  const [submittingAttempt, setSubmittingAttempt] = useState(false);
+  const finalizandoRef = useRef(false);
+
+  const cargarEstadoIntentos = useCallback(
+    async (signal?: AbortSignal): Promise<AttemptStatusResponse | null> => {
+      if (!databaseContentId || preview) return null;
+
+      const response = await fetch(
+        `${API_URL}/cursos/${encodeURIComponent(String(courseId))}/contenidos/${encodeURIComponent(String(databaseContentId))}/evaluacion/intentos`,
+        {
+          credentials: "include",
+          cache: "no-store",
+          signal,
+        }
+      );
+
+      const data = (await response.json().catch(() => ({}))) as AttemptStatusResponse;
+
+      if (response.status === 401) {
+        router.push("/login");
+        return null;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "No se pudieron cargar tus intentos.");
+      }
+
+      return data;
+    },
+    [courseId, databaseContentId, preview, router]
+  );
 
   useEffect(() => {
     if (!databaseContentId) return;
@@ -235,6 +306,30 @@ export default function QuizViewer({
             data.evaluacion.instrucciones || data.contenido.descripcion || "",
           questions: data.preguntas.map(normalizeApiQuestion),
         });
+
+        if (!preview) {
+          const estadoIntentos = await cargarEstadoIntentos(controller.signal);
+
+          if (estadoIntentos) {
+            setAttemptStatus(estadoIntentos);
+            setAttemptError("");
+
+            if (estadoIntentos.intentoEnCurso) {
+              setActiveAttemptId(estadoIntentos.intentoEnCurso.id);
+              setActiveAttemptNumber(estadoIntentos.intentoEnCurso.numeroIntento);
+              setTimeRemaining(estadoIntentos.intentoEnCurso.tiempoRestanteSegundos ?? 0);
+              setPhase("intro");
+            } else if (estadoIntentos.intentos.length > 0) {
+              const ultimoIntento = estadoIntentos.intentos[estadoIntentos.intentos.length - 1];
+              setActiveAttemptId(null);
+              setActiveAttemptNumber(null);
+              setTimeRemaining(ultimoIntento.tiempoRestanteSegundos ?? 0);
+              setPhase("finished");
+            } else {
+              setPhase("intro");
+            }
+          }
+        }
       } catch (error) {
         if (controller.signal.aborted) return;
         setLoadError(
@@ -249,7 +344,7 @@ export default function QuizViewer({
 
     void loadFromDatabase();
     return () => controller.abort();
-  }, [courseId, databaseContentId, router]);
+  }, [courseId, databaseContentId, router, preview, cargarEstadoIntentos]);
 
   const quiz = databaseContentId ? databaseQuiz : staticQuiz;
   const trackingId = databaseContentId ?? quizId ?? 0;
@@ -264,7 +359,6 @@ export default function QuizViewer({
       setTimeRemaining((current) => {
         if (current <= 1) {
           window.clearInterval(interval);
-          setPhase("finished");
           return 0;
         }
         return current - 1;
@@ -275,17 +369,84 @@ export default function QuizViewer({
   }, [phase, durationMinutes]);
 
   useEffect(() => {
+    if (
+      phase === "question" &&
+      durationMinutes !== null &&
+      timeRemaining === 0 &&
+      databaseContentId &&
+      !preview &&
+      activeAttemptId
+    ) {
+      void finishQuiz();
+    }
+  }, [
+    phase,
+    durationMinutes,
+    timeRemaining,
+    databaseContentId,
+    preview,
+    activeAttemptId,
+  ]);
+
+  useEffect(() => {
     if (phase !== "finished" || preview || trackingId <= 0) return;
     markContentViewed(courseId, trackingId);
     clearQuizStarted(courseId, trackingId);
   }, [phase, preview, courseId, trackingId]);
 
-  const startQuiz = () => {
+  async function startQuiz() {
+    if (startingAttempt || submittingAttempt) return;
+
+    setAttemptError("");
     setCurrentQuestion(0);
     setSelectedOptions({});
     setTextAnswers({});
     setRelationAnswers({});
     setSelectedFiles({});
+
+    if (databaseContentId && !preview) {
+      try {
+        setStartingAttempt(true);
+
+        const response = await fetch(
+          `${API_URL}/cursos/${encodeURIComponent(String(courseId))}/contenidos/${encodeURIComponent(String(databaseContentId))}/evaluacion/intentos/iniciar`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+
+        const data = (await response.json().catch(() => ({}))) as StartAttemptResponse;
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok || !data.intento) {
+          throw new Error(data.message ?? "No se pudo iniciar el intento.");
+        }
+
+        setActiveAttemptId(String(data.intento.id));
+        setActiveAttemptNumber(Number(data.intento.numeroIntento));
+        setTimeRemaining(data.intento.tiempoRestanteSegundos ?? 0);
+
+        if (!preview && trackingId > 0) {
+          markQuizStarted(courseId, trackingId);
+        }
+
+        setPhase("question");
+      } catch (error) {
+        setAttemptError(
+          error instanceof Error ? error.message : "No se pudo iniciar el intento."
+        );
+      } finally {
+        setStartingAttempt(false);
+      }
+
+      return;
+    }
+
     setTimeRemaining(durationMinutes === null ? 0 : durationMinutes * 60);
 
     if (!preview && trackingId > 0) {
@@ -293,25 +454,87 @@ export default function QuizViewer({
     }
 
     setPhase("question");
-  };
+  }
 
-  const finishQuiz = () => {
-    setPhase("finished");
-  };
+  async function finishQuiz() {
+    if (finalizandoRef.current) return;
 
-  const goNextQuestion = () => {
+    if (!databaseContentId || preview) {
+      setPhase("finished");
+      return;
+    }
+
+    if (!activeAttemptId) {
+      setAttemptError("No se encontró el intento activo de esta evaluación.");
+      return;
+    }
+
+    finalizandoRef.current = true;
+    setSubmittingAttempt(true);
+    setAttemptError("");
+
+    try {
+      const respuestas = questions.map((item) => ({
+        preguntaId: item.id,
+        opcionesSeleccionadas: selectedOptions[item.id] ?? [],
+        textoRespuesta: textAnswers[item.id] ?? "",
+        relaciones: relationAnswers[item.id] ?? {},
+      }));
+
+      const response = await fetch(
+        `${API_URL}/cursos/${encodeURIComponent(String(courseId))}/contenidos/${encodeURIComponent(String(databaseContentId))}/evaluacion/intentos/${encodeURIComponent(activeAttemptId)}/enviar`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ respuestas }),
+        }
+      );
+
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "No se pudo enviar la evaluación.");
+      }
+
+      const estadoActualizado = await cargarEstadoIntentos();
+      if (estadoActualizado) {
+        setAttemptStatus(estadoActualizado);
+      }
+
+      setActiveAttemptId(null);
+      setActiveAttemptNumber(null);
+      setPhase("finished");
+    } catch (error) {
+      setAttemptError(
+        error instanceof Error ? error.message : "No se pudo enviar la evaluación."
+      );
+    } finally {
+      setSubmittingAttempt(false);
+      finalizandoRef.current = false;
+    }
+  }
+
+  function goNextQuestion() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((current) => current + 1);
     } else {
-      finishQuiz();
+      void finishQuiz();
     }
-  };
+  }
 
-  const goPreviousQuestion = () => {
+  function goPreviousQuestion() {
     setCurrentQuestion((current) => Math.max(0, current - 1));
-  };
+  }
 
-  const toggleOption = (questionId: string, optionId: string, multiple: boolean) => {
+  function toggleOption(questionId: string, optionId: string, multiple: boolean) {
     setSelectedOptions((current) => {
       const previous = current[questionId] ?? [];
       if (!multiple) {
@@ -324,7 +547,8 @@ export default function QuizViewer({
 
       return { ...current, [questionId]: selected };
     });
-  };
+  }
+
 
   if (loadingDatabaseQuiz) {
     return (
@@ -388,11 +612,19 @@ export default function QuizViewer({
             <path d="M12 8v4l2.5 2" />
           </svg>
           <div>
-            <p className="text-xs">{activeQuestion ? "Tiempo restante" : "Tiempo"}</p>
+            <p className="text-xs">
+              {activeQuestion || phase === "finished" || attemptStatus?.intentoEnCurso
+                ? "Tiempo restante"
+                : "Tiempo"}
+            </p>
             <p className="text-base font-bold leading-none sm:text-lg">
               {durationMinutes === null
                 ? "Sin límite"
-                : formatTime(activeQuestion ? timeRemaining : durationMinutes * 60)}
+                : formatTime(
+                    activeQuestion || phase === "finished" || attemptStatus?.intentoEnCurso
+                      ? timeRemaining
+                      : durationMinutes * 60
+                  )}
             </p>
           </div>
         </div>
@@ -435,16 +667,42 @@ export default function QuizViewer({
           <p>2. La evaluación consta de {totalQuestions} {totalQuestions === 1 ? "pregunta" : "preguntas"}.</p>
           <p>3. Puedes utilizar Anterior y Siguiente para revisar las preguntas antes de terminar.</p>
           <p>4. Respeta las instrucciones y completa las respuestas que correspondan.</p>
-          <p>5. Las respuestas de texto y los archivos adjuntos se muestran en la interfaz; el almacenamiento de respuestas se integrará en la siguiente etapa.</p>
+          <p>5. Al terminar, tus respuestas se guardarán y el intento quedará registrado.</p>
         </div>
+
+        {databaseContentId && !preview && attemptStatus && (
+          <div className="mt-5 rounded-lg border border-talentia-border bg-talentia-selected/30 px-4 py-3 text-sm text-talentia-primary">
+            {attemptStatus.intentoEnCurso ? (
+              <p>
+                Tienes el intento {attemptStatus.intentoEnCurso.numeroIntento} en curso.
+                Puedes continuarlo con el tiempo que aún queda.
+              </p>
+            ) : (
+              <p>
+                Intentos disponibles: {attemptStatus.intentosRestantes} de {attemptStatus.intentosPermitidos}.
+              </p>
+            )}
+          </div>
+        )}
+
+        {attemptError && (
+          <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {attemptError}
+          </p>
+        )}
 
         <div className="flex justify-center pt-8 sm:pt-10">
           <button
             type="button"
-            onClick={startQuiz}
-            className="rounded-md bg-talentia-action px-10 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-talentia-primary"
+            onClick={() => void startQuiz()}
+            disabled={startingAttempt || submittingAttempt}
+            className="rounded-md bg-talentia-action px-10 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Empezar
+            {startingAttempt
+              ? "Iniciando..."
+              : attemptStatus?.intentoEnCurso
+                ? "Continuar intento"
+                : "Empezar"}
           </button>
         </div>
 
@@ -597,6 +855,12 @@ export default function QuizViewer({
             </div>
           )}
 
+          {attemptError && (
+            <p role="alert" className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {attemptError}
+            </p>
+          )}
+
           <div className="mt-10 flex items-center justify-between gap-3">
             <button
               type="button"
@@ -609,9 +873,14 @@ export default function QuizViewer({
             <button
               type="button"
               onClick={goNextQuestion}
-              className="rounded-md bg-talentia-action px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary"
+              disabled={submittingAttempt}
+              className="rounded-md bg-talentia-action px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {currentQuestion === totalQuestions - 1 ? "Terminar" : "Siguiente →"}
+              {submittingAttempt
+                ? "Guardando..."
+                : currentQuestion === totalQuestions - 1
+                  ? "Terminar"
+                  : "Siguiente →"}
             </button>
           </div>
         </div>
@@ -626,12 +895,88 @@ export default function QuizViewer({
         <h2 className="text-base font-bold text-talentia-primary">
           Evaluación terminada.
         </h2>
-        <p className="mt-2 max-w-[700px] text-sm leading-relaxed text-talentia-primary">
-          Has llegado al final de esta evaluación. En esta etapa la interfaz muestra el cierre; el envío y almacenamiento de respuestas y la calificación se conectarán por separado.
+        <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-talentia-primary">
+          {databaseContentId && !preview
+            ? "Tus respuestas fueron enviadas y el intento quedó guardado en la base de datos."
+            : "Has llegado al final de esta evaluación."}
         </p>
+
+        {attemptError && (
+          <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {attemptError}
+          </p>
+        )}
+
+        {databaseContentId && !preview && attemptStatus && (
+          <section className="mt-6">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-talentia-primary">Historial de intentos</h3>
+              <span className="text-xs text-talentia-muted">
+                {attemptStatus.intentosUsados} de {attemptStatus.intentosPermitidos} utilizados
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {attemptStatus.intentos.map((intento) => (
+                <div
+                  key={intento.id}
+                  className="flex flex-col gap-2 rounded-lg border border-talentia-border bg-talentia-selected/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-talentia-primary">
+                      Intento {intento.numeroIntento}
+                    </p>
+                    <p className="mt-1 text-xs text-talentia-muted">
+                      {intento.enviadoEn
+                        ? `Enviado: ${new Date(intento.enviadoEn).toLocaleString("es-PE")}`
+                        : "En curso"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    {intento.tiempoUsadoSegundos !== null && (
+                      <span className="rounded-full bg-white px-3 py-1.5 text-talentia-primary">
+                        Tiempo usado: {formatTime(intento.tiempoUsadoSegundos)}
+                      </span>
+                    )}
+                    <span className="rounded-full bg-white px-3 py-1.5 font-semibold text-talentia-primary">
+                      {intento.estado}
+                    </span>
+                    {intento.estado === "Calificado" && intento.puntajeTotal !== null && (
+                      <span className="rounded-full bg-white px-3 py-1.5 font-semibold text-talentia-primary">
+                        {intento.puntosObtenidos.toFixed(2)} / {intento.puntajeTotal.toFixed(2)} pts
+                      </span>
+                    )}
+                    {["Enviado", "Calificado"].includes(intento.estado) && (
+                      <Link
+                        href={`/alumno/cursos/${courseId}/contenido/${databaseContentId}/intentos/${intento.id}`}
+                        className="rounded-md bg-talentia-action px-3 py-1.5 font-semibold text-white transition hover:bg-talentia-primary"
+                      >
+                        Ver intento
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
-      <div className="flex justify-center py-16 sm:py-24">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 sm:py-16">
+        {databaseContentId && !preview && attemptStatus?.puedeIniciarNuevo && (
+          <button
+            type="button"
+            onClick={() => void startQuiz()}
+            disabled={startingAttempt || submittingAttempt}
+            className="rounded-md border border-talentia-action bg-white px-8 py-3 text-sm font-semibold text-talentia-action transition hover:bg-talentia-selected disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {startingAttempt
+              ? "Iniciando..."
+              : `Realizar otro intento (${attemptStatus.intentosRestantes} disponible${attemptStatus.intentosRestantes === 1 ? "" : "s"})`}
+          </button>
+        )}
+
         <Link
           href={exitHref}
           className="rounded-md bg-talentia-action px-12 py-3 text-base font-semibold text-white transition hover:bg-talentia-primary"

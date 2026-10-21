@@ -17,6 +17,15 @@ import {
   listarComponentesCalificacionDocente,
   obtenerEvaluacionCurso,
 } from "../controllers/evaluaciones-gestion.controller";
+import {
+  enviarIntentoEvaluacionAlumno,
+  iniciarIntentoEvaluacionAlumno,
+  obtenerIntentosEvaluacionAlumno,
+  obtenerDetalleIntentoEvaluacionAlumno,
+  obtenerSeguimientoEvaluacionDocente,
+  obtenerIntentosEvaluacionAlumnoDocente,
+  obtenerDetalleIntentoEvaluacionDocente,
+} from "../controllers/evaluaciones-intentos.controller";
 
 const router = Router();
 
@@ -26,6 +35,13 @@ router.delete("/:cursoId/modulos/:moduloId", requireAuth, eliminarModulo);
 router.post("/:cursoId/modulos/:moduloId/evaluaciones", requireAuth, crearEvaluacionCurso);
 router.patch("/:cursoId/modulos/:moduloId/evaluaciones/:contenidoId", requireAuth, editarEvaluacionCurso);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion", requireAuth, obtenerEvaluacionCurso);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/intentos", requireAuth, obtenerIntentosEvaluacionAlumno);
+router.post("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/iniciar", requireAuth, iniciarIntentoEvaluacionAlumno);
+router.post("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/:intentoId/enviar", requireAuth, enviarIntentoEvaluacionAlumno);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/:intentoId/detalle", requireAuth, obtenerDetalleIntentoEvaluacionAlumno);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/seguimiento", requireAuth, obtenerSeguimientoEvaluacionDocente);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos", requireAuth, obtenerIntentosEvaluacionAlumnoDocente);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos/:intentoId/detalle", requireAuth, obtenerDetalleIntentoEvaluacionDocente);
 router.get("/:cursoId/modulos/:moduloId/evaluaciones/componentes-calificacion", requireAuth, listarComponentesCalificacionDocente);
 router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
@@ -38,3 +54,4 @@ router.get("/:cursoId/contenidos/:contenidoId/archivo", requireAuth, obtenerArch
 router.get("/:cursoId/portada", requireAuth, obtenerPortadaCurso);
 
 export default router;
+
