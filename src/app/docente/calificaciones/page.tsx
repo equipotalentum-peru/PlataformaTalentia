@@ -104,29 +104,20 @@ function getGrade(
   );
 }
 
-function parsearNota(
-  value: string
-) {
-  const limpio =
-    value.trim();
+function normalizarEntradaNumerica(value: string): string | null {
+  // Admite únicamente dígitos y un separador decimal, con hasta dos decimales.
+  const limpio = value.replace(/,/g, ".");
+  return /^\d*(?:\.\d{0,2})?$/.test(limpio) ? limpio : null;
+}
 
-  if (limpio === "") {
-    return null;
-  }
-
-  const numero =
-    Number(limpio);
-
-  if (
-    !Number.isFinite(numero)
-  ) {
+function parsearNota(value: string): number | undefined {
+  const limpio = value.trim().replace(/,/g, ".");
+  if (limpio === "" || !/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(limpio)) {
     return undefined;
   }
 
-  if (
-    numero < 0 ||
-    numero > 20
-  ) {
+  const numero = Number(limpio);
+  if (!Number.isFinite(numero) || numero < 0 || numero > 20) {
     return undefined;
   }
 
@@ -289,11 +280,6 @@ export default function TeacherGradesPage() {
   const [
     error,
     setError,
-  ] = useState("");
-
-  const [
-    mensaje,
-    setMensaje,
   ] = useState("");
 
   async function cargarCalificaciones(
@@ -464,8 +450,6 @@ export default function TeacherGradesPage() {
         setPage(1);
 
         setSearch("");
-
-        setMensaje("");
 
         setError("");
 
@@ -752,10 +736,6 @@ export default function TeacherGradesPage() {
           key
         );
 
-        setMensaje(
-          ""
-        );
-
         setError(
           ""
         );
@@ -819,19 +799,10 @@ export default function TeacherGradesPage() {
         setBorradores(
           (current) => ({
             ...current,
-
-            [key]:
-              nota === null
-                ? ""
-                : String(
-                    nota
-                  ),
+            [key]: String(nota),
           })
         );
 
-        setMensaje(
-          "Calificación guardada correctamente."
-        );
       } catch (error) {
         setError(
           error instanceof Error
@@ -887,13 +858,6 @@ export default function TeacherGradesPage() {
           {error}
         </div>
       )}
-
-      {mensaje &&
-        !error && (
-          <div className="mb-4 rounded-md border border-talentia-success/20 bg-talentia-success-bg px-4 py-3 text-[10px] text-talentia-success">
-            {mensaje}
-          </div>
-        )}
 
       {/* CURSO */}
       <section className="mb-4">
@@ -1215,50 +1179,46 @@ export default function TeacherGradesPage() {
                               <input
                                 type="text"
                                 inputMode="decimal"
-                                value={
-                                  draftValue
-                                }
-                                disabled={
-                                  isSaving
-                                }
-                                onChange={(
-                                  event
-                                ) => {
-                                  setBorradores(
-                                    (
-                                      current
-                                    ) => ({
+                                pattern="[0-9]*[.,]?[0-9]{0,2}"
+                                value={draftValue}
+                                disabled={isSaving}
+                                onChange={(event) => {
+                                  const numericValue = normalizarEntradaNumerica(event.target.value);
+                                  if (numericValue === null) return;
+                                  setBorradores((current) => ({
+                                    ...current,
+                                    [cellKey]: numericValue,
+                                  }));
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    void saveGrade(row.matriculaId, componente.id, draftValue);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  if (isSaving) return;
+                                  if (draftValue.trim() === "") {
+                                    setBorradores((current) => ({
                                       ...current,
-
-                                      [cellKey]:
-                                        event
-                                          .target
-                                          .value,
-                                    })
-                                  );
+                                      [cellKey]: grade === null ? "" : String(grade),
+                                    }));
+                                    return;
+                                  }
+                                  const draftNote = parsearNota(draftValue);
+                                  if (
+                                    draftNote === undefined ||
+                                    grade === null ||
+                                    Math.abs(draftNote - grade) > 0.000001
+                                  ) {
+                                    void saveGrade(row.matriculaId, componente.id, draftValue);
+                                  }
                                 }}
-                                onBlur={(
-                                  event
-                                ) => {
-                                  void saveGrade(
-                                    row.matriculaId,
-                                    componente.id,
-                                    event
-                                      .currentTarget
-                                      .value
-                                  );
-                                }}
-                                className={`w-[70px] bg-transparent px-2 text-center text-[15px] font-semibold outline-none disabled:opacity-60 ${getGradeClasses(
+                                className={`w-full min-w-0 flex-1 bg-transparent px-2 text-center text-[15px] font-semibold outline-none disabled:opacity-60 ${getGradeClasses(
                                   grade
                                 )}`}
                                 aria-label={`${row.alumno} ${componente.nombre}`}
                               />
-
-                              <span className="flex w-[30px] items-center justify-center border-l border-current/30 text-[15px] font-medium">
-                                {isSaving
-                                  ? "..."
-                                  : "Pts"}
-                              </span>
                             </div>
                           </td>
                         );

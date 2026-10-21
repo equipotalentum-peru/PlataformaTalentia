@@ -1627,10 +1627,6 @@ export async function calificarRespuestaEvaluacionDocente(
     }
 
     const respuesta = respuestaResult.rows[0];
-    if (respuesta.puntosObtenidos !== null && respuesta.puntosObtenidos !== undefined) {
-      await client.query("ROLLBACK");
-      return res.status(409).json({ message: "Esta pregunta ya fue calificada y no se puede modificar." });
-    }
 
     const maximo = Number(respuesta.puntajeMaximo ?? 0);
     if (puntos > maximo) {
@@ -1651,8 +1647,8 @@ export async function calificarRespuestaEvaluacionDocente(
 
     return res.status(200).json({
       message: calificacion.estado === "Calificado"
-        ? "Puntaje guardado. El examen terminó de calificarse y la nota quedó publicada."
-        : "Puntaje guardado. Todavía hay preguntas pendientes de calificación.",
+        ? "Puntaje actualizado. La nota del examen está publicada."
+        : "Puntaje actualizado. Todavía hay preguntas pendientes de calificación.",
       preguntaId: String(preguntaId),
       puntosObtenidos: puntos,
       intento: {

@@ -477,8 +477,7 @@ export async function obtenerCalificacionesDocente(
  *
  * Crea o actualiza una nota.
  *
- * Si nota es null o vacía, elimina la calificación
- * existente para dejar nuevamente el componente pendiente.
+ * Solo acepta notas numéricas entre 0 y 20.
  */
 export async function guardarCalificacionDocente(
   req: AuthenticatedRequest,
@@ -525,29 +524,25 @@ export async function guardarCalificacionDocente(
       });
     }
 
-    let notaNumber: number | null = null;
+    const textoNota = typeof nota === "string" ? nota.trim().replace(/,/g, ".") : "";
+    const esNumeroEstricto = typeof nota === "number"
+      ? Number.isFinite(nota)
+      : typeof nota === "string" && /^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(textoNota);
+    const notaNumber = esNumeroEstricto
+      ? (typeof nota === "number" ? nota : Number(textoNota))
+      : null;
 
     if (
-      nota !== null &&
-      nota !== undefined &&
-      nota !== ""
+      notaNumber === null ||
+      !Number.isFinite(notaNumber) ||
+      notaNumber < 0 ||
+      notaNumber > 20
     ) {
-      notaNumber = numeroValido(
-        nota
-      );
+      client.release();
 
-      if (
-        notaNumber === null ||
-        notaNumber < 0 ||
-        notaNumber > 20
-      ) {
-        client.release();
-
-        return res.status(400).json({
-          message:
-            "La nota debe ser un número entre 0 y 20.",
-        });
-      }
+      return res.status(400).json({
+        message: "La nota debe ser un valor numérico entre 0 y 20.",
+      });
     }
 
     const componenteResult =
@@ -629,78 +624,35 @@ export async function guardarCalificacionDocente(
 
     await client.query("BEGIN");
 
-    if (notaNumber === null) {
-      await client.query(
-        `DELETE FROM calificaciones
-
-         WHERE componente_id = $1
-
-           AND matricula_id = $2`,
-        [
-          componenteIdNumber,
-          matriculaIdNumber,
-        ]
-      );
-    } else {
-      await client.query(
-        `INSERT INTO calificaciones (
-           componente_id,
-           matricula_id,
-           nota,
-           retroalimentacion,
-           calificado_por,
-           calificado_en
-         )
-
-         VALUES (
-           $1,
-           $2,
-           $3,
-           $4,
-           $5,
-           CURRENT_TIMESTAMP
-         )
-
-         ON CONFLICT (
-           componente_id,
-           matricula_id
-         )
-
-         DO UPDATE SET
-           nota =
-             EXCLUDED.nota,
-
-           retroalimentacion =
-             EXCLUDED.retroalimentacion,
-
-           calificado_por =
-             EXCLUDED.calificado_por,
-
-           calificado_en =
-             CURRENT_TIMESTAMP`,
-        [
-          componenteIdNumber,
-          matriculaIdNumber,
-          notaNumber,
-
-          typeof retroalimentacion ===
-          "string"
-            ? retroalimentacion.trim() ||
-              null
-            : null,
-
-          docenteId,
-        ]
-      );
-    }
+    await client.query(
+      `INSERT INTO calificaciones (
+         componente_id,
+         matricula_id,
+         nota,
+         retroalimentacion,
+         calificado_por,
+         calificado_en
+       )
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+       ON CONFLICT (componente_id, matricula_id)
+       DO UPDATE SET
+         nota = EXCLUDED.nota,
+         retroalimentacion = EXCLUDED.retroalimentacion,
+         calificado_por = EXCLUDED.calificado_por,
+         calificado_en = CURRENT_TIMESTAMP`,
+      [
+        componenteIdNumber,
+        matriculaIdNumber,
+        notaNumber,
+        typeof retroalimentacion === "string" ? retroalimentacion.trim() || null : null,
+        docenteId,
+      ]
+    );
 
     await client.query("COMMIT");
 
     return res.status(200).json({
-      message:
-        notaNumber === null
-          ? "La calificación fue retirada correctamente."
-          : "La calificación fue guardada correctamente.",
+      message: "Nota guardada.",
 
       calificacion: {
         componenteId:

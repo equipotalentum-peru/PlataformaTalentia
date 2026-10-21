@@ -91,6 +91,11 @@ function formatDate(value: string | null) {
   });
 }
 
+function normalizarPuntaje(value: string): string | null {
+  const limpio = value.replace(/,/g, ".");
+  return /^\d*(?:\.\d{0,2})?$/.test(limpio) ? limpio : null;
+}
+
 function labelType(type: string) {
   switch (type) {
     case "seleccion_unica": return "Selección única";
@@ -126,7 +131,6 @@ export default function TeacherEvaluationAttemptReview({
   const [error, setError] = useState("");
   const [puntajesBorrador, setPuntajesBorrador] = useState<Record<string, string>>({});
   const [preguntaGuardando, setPreguntaGuardando] = useState<string | null>(null);
-  const [mensajeCalificacion, setMensajeCalificacion] = useState("");
   const [errorCalificacion, setErrorCalificacion] = useState("");
 
   useEffect(() => {
@@ -178,16 +182,17 @@ export default function TeacherEvaluationAttemptReview({
 
   async function guardarPuntaje(question: QuestionDetail) {
     const raw = puntajesBorrador[question.id] ?? "";
-    const points = raw.trim() === "" ? Number.NaN : Number(raw);
+    const normalizedRaw = raw.trim().replace(/,/g, ".");
+    const points = normalizedRaw === "" || !/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(normalizedRaw)
+      ? Number.NaN
+      : Number(normalizedRaw);
     if (!Number.isFinite(points) || points < 0 || points > question.puntaje || Math.abs(points * 100 - Math.round(points * 100)) > 1e-8) {
       setErrorCalificacion(`Escribe un puntaje entre 0 y ${question.puntaje} con hasta dos decimales.`);
-      setMensajeCalificacion("");
       return;
     }
 
     setPreguntaGuardando(question.id);
     setErrorCalificacion("");
-    setMensajeCalificacion("");
     try {
       const endpoint = `${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/docente/alumnos/${studentId}/intentos/${attemptId}`;
       const response = await fetch(`${endpoint}/preguntas/${question.id}/calificacion`, {
@@ -216,11 +221,9 @@ export default function TeacherEvaluationAttemptReview({
           .filter((item) => item.tipo === "respuesta_abierta")
           .map((item) => [item.id, item.respuesta.puntosObtenidos == null ? "" : String(item.respuesta.puntosObtenidos)])
       ));
-      setMensajeCalificacion(result.message || "Puntaje guardado correctamente.");
       setErrorCalificacion("");
     } catch (saveError) {
       setErrorCalificacion(saveError instanceof Error ? saveError.message : "No se pudo guardar el puntaje.");
-      setMensajeCalificacion("");
     } finally {
       setPreguntaGuardando(null);
     }
@@ -267,9 +270,9 @@ export default function TeacherEvaluationAttemptReview({
         </div>
       </section>
 
-      {(mensajeCalificacion || errorCalificacion) && (
-        <p role={errorCalificacion ? "alert" : "status"} className={`rounded-lg border px-4 py-3 text-sm ${errorCalificacion ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
-          {errorCalificacion || mensajeCalificacion}
+      {errorCalificacion && (
+        <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {errorCalificacion}
         </p>
       )}
 
@@ -339,41 +342,75 @@ export default function TeacherEvaluationAttemptReview({
             )}
 
             <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-talentia-border pt-4 text-xs">
-              {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Correcta</span>}
-              {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) > 0 && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Parcialmente correcta</span>}
-              {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) <= 0 && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>}
-              {question.respuesta.puntosObtenidos === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
-              {question.tipo !== "respuesta_abierta" && <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">{Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts</span>}
+              {question.tipo === "respuesta_abierta" ? (
+                <>
+                  {question.respuesta.puntosObtenidos == null ? (
+                    <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>
+                  ) : Number(question.respuesta.puntosObtenidos) >= question.puntaje - 0.000001 ? (
+                    <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Correcta</span>
+                  ) : Number(question.respuesta.puntosObtenidos) > 0 ? (
+                    <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Parcialmente correcta</span>
+                  ) : (
+                    <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>
+                  )}
+                  <div className="inline-flex items-center overflow-hidden rounded-full bg-talentia-selected py-1 pl-2 pr-1.5 font-semibold text-talentia-primary">
+                    <input
+                      id={`puntaje-${question.id}`}
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9]*[.,]?[0-9]{0,2}"
+                      aria-label={`Puntaje obtenido en la pregunta ${question.numero}`}
+                      value={puntajesBorrador[question.id] ?? ""}
+                      onChange={(event) => {
+                        const numericValue = normalizarPuntaje(event.target.value);
+                        if (numericValue === null) return;
+                        setPuntajesBorrador((current) => ({
+                          ...current,
+                          [question.id]: numericValue,
+                        }));
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          void guardarPuntaje(question);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (preguntaGuardando !== null) return;
+                        const raw = (puntajesBorrador[question.id] ?? "").trim();
+                        if (raw === "") return;
+                        const normalized = raw.replace(/,/g, ".");
+                        const points = /^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(normalized)
+                          ? Number(normalized)
+                          : Number.NaN;
+                        const savedPoints = question.respuesta.puntosObtenidos;
+                        if (
+                          !Number.isFinite(points) ||
+                          points < 0 ||
+                          points > question.puntaje ||
+                          Math.abs(points * 100 - Math.round(points * 100)) > 1e-8 ||
+                          savedPoints == null ||
+                          Math.abs(points - Number(savedPoints)) > 0.000001
+                        ) {
+                          void guardarPuntaje(question);
+                        }
+                      }}
+                      disabled={preguntaGuardando === question.id}
+                      className="w-12 border-0 bg-transparent text-right text-xs font-semibold text-talentia-primary outline-none disabled:opacity-60"
+                    />
+                    <span className="whitespace-nowrap">/ {question.puntaje.toFixed(2)} pts</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Correcta</span>}
+                  {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) > 0 && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Parcialmente correcta</span>}
+                  {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) <= 0 && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>}
+                  {question.respuesta.puntosObtenidos == null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
+                  <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">{Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts</span>
+                </>
+              )}
             </div>
-            {question.tipo === "respuesta_abierta" && (
-              <div className="mt-4 flex flex-col gap-3 rounded-lg bg-talentia-selected/30 p-4 sm:flex-row sm:items-end sm:justify-between">
-                <div className="w-full sm:max-w-[240px]">
-                  <label htmlFor={`puntaje-${question.id}`} className="mb-1.5 block text-xs font-semibold text-talentia-primary">
-                    {question.respuesta.puntosObtenidos !== null
-                      ? `Puntaje guardado: ${Number(question.respuesta.puntosObtenidos).toFixed(2)} / ${question.puntaje} pts`
-                      : `Puntos obtenidos (máximo ${question.puntaje})`}
-                  </label>
-                  <input
-                    id={`puntaje-${question.id}`}
-                    type="number"
-                    min={0}
-                    max={question.puntaje}
-                    step="0.01"
-                    value={puntajesBorrador[question.id] ?? ""}
-                    onChange={(event) => setPuntajesBorrador((current) => ({ ...current, [question.id]: event.target.value }))}
-                    disabled={preguntaGuardando === question.id || question.respuesta.puntosObtenidos !== null}
-                    className="w-full rounded-md border border-talentia-border bg-white px-3 py-2 text-sm text-talentia-primary outline-none focus:border-talentia-blue disabled:cursor-not-allowed disabled:opacity-60"
-                  />
-                </div>
-                <button type="button" onClick={() => void guardarPuntaje(question)} disabled={preguntaGuardando !== null || question.respuesta.puntosObtenidos !== null} className="rounded-md bg-talentia-action px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60">
-                  {preguntaGuardando === question.id
-                    ? "Guardando..."
-                    : question.respuesta.puntosObtenidos !== null
-                      ? "Pregunta calificada"
-                      : "Guardar puntaje"}
-                </button>
-              </div>
-            )}
           </article>
         ))}
       </section>
