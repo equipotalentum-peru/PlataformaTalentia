@@ -102,6 +102,7 @@ export async function obtenerDashboardDocente(
          INNER JOIN entregas_actividades ea
            ON ea.actividad_id = a.id
           AND ea.estado = 'Entregada'
+          AND (a.calificada = TRUE OR ea.calificado_en IS NULL)
          INNER JOIN matriculas m
            ON m.id = ea.matricula_id
           AND m.oferta_curso_id = oc.id

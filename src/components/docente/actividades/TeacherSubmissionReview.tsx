@@ -27,6 +27,7 @@ type ActivityInfo = {
   puntaje_maximo?: number | string | null;
   intentos_permitidos?: number | string | null;
   fecha_limite?: string | null;
+  calificada?: boolean;
 };
 
 function formattedDate(value?: string | null) {
@@ -236,10 +237,21 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
       // Al entrar, se selecciona el primer intento pendiente de nota; si todos
       // ya fueron calificados, se muestra el intento más reciente. Al guardar,
       // se conserva seleccionado el intento que se acaba de calificar.
+      const graded = data.actividad?.calificada !== false;
       const selected = items.find((item) => item.entrega_id === preferredSubmissionId)
-        ?? items.find((item) => item.nota == null)
+        ?? items.find((item) => (graded ? item.nota == null : !item.calificado_en))
         ?? items[items.length - 1]
         ?? null;
+
+      // Actividad NO calificable: al abrir la entrega queda marcada como visualizada.
+      if (!graded && selected && !selected.calificado_en) {
+        void fetch(`${API_URL}/actividades/docente/${courseId}/${activityId}/entregas/${selected.entrega_id}/calificacion`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ soloVisualizar: true }),
+        }).catch(() => undefined);
+      }
 
       setSelectedSubmissionId(selected?.entrega_id ?? null);
       setGrade(selected?.nota == null ? "" : String(selected.nota));
@@ -258,12 +270,13 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
   const submission = submissions.find((item) => item.entrega_id === selectedSubmissionId) ?? null;
   const maxGrade = Number(activity.puntaje_maximo ?? 20);
   const maxAttempts = Number(activity.intentos_permitidos ?? 3);
+  const isGraded = activity.calificada !== false;
 
 
   async function save() {
     if (!submission?.entrega_id) return;
     const numericGrade = Number(grade);
-    if (grade.trim() === "" || !Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > maxGrade) {
+    if (isGraded && (grade.trim() === "" || !Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > maxGrade)) {
       setError(`Introduce una nota entre 0 y ${maxGrade}.`);
       return;
     }
@@ -276,11 +289,13 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nota: numericGrade, retroalimentacion: feedback }),
+        body: JSON.stringify(isGraded ? { nota: numericGrade, retroalimentacion: feedback } : { retroalimentacion: feedback }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "No se pudo guardar la calificación.");
-      setMessage(`Calificación del intento ${submission.numero_intento} guardada correctamente.`);
+      setMessage(isGraded
+        ? `Calificación del intento ${submission.numero_intento} guardada correctamente.`
+        : `Comentario del intento ${submission.numero_intento} publicado correctamente.`);
       await load(submission.entrega_id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error guardando la nota.");
@@ -292,7 +307,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
   if (loading) return <div className="activity-page-root"><div className="activity-card flex min-h-[280px] items-center justify-center p-8 text-sm text-talentia-primary">Cargando entrega...</div></div>;
   if (!submission) return <div className="activity-page-root"><div className="activity-card p-8 text-sm text-talentia-primary">{error || "No se encontraron intentos para este alumno."}</div></div>;
 
-  const published = submission.nota != null;
+  const published = isGraded && submission.nota != null;
 
   return (
     <div className="activity-page-root activity-review-root">
@@ -308,7 +323,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
             <Icon type="circle-check" size={26} />
             <div>
               <h1 className="text-[17px] font-bold leading-tight text-talentia-success">{published ? "Calificación publicada" : "Entrega recibida"}</h1>
-              <p className="mt-1 text-[13px] leading-tight text-talentia-success">{published ? `Nota del intento ${submission.numero_intento}: ${submission.nota}/${maxGrade}` : "Revisa este intento y publica su calificación"}</p>
+              <p className="mt-1 text-[13px] leading-tight text-talentia-success">{published ? `Nota del intento ${submission.numero_intento}: ${submission.nota}/${maxGrade}` : isGraded ? "Revisa este intento y publica su calificación" : "Revisa este intento y, si lo deseas, publica un comentario"}</p>
             </div>
           </div>
 
@@ -337,12 +352,14 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
             <div className="mt-[14px] space-y-[10px]">
               <DetailRow icon="calendar" label="Fecha de entrega"><span className="block">{formattedDate(submission.entregada_en)}</span><span className="block">{formattedTime(submission.entregada_en)}</span></DetailRow>
               <DetailRow icon="check" label="Intentos">{submission.numero_intento} de {maxAttempts} intentos</DetailRow>
-              <DetailRow icon="star" label="Puntuación máxima">{maxGrade} puntos</DetailRow>
+              {isGraded && <DetailRow icon="star" label="Puntuación máxima">{maxGrade} puntos</DetailRow>}
             </div>
           </section>
 
           <section className="activity-card p-4">
-            <h2 className="activity-card-title">Calificación · Intento {submission.numero_intento}</h2>
+            <h2 className="activity-card-title">{isGraded ? "Calificación · Intento" : "Intento"} {submission.numero_intento}</h2>
+            {isGraded && (
+              <>
             <label htmlFor="nota-entrega" className="mt-4 flex min-h-11 items-center gap-2 rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] text-talentia-primary focus-within:border-talentia-blue">
               <Icon type="trophy" size={17} />
               <input id="nota-entrega" type="number" aria-label="Calificación del intento" min={0} max={maxGrade} step="0.1" value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Insertar calificación" className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-talentia-primary outline-none placeholder:text-talentia-placeholder" />
@@ -351,12 +368,14 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
               <span className="min-w-[35px] rounded-l-[4px] bg-talentia-surface px-2 py-[4px]">{grade || "—"}</span>
               <span className="rounded-r-[4px] bg-talentia-surface px-2 py-[4px]">Pts</span>
             </div>
+              </>
+            )}
             <div className="mt-[13px] flex items-center gap-2 text-[15px] font-semibold text-talentia-primary"><Icon type="chat" size={16} /> Comentarios del docente (opcional)</div>
             <label htmlFor="retroalimentacion-entrega" className="sr-only">Comentarios del docente</label>
             <textarea id="retroalimentacion-entrega" rows={5} maxLength={5000} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[13px] placeholder:text-talentia-placeholder" />
           </section>
 
-          <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Publicando..." : `Publicar nota del intento ${submission.numero_intento}`}</button>
+          <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Publicando..." : isGraded ? `Publicar nota del intento ${submission.numero_intento}` : "Publicar comentario"}</button>
           <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="flex h-[27px] w-full items-center justify-center rounded-[6px] bg-talentia-surface text-[12px] font-medium text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
         </aside>
       </div>

@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   useCallback,
   useEffect,
@@ -44,6 +43,7 @@ type ActivityApi = {
   puntaje_maximo?: number | string | null;
   tamano_maximo_mb?: number | string | null;
   matricula_id?: number;
+  calificada?: boolean;
 };
 
 
@@ -1084,6 +1084,10 @@ const showDeliveryDetail =
   showSubmitted &&
   displayedSubmission !== null;
 
+// false únicamente cuando el docente marcó la actividad como NO calificable
+const isGraded =
+  activityInfo?.calificada !== false;
+
 
   function chooseFile(
     event:
@@ -1830,6 +1834,7 @@ const showDeliveryDetail =
               </DetailRow>
 
 
+              {isGraded && (
               <DetailRow
                 icon="star"
                 label="Puntuación máxima"
@@ -1837,9 +1842,10 @@ const showDeliveryDetail =
                 {maxGrade}{" "}
                 puntos
               </DetailRow>
+              )}
 
 
-              {!showDeliveryDetail && (
+              {isGraded && !showDeliveryDetail && (
                 <DetailRow
                   icon="book"
                   label="Rúbrica de evaluación"
@@ -1911,13 +1917,37 @@ const showDeliveryDetail =
 displayedSubmission && (
   <section className="activity-card p-4">
     <h2 className="activity-card-title">
-      Calificación · Intento{" "}
+      {isGraded ? "Calificación · Intento" : "Intento"}{" "}
       {
         displayedSubmission.numero_intento
       }
     </h2>
 
-    {displayedSubmission.nota !==
+    {!isGraded ? (
+      displayedSubmission.retroalimentacion ||
+      displayedSubmission.calificado_en ? (
+        <>
+          <div className="mt-4 flex items-center gap-2 text-[14px] font-bold text-talentia-blue">
+            <Icon
+              type="chat"
+              size={16}
+            />
+
+            Comentarios del docente
+          </div>
+
+          <p className="mt-2 min-h-[118px] whitespace-pre-wrap rounded-lg border border-talentia-blue bg-talentia-surface p-2 text-[14px] leading-[1.3] text-talentia-primary">
+            {displayedSubmission.retroalimentacion ||
+              "El docente todavía no ha añadido comentarios."}
+          </p>
+        </>
+      ) : (
+        <p className="mt-3 rounded-md bg-talentia-surface p-3 text-[14px] text-talentia-primary">
+          Tu docente aún no ha
+          visualizado este intento.
+        </p>
+      )
+    ) : displayedSubmission.nota !==
       null &&
     displayedSubmission.nota !==
       undefined ? (
@@ -1996,9 +2026,11 @@ displayedSubmission && (
                         <Icon type="eye" size={16} className="shrink-0" />
                         Ver entrega
                       </button>
-                      <span className={`rounded px-2 py-1 text-[12px] font-medium ${submission.nota != null ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-warning-bg text-talentia-warning"}`}>
-                        {submission.nota != null ? `${submission.nota}/${maxGrade}` : "Pendiente"}
-                      </span>
+                      {isGraded && (
+                        <span className={`rounded px-2 py-1 text-[12px] font-medium ${submission.nota != null ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-warning-bg text-talentia-warning"}`}>
+                          {submission.nota != null ? `${submission.nota}/${maxGrade}` : "Pendiente"}
+                        </span>
+                      )}
                       </div>
                     </div>
                   );

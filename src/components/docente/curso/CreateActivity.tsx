@@ -74,13 +74,18 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
   const [rubricDraft, setRubricDraft] = useState<RubricDraft | null>(null);
   const [storedRubric, setStoredRubric] = useState<RubricInfo | null>(null);
   const [rubricChanged, setRubricChanged] = useState(false);
-  const [status, setStatus] = useState<"Oculto" | "Publicado">("Publicado");
+  // Estado original de la actividad (solo al editar). Ya no se elige en el formulario:
+  // para ocultar o publicar se usa el menú del curso ("Volver a borrador" / "Publicar").
+  const [loadedStatus, setLoadedStatus] = useState<"Borrador" | "Publicado">("Borrador");
   const [formats, setFormats] = useState(["PDF", "DOC", "DOCX", "PPT", "PPTX", "PNG", "JPG", "RAR", "MP4"]);
   const [maxFileSize, setMaxFileSize] = useState(200);
   const [notice, setNotice] = useState("");
   const formatOptions: string[] = deliveryTypes.flatMap(type => delivery[type.key] ? [...type.formats] : []);
   const storedPDF = !rubricChanged && storedRubric?.ruta_archivo ? storedRubric : null;
   const busy = saving || loading || Boolean(loadError);
+  const hasDeadline = Boolean(dueDate) && Boolean(dueTime);
+  const saveMode: "Borrador" | "Publicado" = editing ? loadedStatus : "Publicado";
+  const needsDeadline = saveMode === "Publicado" && !hasDeadline;
 
   const backHref = activityModuleId
     ? `/docente/cursos/${course.id}?moduleId=${encodeURIComponent(activityModuleId)}`
@@ -119,7 +124,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
         setMaxFileSize(Number(activity.tamano_maximo_mb ?? 200));
         setDelivery({ archivo: activity.permitir_archivo, enlace: activity.permitir_enlace, imagen: activity.permitir_imagen, video: activity.permitir_video });
         setFormats((activity.formatos_permitidos ?? "").split(",").map(format => format.trim().toUpperCase()).filter(Boolean));
-        setStatus(activity.estado_contenido === "Publicado" ? "Publicado" : "Oculto");
+        setLoadedStatus(activity.estado_contenido === "Publicado" ? "Publicado" : "Borrador");
         setStoredRubric(rubric);
         setRubricDraft(rubric && !rubric.ruta_archivo ? {
           tipo: "criterios", criterios: rubric.criterios.map(criterion => ({
@@ -156,6 +161,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
       showNotice("Escribe un título para la actividad.");
       return;
     }
+    if (mode === "Publicado" && !hasDeadline) { showNotice("Para publicar la actividad debes indicar la fecha y la hora de entrega."); return; }
     if (Boolean(dueDate) !== Boolean(dueTime)) { showNotice("Completa la fecha y la hora de entrega."); return; }
     if (!Object.values(delivery).some(Boolean)) { showNotice("Selecciona al menos un tipo de entrega."); return; }
     if (maxFileSize < 1 || maxFileSize > 200) { showNotice("El tamaño máximo debe estar entre 1 y 200 MB."); return; }
@@ -164,7 +170,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
       return;
     }
 
-    if (rubricDraft?.tipo === "criterios" &&
+    if (graded && rubricDraft?.tipo === "criterios" &&
         rubricDraft.criterios.reduce((total, criterion) => total + Math.round(criterion.puntaje_maximo * 100), 0) !== Math.round(maxGrade * 100)) {
       showNotice("Ajusta la rúbrica para que coincida con la puntuación máxima.");
       return;
@@ -182,10 +188,10 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
         permitir_archivo: delivery.archivo, permitir_enlace: delivery.enlace,
         permitir_imagen: delivery.imagen, permitir_video: delivery.video,
         formatos_permitidos: formats.filter(format => formatOptions.includes(format)).map(format => format.toLowerCase()),
-        rubrica: editing && !rubricChanged ? { tipo: "conservar" } : rubricDraft?.tipo === "pdf" ? { tipo: "pdf" } : rubricDraft,
+        rubrica: !graded ? null : editing && !rubricChanged ? { tipo: "conservar" } : rubricDraft?.tipo === "pdf" ? { tipo: "pdf" } : rubricDraft,
       };
       let body: string | FormData = JSON.stringify(data);
-      if (rubricDraft?.tipo === "pdf") {
+      if (graded && rubricDraft?.tipo === "pdf") {
         const form = new FormData();
         form.append("datos", body);
         form.append("rubrica", rubricDraft.archivo);
@@ -340,62 +346,55 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
-                  <span>Puntuación Máxima:</span>
-                  <div className="flex h-10 shrink-0 items-center overflow-hidden rounded-md border border-talentia-border bg-talentia-surface">
-                    <button type="button" aria-label="Disminuir puntuación máxima" onClick={() => setMaxGrade((value) => Math.max(0, value - 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">−</button>
-                    <span className="flex h-full w-10 items-center justify-center border-x border-talentia-border bg-talentia-surface text-sm">{maxGrade}</span>
-                    <button type="button" aria-label="Aumentar puntuación máxima" onClick={() => setMaxGrade((value) => Math.min(100, value + 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">+</button>
+                {graded && (
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Puntuación Máxima:</span>
+                    <div className="flex h-10 shrink-0 items-center overflow-hidden rounded-md border border-talentia-border bg-talentia-surface">
+                      <button type="button" aria-label="Disminuir puntuación máxima" onClick={() => setMaxGrade((value) => Math.max(0, value - 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">−</button>
+                      <span className="flex h-full w-10 items-center justify-center border-x border-talentia-border bg-talentia-surface text-sm">{maxGrade}</span>
+                      <button type="button" aria-label="Aumentar puntuación máxima" onClick={() => setMaxGrade((value) => Math.min(100, value + 1))} className="h-full w-9 text-talentia-primary hover:bg-talentia-hover">+</button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
-            <div className="border-b border-talentia-border pb-4">
-              <h2 className="text-base font-semibold text-talentia-primary">Rúbrica de evaluación (opcional)</h2>
-              <button type="button" onClick={() => setRubricModalOpen(true)} className="mt-3 flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-md border border-talentia-blue bg-talentia-surface px-4 py-2 text-sm font-medium text-talentia-blue hover:bg-talentia-hover">
-                <PlusIcon />
-                {rubricDraft || storedPDF ? "Cambiar tipo de rúbrica" : "Añadir rúbrica"}
-              </button>
-              {(rubricDraft || storedPDF) && (
-                <div className="mt-3 min-w-0 text-sm">
-                  <p className="break-words text-talentia-primary">
-                    {storedPDF ? `PDF guardado: ${storedPDF.nombre_archivo}` : rubricDraft?.tipo === "pdf" ? `PDF preparado: ${rubricDraft.archivo.name}` : `${rubricDraft?.tipo === "criterios" ? rubricDraft.criterios.length : 0} criterios ${editing && !rubricChanged ? "guardados" : "preparados"}`}
-                  </p>
-                  {(!editing || rubricChanged) && <p className="mt-1 text-xs text-talentia-muted">Pendiente de guardar con la actividad</p>}
-                  <div className="mt-2 flex flex-wrap gap-3">
-                    {storedPDF && <a href={`${API_URL}/actividades/${course.id}/${contentId}/rubrica`} target="_blank" rel="noreferrer" className="font-medium text-talentia-blue hover:underline">Descargar PDF</a>}
-                    <button type="button" onClick={() => setRubricEditorType(storedPDF ? "pdf" : rubricDraft?.tipo ?? "pdf")} className="font-medium text-talentia-blue hover:underline">
-                      {storedPDF || rubricDraft?.tipo === "pdf" ? "Reemplazar PDF" : "Editar criterios"}
-                    </button>
-                    <button type="button" onClick={() => { setRubricDraft(null); setRubricChanged(true); }} className="font-medium text-talentia-danger hover:underline">Quitar rúbrica</button>
+            {graded && (
+              <div className="border-b border-talentia-border pb-4">
+                <h2 className="text-base font-semibold text-talentia-primary">Rúbrica de evaluación (opcional)</h2>
+                <button type="button" onClick={() => setRubricModalOpen(true)} className="mt-3 flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-md border border-talentia-blue bg-talentia-surface px-4 py-2 text-sm font-medium text-talentia-blue hover:bg-talentia-hover">
+                  <PlusIcon />
+                  {rubricDraft || storedPDF ? "Cambiar tipo de rúbrica" : "Añadir rúbrica"}
+                </button>
+                {(rubricDraft || storedPDF) && (
+                  <div className="mt-3 min-w-0 text-sm">
+                    <p className="break-words text-talentia-primary">
+                      {storedPDF ? `PDF guardado: ${storedPDF.nombre_archivo}` : rubricDraft?.tipo === "pdf" ? `PDF preparado: ${rubricDraft.archivo.name}` : `${rubricDraft?.tipo === "criterios" ? rubricDraft.criterios.length : 0} criterios ${editing && !rubricChanged ? "guardados" : "preparados"}`}
+                    </p>
+                    {(!editing || rubricChanged) && <p className="mt-1 text-xs text-talentia-muted">Pendiente de guardar con la actividad</p>}
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {storedPDF && <a href={`${API_URL}/actividades/${course.id}/${contentId}/rubrica`} target="_blank" rel="noreferrer" className="font-medium text-talentia-blue hover:underline">Descargar PDF</a>}
+                      <button type="button" onClick={() => setRubricEditorType(storedPDF ? "pdf" : rubricDraft?.tipo ?? "pdf")} className="font-medium text-talentia-blue hover:underline">
+                        {storedPDF || rubricDraft?.tipo === "pdf" ? "Reemplazar PDF" : "Editar criterios"}
+                      </button>
+                      <button type="button" onClick={() => { setRubricDraft(null); setRubricChanged(true); }} className="font-medium text-talentia-danger hover:underline">Quitar rúbrica</button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h2 className="text-base font-semibold text-talentia-primary">Visibilidad</h2>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-talentia-primary">
-                {(["Oculto", "Publicado"] as const).map((value) => (
-                  <label key={value} className="flex cursor-pointer items-center gap-2">
-                    <input type="radio" name="activity-status" value={value} checked={status === value} onChange={() => setStatus(value)} className="h-4 w-4 accent-talentia-blue" />
-                    <span>{value}</span>
-                  </label>
-                ))}
+                )}
               </div>
-            </div>
+            )}
           </aside>
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-3 border-t border-talentia-border bg-talentia-surface p-4">
           <Link href={backHref} aria-disabled={saving} onClick={event => { if (saving) event.preventDefault(); }} className="flex h-10 items-center justify-center rounded-md bg-talentia-surface px-4 text-sm font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
-          <div className="ml-auto flex flex-wrap gap-3">
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            {needsDeadline && !loading && <p role="status" className="text-xs text-talentia-muted">{editing ? "Para guardar una actividad publicada debes indicar fecha y hora de entrega." : "Indica la fecha y la hora de entrega para poder publicar."}</p>}
             {editing ? (
-              <button type="button" disabled={busy} onClick={() => submit(status === "Publicado" ? "Publicado" : "Borrador")} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button>
+              <button type="button" disabled={busy || needsDeadline} title={needsDeadline ? "Indica la fecha y la hora de entrega" : undefined} onClick={() => submit(saveMode)} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Guardar cambios"}</button>
             ) : <>
               <button type="button" disabled={busy} onClick={() => submit("Borrador")} className="min-h-10 rounded-md border border-talentia-border bg-talentia-surface px-4 py-2 text-sm font-medium text-talentia-primary hover:bg-talentia-hover disabled:opacity-50">{saving ? "Guardando…" : "Guardar como borrador"}</button>
-              <button type="button" disabled={busy || status !== "Publicado"} title={status === "Oculto" ? "Selecciona Publicado para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">Publicar</button>
+              <button type="button" disabled={busy || needsDeadline} title={needsDeadline ? "Indica la fecha y la hora de entrega para publicar" : undefined} onClick={() => submit("Publicado")} className="min-h-10 rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">Publicar</button>
             </>}
           </div>
         </div>
@@ -437,3 +436,4 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
     </div>
   );
 }
+

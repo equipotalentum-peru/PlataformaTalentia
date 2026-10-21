@@ -34,6 +34,7 @@ type StudentAttempt = {
   entregada_en: string | null;
   nota: number | null;
   retroalimentacion?: string | null;
+  calificado_en?: string | null;
   archivo_id: number | null;
   nombre_archivo: string | null;
   tamano_bytes?: number | null;
@@ -47,6 +48,7 @@ type ActivityInfo = {
   puntaje_maximo?: number | string | null;
   intentos_permitidos?: number | string | null;
   fecha_limite?: string | null;
+  calificada?: boolean;
 };
 
 
@@ -953,6 +955,8 @@ const [
   const submitted = students.filter((student) => Boolean(student.entrega_id)).length;
   const maxGrade = Number(activity.puntaje_maximo ?? 20);
   const maxAttempts = Number(activity.intentos_permitidos ?? 3);
+  // false únicamente cuando el docente marcó la actividad como NO calificable
+  const isGraded = activity.calificada !== false;
  const selectedStudent =
   students.find(
     (student) =>
@@ -1123,8 +1127,9 @@ function selectStudent(
     if (
       !selectedStudent
         ?.entrega_id ||
-      selectedStudent
-        .nota == null
+      (isGraded &&
+        selectedStudent
+          .nota == null)
     ) {
       setError(
         "Para guardar un comentario desde esta vista, primero debe existir una calificación."
@@ -1161,10 +1166,14 @@ function selectStudent(
 
             body:
               JSON.stringify({
-                nota:
-                  Number(
-                    selectedStudent.nota
-                  ),
+                ...(isGraded
+                  ? {
+                      nota:
+                        Number(
+                          selectedStudent.nota
+                        ),
+                    }
+                  : {}),
 
                 retroalimentacion:
                   teacherComment,
@@ -1318,9 +1327,18 @@ function selectStudent(
           <div className="overflow-x-auto rounded-[7px] border border-talentia-border">
             <table className="w-full min-w-[410px] table-fixed border-collapse text-left text-[14px]">
               <colgroup>
-                <col className="w-[39%]" />
-                <col className="w-[37%]" />
-                <col className="w-[24%]" />
+                {isGraded ? (
+                  <>
+                    <col className="w-[39%]" />
+                    <col className="w-[37%]" />
+                    <col className="w-[24%]" />
+                  </>
+                ) : (
+                  <>
+                    <col className="w-[55%]" />
+                    <col className="w-[45%]" />
+                  </>
+                )}
               </colgroup>
 
 
@@ -1334,9 +1352,11 @@ function selectStudent(
                     Actividad
                   </th>
 
-                  <th className="px-[8px] font-bold">
-                    Nota
-                  </th>
+                  {isGraded && (
+                    <th className="px-[8px] font-bold">
+                      Nota
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -1440,8 +1460,9 @@ function selectStudent(
                         </td>
 
 
-                        {/* NOTA */}
+                        {/* NOTA (solo actividades calificables) */}
 
+                        {isGraded && (
                         <td className="px-[8px] py-[4px]">
                           <div className="flex items-center gap-[2px]">
                             <span className="flex min-w-[36px] items-center justify-center rounded-l-[4px] bg-talentia-surface px-[5px] py-[4px] text-[14px] text-talentia-primary">
@@ -1456,6 +1477,7 @@ function selectStudent(
                             </span>
                           </div>
                         </td>
+                        )}
                       </tr>
                     );
                   }
@@ -1466,7 +1488,7 @@ function selectStudent(
                   0 && (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={isGraded ? 3 : 2}
                       className="bg-talentia-surface p-5 text-center text-[13px] text-talentia-muted"
                     >
                       No hay
@@ -1528,6 +1550,8 @@ function selectStudent(
               </DetailRow>
 
 
+              {isGraded && (
+                <>
               {/* PUNTUACIÓN */}
 
               <DetailRow
@@ -1579,6 +1603,8 @@ function selectStudent(
                   </span>
                 )}
               </DetailRow>
+                </>
+              )}
             </div>
 
 
@@ -1641,18 +1667,24 @@ function selectStudent(
                         <div key={attempt.entrega_id} className="rounded-md border border-talentia-border bg-talentia-surface p-[9px]">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className="text-[13px] font-semibold text-talentia-primary">Intento {attempt.numero_intento}</span>
-                            <span className={`rounded-[5px] px-[7px] py-[3px] text-[12px] font-semibold ${attempt.nota == null ? "bg-talentia-warning-bg text-talentia-warning" : "bg-talentia-success-bg text-talentia-success"}`}>
-                              {attempt.nota == null ? "Pendiente de nota" : "Calificado"}
+                            <span className={`rounded-[5px] px-[7px] py-[3px] text-[12px] font-semibold ${(isGraded ? attempt.nota == null : !attempt.calificado_en) ? "bg-talentia-warning-bg text-talentia-warning" : "bg-talentia-success-bg text-talentia-success"}`}>
+                              {isGraded
+                                ? (attempt.nota == null ? "Pendiente de nota" : "Calificado")
+                                : (attempt.calificado_en ? "Visualizado" : "Pendiente de visualizar")}
                             </span>
                           </div>
                           <p className="mt-[5px] text-[12px] text-talentia-muted">Entrega: {formattedDateTime(attempt.entregada_en)}</p>
                           <div className="mt-[5px] flex items-center justify-between gap-2">
-                            <span className="text-[13px] text-talentia-primary">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
+                            {isGraded ? (
+                              <span className="text-[13px] text-talentia-primary">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
+                            ) : (
+                              <span />
+                            )}
                             <Link
                               href={`/docente/cursos/${courseId}/actividades/${activityId}/alumno/${selectedStudent.alumno_id}?entregaId=${attempt.entrega_id}`}
                               className="activity-primary inline-flex h-[25px] shrink-0 items-center justify-center rounded-[5px] px-[9px] text-[12px] font-medium"
                             >
-                              {attempt.nota == null ? "Calificar" : "Ver / editar"}
+                              {isGraded ? (attempt.nota == null ? "Calificar" : "Ver / editar") : "Ver"}
                             </Link>
                           </div>
                         </div>
@@ -1666,8 +1698,8 @@ function selectStudent(
                 <div className="mt-[13px] flex items-center gap-2 text-[15px] font-semibold text-talentia-primary"><Icon type="chat" size={16}/> Comentarios del docente (opcional)</div>
                 <label className="sr-only" htmlFor="comentario-docente">Comentario del docente</label>
                 <textarea id="comentario-docente" rows={5} maxLength={5000} value={teacherComment} onChange={(event) => setTeacherComment(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[13px] placeholder:text-talentia-placeholder" />
-                <button type="button" onClick={addComment} disabled={savingComment || !selectedStudent.entrega_id || selectedStudent.nota == null} className="activity-primary mt-[12px] flex h-[29px] w-full items-center justify-center rounded-[6px] text-[13px] font-medium disabled:cursor-not-allowed disabled:opacity-50">{savingComment ? "Guardando..." : "Agregar Comentario"}</button>
-                {selectedStudent.nota == null && <p className="mt-1 text-[12px] text-talentia-muted">Para guardar un comentario desde aquí, primero debe existir una calificación.</p>}
+                <button type="button" onClick={addComment} disabled={savingComment || !selectedStudent.entrega_id || (isGraded && selectedStudent.nota == null)} className="activity-primary mt-[12px] flex h-[29px] w-full items-center justify-center rounded-[6px] text-[13px] font-medium disabled:cursor-not-allowed disabled:opacity-50">{savingComment ? "Guardando..." : "Agregar Comentario"}</button>
+                {isGraded && selectedStudent.nota == null && <p className="mt-1 text-[12px] text-talentia-muted">Para guardar un comentario desde aquí, primero debe existir una calificación.</p>}
               </>
             ) : (
               <p className="mt-3 text-[13px] text-talentia-muted">

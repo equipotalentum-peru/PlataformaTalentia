@@ -436,13 +436,41 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
   const contentId = Number(req.params.contenidoId);
   const entregaId = Number(req.params.entregaId);
   const nota = Number(req.body?.nota);
+  const soloVisualizar = req.body?.soloVisualizar === true;
   const retroalimentacion = typeof req.body?.retroalimentacion === "string" ? req.body.retroalimentacion.trim().slice(0, 5000) : null;
-  if (!valid(userId, courseId, contentId, entregaId) || !Number.isFinite(nota)) return res.status(400).json({ message: "Nota o parámetros no válidos." });
+  if (!valid(userId, courseId, contentId, entregaId)) return res.status(400).json({ message: "Parámetros no válidos." });
   try {
     if (!(await role(userId, "Docente"))) return res.status(403).json({ message: "Solo los docentes pueden calificar." });
     const ctx = await teacherContext(courseId, contentId, userId);
     if (!ctx.rowCount) return res.status(404).json({ message: "Actividad no encontrada." });
-    if (!ctx.rows[0].calificada) return res.status(409).json({ message: "Esta actividad no es calificada." });
+
+    // ACTIVIDAD NO CALIFICABLE: no hay nota; el docente solo visualiza la entrega
+    // y, opcionalmente, publica un comentario. "calificado_en" actúa como marca
+    // de "visualizado" (el estado se mantiene en 'Entregada' para no alterar
+    // los contadores de los dashboards).
+    if (!ctx.rows[0].calificada) {
+      const seen = await pool.query(
+        `UPDATE entregas_actividades e
+            SET retroalimentacion = CASE WHEN $6::boolean THEN e.retroalimentacion ELSE $1 END,
+                calificado_por = $2,
+                calificado_en = COALESCE(e.calificado_en, CURRENT_TIMESTAMP),
+                actualizado_en = CURRENT_TIMESTAMP
+           FROM actividades a, contenidos_curso cc, modulos_curso mc, cursos c,
+                matriculas m, ofertas_curso oc
+          WHERE e.id=$3 AND e.actividad_id=a.id AND a.contenido_id=cc.id
+            AND a.calificada=FALSE
+            AND cc.id=$4 AND cc.modulo_id=mc.id AND mc.curso_id=c.id
+            AND c.id=$5 AND m.id=e.matricula_id
+            AND oc.id=m.oferta_curso_id AND oc.curso_id=c.id
+            AND oc.docente_id=$2 AND oc.estado <> 'Cancelado'
+        RETURNING e.id, e.nota, e.retroalimentacion, e.calificado_en`,
+        [retroalimentacion, userId, entregaId, contentId, courseId, soloVisualizar]
+      );
+      if (!seen.rowCount) return res.status(404).json({ message: "Entrega no encontrada para esta actividad." });
+      return res.json({ message: soloVisualizar ? "Entrega visualizada." : "Comentario publicado.", calificacion: seen.rows[0] });
+    }
+
+    if (!Number.isFinite(nota)) return res.status(400).json({ message: "Nota o parámetros no válidos." });
     const max = Number(ctx.rows[0].puntaje_maximo ?? 20);
     if (nota < 0 || nota > max) return res.status(400).json({ message: `La nota debe estar entre 0 y ${max}.` });
     const saved = await pool.query(
@@ -528,4 +556,6 @@ export async function descargarArchivoEntrega(req: AuthenticatedRequest, res: Re
     if (!res.headersSent) return res.status(500).json({ message: "No se pudo descargar el archivo." });
   }
 }
+
+
 
