@@ -56,6 +56,7 @@ type Props = {
   exitHref: string;
   activityDefinition?: ActivityDefinition;
   trackLocalProgress?: boolean;
+  backLink?: React.ReactNode;
 };
 
 
@@ -224,6 +225,7 @@ function Icon({
     | "trophy"
     | "arrow"
     | "back"
+    | "eye"
     | "circle-check";
 
   size?: number;
@@ -262,6 +264,13 @@ function Icon({
 
 
   switch (type) {
+    case "eye":
+      return (
+        <svg {...common}>
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
     case "calendar":
       return (
         <svg {...common}>
@@ -404,12 +413,15 @@ function Icon({
 
 function PageHeader({
   title,
+  backLink,
 }: {
   title?: string;
+  backLink?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-4">
-      <p className="truncate text-[14px] text-talentia-primary">
+    <div className="flex min-w-0 flex-wrap items-center gap-4">
+      {backLink}
+      <p className="min-w-0 text-[14px] text-talentia-primary">
         Módulo 1:
         Introducción a las
         TIC &gt;{" "}
@@ -768,6 +780,7 @@ export default function ActivityViewer({
   nextHref,
   activityDefinition,
   trackLocalProgress = true,
+  backLink,
 }: Props) {
   // La definición estática queda solo como respaldo visual; los datos de entrega
   // siempre se consultan y guardan a través de la API existente.
@@ -1424,6 +1437,7 @@ const showDeliveryDetail =
   const pageHeader = (
     <PageHeader
       title="1.4 Práctica"
+      backLink={backLink}
     />
   );
 
@@ -1468,9 +1482,9 @@ const showDeliveryDetail =
       {pageHeader}
 
 
-      <div className="mt-[18px] grid grid-cols-1 items-start gap-[10px] md:grid-cols-[minmax(0,1fr)_244px]">
+      <div className="activity-content-grid activity-visual-content mt-[18px] items-start">
         <section
-          className={`activity-card min-h-[564px] min-w-0 px-6 pb-6 ${
+          className={`activity-card min-w-0 pb-6 ${showDeliveryDetail ? "min-h-[280px] px-4 sm:px-6 lg:min-h-[480px]" : "min-h-[564px]"} ${
             showDeliveryDetail
               ? "pt-[33px]"
               : "pt-6"
@@ -1493,7 +1507,7 @@ const showDeliveryDetail =
                     realizada!
                   </h1>
 
-                  <p className="mt-1 text-[14px] leading-tight text-talentia-success">
+                  <p className="mt-1 text-[13px] leading-tight text-talentia-success">
                     Tu actividad ha
                     sido enviada
                     correctamente.
@@ -1502,14 +1516,14 @@ const showDeliveryDetail =
               </div>
 
 
-              <div className="mt-[14px] rounded-lg bg-talentia-surface p-[14px]">
-                <h2 className="mb-3 text-[14px] font-bold text-talentia-primary">
+              <div className="mt-6 bg-talentia-surface">
+                <h2 className="mb-3 text-[15px] font-semibold text-talentia-primary">
                   Archivo enviado
                 </h2>
 
 
                 {displayedSubmission.comentario && (
-                  <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-talentia-border bg-talentia-surface px-[11px] py-[10px] text-[14px] leading-[1.35] text-talentia-primary">
+                  <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-talentia-border bg-talentia-surface px-[11px] py-[10px] text-[13px] leading-[1.35] text-talentia-primary">
                     {
                       displayedSubmission.comentario
                     }
@@ -1519,8 +1533,8 @@ const showDeliveryDetail =
 
                 {displayedSubmission.nombre_archivo &&
                 displayedSubmission.archivo_id ? (
-                  <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md bg-talentia-surface px-3 py-2">
-                    <span className="flex h-[38px] w-[28px] shrink-0 items-center justify-center rounded bg-talentia-danger text-white">
+                  <div className="activity-file-row mt-3 flex min-w-0 items-center gap-3 rounded-md bg-talentia-surface px-3 py-2">
+                    <span className="activity-file-icon flex h-[38px] w-[32px] shrink-0 items-center justify-center rounded bg-talentia-selected text-talentia-blue">
                       <Icon
                         type="file"
                         size={
@@ -1529,8 +1543,8 @@ const showDeliveryDetail =
                       />
                     </span>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] text-talentia-primary">
+                    <div className="activity-file-name min-w-0 flex-1">
+                      <p className="truncate text-[13px] text-talentia-primary">
                         {
                           displayedSubmission.nombre_archivo
                         }
@@ -1545,7 +1559,7 @@ const showDeliveryDetail =
 
                     <a
                       href={`${API_URL}/actividades/archivo/${displayedSubmission.archivo_id}`}
-                      className="activity-link inline-flex h-[27px] shrink-0 items-center gap-1 rounded-md border border-talentia-blue px-2 text-[14px]"
+                      className="activity-link activity-download inline-flex shrink-0 items-center gap-2 rounded-md border border-talentia-blue px-3 py-2 text-[13px]"
                     >
                       <Icon
                         type="download"
@@ -1558,7 +1572,7 @@ const showDeliveryDetail =
                     </a>
                   </div>
                 ) : !displayedSubmission.comentario ? (
-                  <p className="rounded bg-talentia-surface p-3 text-[14px] text-talentia-muted">
+                  <p className="rounded bg-talentia-surface p-3 text-[13px] text-talentia-muted">
                     No se adjuntó
                     un documento
                     ni un
@@ -1569,7 +1583,7 @@ const showDeliveryDetail =
             </>
           ) : (
             <>
-              <h1 className="max-w-[641px] text-[23px] font-bold leading-[1.15] text-talentia-primary">
+              <h1 className="text-[24px] font-bold leading-[1.35] text-talentia-primary">
                 {displayTitle.startsWith(
                   "Actividad:"
                 )
@@ -1579,7 +1593,7 @@ const showDeliveryDetail =
 
 
               {displayDescription && (
-                <p className="mt-[10px] max-w-[630px] text-[16px] leading-[1.5] text-talentia-primary">
+                <p className="mt-[10px] text-[14px] leading-[1.5] text-talentia-primary">
                   {
                     displayDescription
                   }
@@ -1590,7 +1604,7 @@ const showDeliveryDetail =
               <div className="my-[7px] border-b border-talentia-border" />
 
 
-              <h2 className="mb-[5px] text-[16px] font-bold leading-tight text-talentia-primary">
+              <h2 className="activity-deliveries-title mb-[5px] text-[16px] font-bold leading-tight text-talentia-primary">
                 Tu entrega
               </h2>
 
@@ -1775,17 +1789,11 @@ const showDeliveryDetail =
         <aside
           className={`min-w-0 ${
             showDeliveryDetail
-              ? "space-y-[7px]"
+              ? "space-y-4"
               : "space-y-[10px]"
           }`}
         >
-          <section
-            className={`activity-card p-4 ${
-              showDeliveryDetail
-                ? "min-h-[172px]"
-                : "min-h-[272px]"
-            }`}
-          >
+          <section className="min-w-0 px-4">
             <h2 className="activity-card-title">
               {showDeliveryDetail
                 ? "Detalles de la entrega"
@@ -1793,7 +1801,7 @@ const showDeliveryDetail =
             </h2>
 
 
-            <div className="mt-[14px] space-y-[10px]">
+            <div className="mt-3 space-y-3 rounded-lg border border-talentia-border bg-talentia-surface p-4 text-sm">
               <DetailRow
                 icon="calendar"
                 label="Fecha de entrega"
@@ -1901,7 +1909,7 @@ const showDeliveryDetail =
 
           {showDeliveryDetail &&
 displayedSubmission && (
-  <section className="activity-card min-h-[271px] p-3">
+  <section className="activity-card p-4">
     <h2 className="activity-card-title">
       Calificación · Intento{" "}
       {
@@ -1926,7 +1934,7 @@ displayedSubmission && (
           / {maxGrade} puntos
         </div>
 
-        <p className="mt-2 text-[14px] leading-[1.3] text-talentia-muted">
+        <p className="mt-2 text-[12px] leading-[1.5] text-talentia-muted">
           {displayedSubmission.calificado_en
             ? `Calificado el ${formatDate(
                 displayedSubmission.calificado_en
@@ -1934,7 +1942,7 @@ displayedSubmission && (
             : "La calificación ya está disponible."}
         </p>
 
-        <div className="mt-4 flex items-center gap-2 text-[14px] font-bold text-talentia-blue">
+        <div className="mt-4 flex items-center gap-2 text-[15px] font-semibold text-talentia-primary">
           <Icon
             type="chat"
             size={16}
@@ -1943,13 +1951,13 @@ displayedSubmission && (
           Comentarios del docente
         </div>
 
-        <p className="mt-2 min-h-[118px] whitespace-pre-wrap rounded-lg border border-talentia-blue bg-talentia-surface p-2 text-[14px] leading-[1.3] text-talentia-primary">
+        <p className="mt-2 whitespace-pre-wrap rounded-lg border border-talentia-border bg-talentia-surface p-3 text-[13px] leading-[1.5] text-talentia-primary">
           {displayedSubmission.retroalimentacion ||
             "El docente todavía no ha añadido comentarios."}
         </p>
       </>
     ) : (
-      <p className="mt-3 rounded-md bg-talentia-surface p-3 text-[14px] text-talentia-primary">
+      <p className="mt-3 rounded-md bg-talentia-warning-bg p-3 text-[13px] text-talentia-warning">
         Este intento está
         pendiente de calificación.
       </p>
@@ -1957,7 +1965,7 @@ displayedSubmission && (
   </section>
 )}
 
-          <section className="activity-card min-h-[272px] p-4">
+          <section className={`activity-card p-4 ${showDeliveryDetail ? "" : "min-h-[272px]"}`}>
             <h2 className="activity-card-title">
               {showDeliveryDetail ? "Historial de intentos" : "Entregas realizadas"}
             </h2>
@@ -1969,8 +1977,12 @@ displayedSubmission && (
                   const isSelected = displayedSubmission?.id === submission.id;
                   const isLatest = latest?.id === submission.id;
                   return (
-                    <div key={submission.id} className="flex min-w-0 items-center gap-1 text-[14px] leading-[1.35]">
-                      <span className="shrink-0 text-talentia-primary">Intento {submission.numero_intento}:</span>
+                    <div key={submission.id} className={`min-w-0 rounded-md border p-3 text-[13px] leading-[1.5] ${isSelected ? "border-talentia-blue bg-talentia-selected" : "border-talentia-border"}`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold text-talentia-primary">Intento {submission.numero_intento}</span>
+                      {isLatest && <span className="rounded bg-talentia-selected px-2 py-1 text-[12px] text-talentia-primary">Último</span>}
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -1979,14 +1991,15 @@ displayedSubmission && (
                           setError("");
                         }}
                         aria-current={isSelected ? "true" : undefined}
-                        className={`activity-link min-w-0 flex-1 truncate text-left ${isSelected ? "font-bold" : ""}`}
+                        className={`activity-link inline-flex min-h-9 items-center gap-2 text-left ${isSelected ? "font-semibold" : ""}`}
                       >
-                        Ver entrega ↗
+                        <Icon type="eye" size={16} className="shrink-0" />
+                        Ver entrega
                       </button>
-                      <span className="shrink-0 text-talentia-primary">
+                      <span className={`rounded px-2 py-1 text-[12px] font-medium ${submission.nota != null ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-warning-bg text-talentia-warning"}`}>
                         {submission.nota != null ? `${submission.nota}/${maxGrade}` : "Pendiente"}
                       </span>
-                      {isLatest && <span className="shrink-0 rounded bg-talentia-selected px-1 py-[2px] text-[12px] text-talentia-primary">Último</span>}
+                      </div>
                     </div>
                   );
                 })}
@@ -2001,7 +2014,7 @@ displayedSubmission && (
                   setError("");
                   setMessage("");
                 }}
-                className="activity-primary mt-[14px] flex min-h-[30px] w-full items-center justify-center rounded-[6px] px-3 text-[14px] font-medium"
+                className="activity-primary mt-[14px] flex min-h-9 w-full items-center justify-center rounded-[6px] px-3 py-2 text-[13px] font-medium"
               >
                 Realizar otro intento ({remaining} disponible{remaining === 1 ? "" : "s"})
               </button>

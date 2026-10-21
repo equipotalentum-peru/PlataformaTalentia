@@ -95,7 +95,7 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
   if (![courseId, moduleId].every(id => Number.isSafeInteger(id) && id > 0)) {
     return res.status(400).json({ message: "Solicitud no válida." });
   }
-  let files: string[] = [], sharedFiles = 0;
+  let files: string[] = [], sharedFiles = 0, releasedComponents = 0;
   try {
     const client = await pool.connect();
     try {
@@ -141,13 +141,29 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
       );
       files = paths.rows.filter(file => !file.compartido).map(file => file.ruta_archivo);
       sharedFiles = paths.rows.filter(file => file.compartido).length;
-      await client.query(
-        `DELETE FROM componentes_calificacion WHERE actividad_id IN (
+      const components = await client.query<{ id: string }>(
+        `SELECT id FROM componentes_calificacion WHERE actividad_id IN (
            SELECT a.id FROM actividades a JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $1
          ) OR evaluacion_id IN (
            SELECT e.id FROM evaluaciones e JOIN contenidos_curso cc ON cc.id = e.contenido_id WHERE cc.modulo_id = $1
-         )`, [moduleId]
+         ) ORDER BY id FOR UPDATE`, [moduleId]
       );
+      const componentIds = components.rows.map(component => component.id);
+      await client.query(
+        `DELETE FROM calificaciones WHERE componente_id = ANY($1::BIGINT[])
+         OR entrega_id IN (
+           SELECT ea.id FROM entregas_actividades ea JOIN actividades a ON a.id = ea.actividad_id
+           JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $2
+         ) OR intento_evaluacion_id IN (
+           SELECT ie.id FROM intentos_evaluacion ie JOIN evaluaciones e ON e.id = ie.evaluacion_id
+           JOIN contenidos_curso cc ON cc.id = e.contenido_id WHERE cc.modulo_id = $2
+         )`, [componentIds, moduleId]
+      );
+      await client.query(
+        `UPDATE componentes_calificacion SET actividad_id = NULL, evaluacion_id = NULL
+         WHERE id = ANY($1::BIGINT[])`, [componentIds]
+      );
+      releasedComponents = componentIds.length;
       await client.query("DELETE FROM modulos_curso WHERE id = $1", [moduleId]);
       await client.query("COMMIT");
     } catch (error) {
@@ -173,6 +189,7 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
     }
   }
   const notices: string[] = [];
+  if (releasedComponents) notices.push("Los componentes de calificación del administrador se conservaron y están disponibles para reutilizarse.");
   if (pending.length) notices.push(`Quedaron ${pending.length} archivos sin eliminar. Requieren limpieza manual.`);
   if (sharedFiles) notices.push(`Se conservaron ${sharedFiles} archivos asociados a otros registros.`);
   return res.json({
@@ -182,5 +199,6 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
       : "Módulo, contenidos y archivos eliminados.",
     archivosPendientes: pending,
     archivosCompartidos: sharedFiles,
+    componentesLiberados: releasedComponents,
   });
 }

@@ -253,6 +253,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
       `¿Eliminar definitivamente el módulo "${module.title}" y todos sus contenidos?\n\n` +
       "Se eliminarán sus documentos, videos, actividades y evaluaciones, " +
       "incluidos los archivos asociados y los datos académicos vinculados que correspondan.\n\n" +
+      "Los componentes de calificación configurados por el administrador se conservarán y quedarán disponibles para reutilizarse.\n\n" +
       "Esta acción no se puede deshacer."
 )) return;
     setDeletingModuleId(module.id);

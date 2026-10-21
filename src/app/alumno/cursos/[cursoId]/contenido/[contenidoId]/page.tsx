@@ -50,17 +50,16 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
     return (
       <div className="min-h-screen px-4 py-4 lg:px-5">
         <div className="mx-auto max-w-[1000px]">
-          <Link
-            href={`/alumno/cursos/${courseId}`}
-            className="app-back-link mb-4"
-          >
-          <span aria-hidden="true">{"<"}</span>
-            Volver al curso
-          </Link>
           <MaterialViewer
             key={`${courseId}-${contentId}`}
             courseId={courseId}
             contentId={contentId}
+            backLink={
+              <Link href={`/alumno/cursos/${courseId}`} className="app-back-link shrink-0">
+                <span aria-hidden="true">{"<"}</span>
+                Volver al curso
+              </Link>
+            }
           />
         </div>
       </div>

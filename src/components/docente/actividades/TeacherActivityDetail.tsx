@@ -1236,7 +1236,7 @@ function selectStudent(
           HEADER
       ===================================================== */}
 
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 [font-family:Poppins,Arial,Helvetica,sans-serif]">
         <Link
           href={`/docente/cursos/${courseId}`}
           className="app-back-link"
@@ -1248,7 +1248,7 @@ function selectStudent(
         </Link>
 
 
-        <p className="truncate text-[14px] text-talentia-primary">
+        <p className="min-w-0 text-[14px] text-talentia-primary">
           Módulo 1:
           Introducción a las
           TIC &gt; 1.4
@@ -1261,14 +1261,14 @@ function selectStudent(
           CONTENIDO
       ===================================================== */}
 
-      <div className="mt-[18px] grid grid-cols-1 items-start gap-[10px] md:grid-cols-[minmax(0,1fr)_244px]">
+      <div className="activity-visual-content mt-[18px] items-start">
         {/* ===================================================
             LADO IZQUIERDO
         =================================================== */}
 
         <section className="min-w-0 pt-[26px]">
-          <div className="px-[24px]">
-            <h1 className="max-w-[641px] text-[23px] font-bold leading-[1.15] text-talentia-primary">
+          <div>
+            <h1 className="text-[24px] font-bold leading-[1.35] text-talentia-primary">
               Actividad:{" "}
               {activity.titulo ||
                 "Actividad"}
@@ -1276,7 +1276,7 @@ function selectStudent(
 
 
             {activity.descripcion && (
-              <p className="mt-[10px] max-w-[630px] text-[16px] leading-[1.5] text-talentia-primary">
+              <p className="mt-[10px] text-[14px] leading-[1.5] text-talentia-primary">
                 {
                   activity.descripcion
                 }
@@ -1287,7 +1287,7 @@ function selectStudent(
             <div className="my-[8px] border-b border-talentia-border" />
 
 
-            <h2 className="mb-[23px] text-[16px] font-bold text-talentia-primary">
+            <h2 className="activity-deliveries-title mb-[23px] text-[16px] font-bold text-talentia-primary">
               Entregas
             </h2>
           </div>
@@ -1296,7 +1296,7 @@ function selectStudent(
           {error && (
             <p
               role="alert"
-              className="mx-[2px] mb-2 rounded-md bg-talentia-danger-bg p-2 text-[14px] text-talentia-danger"
+              className="mx-[2px] mb-2 rounded-md bg-talentia-danger-bg p-2 text-[13px] text-talentia-danger"
             >
               {error}
             </p>
@@ -1306,7 +1306,7 @@ function selectStudent(
           {message && (
             <p
               role="status"
-              className="mx-[2px] mb-2 rounded-md bg-talentia-success-bg p-2 text-[14px] text-talentia-success"
+              className="mx-[2px] mb-2 rounded-md bg-talentia-success-bg p-2 text-[13px] text-talentia-success"
             >
               {message}
             </p>
@@ -1325,7 +1325,7 @@ function selectStudent(
 
 
               <thead>
-                <tr className="h-[36px] bg-talentia-surface text-talentia-primary">
+                <tr className="h-[44px] bg-talentia-table-header text-talentia-primary">
                   <th className="px-[12px] font-bold">
                     Alumno
                   </th>
@@ -1391,7 +1391,7 @@ function selectStudent(
                             );
                           }
                         }}
-                        className={`activity-table-row h-[34px] cursor-pointer border-t border-talentia-border ${
+                        className={`activity-table-row h-[48px] cursor-pointer border-t border-talentia-border ${
                           isSelected
                             ? "is-selected"
                             : ""
@@ -1402,7 +1402,7 @@ function selectStudent(
                         <td className="px-[12px] py-[4px]">
                           <div className="flex min-w-0 items-center gap-[8px]">
                             <span
-                              className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${
+                              className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${
                                 AVATAR_COLORS[
                                   index %
                                     AVATAR_COLORS.length
@@ -1444,14 +1444,14 @@ function selectStudent(
 
                         <td className="px-[8px] py-[4px]">
                           <div className="flex items-center gap-[2px]">
-                            <span className="flex min-w-[36px] items-center justify-center rounded-l-[4px] bg-talentia-surface px-[5px] py-[4px] text-[12px] text-talentia-primary">
+                            <span className="flex min-w-[36px] items-center justify-center rounded-l-[4px] bg-talentia-surface px-[5px] py-[4px] text-[14px] text-talentia-primary">
                               {student.nota ==
                               null
                                 ? "-"
                                 : student.nota}
                             </span>
 
-                            <span className="flex min-w-[36px] items-center justify-center rounded-r-[4px] bg-talentia-surface px-[5px] py-[4px] text-[12px] text-talentia-primary">
+                            <span className="flex min-w-[36px] items-center justify-center rounded-r-[4px] bg-talentia-surface px-[5px] py-[4px] text-[14px] text-talentia-primary">
                               Pts
                             </span>
                           </div>
@@ -1467,7 +1467,7 @@ function selectStudent(
                   <tr>
                     <td
                       colSpan={3}
-                      className="bg-talentia-surface p-5 text-center text-[14px] text-talentia-muted"
+                      className="bg-talentia-surface p-5 text-center text-[13px] text-talentia-muted"
                     >
                       No hay
                       estudiantes
@@ -1487,17 +1487,17 @@ function selectStudent(
             LADO DERECHO
         =================================================== */}
 
-        <aside className="min-w-0 space-y-[10px]">
+        <aside className="min-w-0 space-y-4">
           {/* DETALLES ACTIVIDAD */}
 
-          <section className="activity-card min-h-[272px] p-4">
+          <section className="min-w-0 px-4">
             <h2 className="activity-card-title">
               Detalles de la
               actividad
             </h2>
 
 
-            <div className="mt-[14px] space-y-[10px]">
+            <div className="mt-3 space-y-3 rounded-lg border border-talentia-border bg-talentia-surface p-4 text-sm">
               {/* FECHA */}
 
               <DetailRow
@@ -1589,7 +1589,7 @@ function selectStudent(
               />
 
               <div>
-                <p className="text-[14px] font-bold text-talentia-blue">
+                <p className="text-[13px] font-semibold text-talentia-primary">
                   Importante
                 </p>
 
@@ -1610,7 +1610,7 @@ function selectStudent(
               TAREA SELECCIONADA
           =================================================== */}
 
-          <section className="activity-card min-h-[356px] p-3">
+          <section className="activity-card p-4">
             <h2 className="activity-card-title">
               Tarea
               Seleccionada:
@@ -1619,7 +1619,7 @@ function selectStudent(
 
             {selectedStudent ? (
               <>
-                <div className="mt-[9px] space-y-[6px] text-[14px] leading-[1.35] text-talentia-primary">
+                <div className="mt-[9px] space-y-[6px] text-[13px] leading-[1.35] text-talentia-primary">
                   <p><span className="font-medium">Alumno:</span> {selectedStudent.alumno}</p>
                   <p><span className="font-medium">Última entrega:</span> {formattedDateTime(selectedStudent.entregada_en)}</p>
                   <p><span className="font-medium">Intentos usados:</span> {selectedAttempts.length || Number(selectedStudent.intentos_realizados ?? selectedStudent.numero_intento ?? 0)} de {maxAttempts}</p>
@@ -1627,27 +1627,27 @@ function selectStudent(
 
                 <div className="mt-[13px]">
                   <div className="mb-[7px] flex items-center justify-between gap-2">
-                    <h3 className="text-[14px] font-bold text-talentia-primary">Historial de intentos</h3>
-                    <span className="text-[12px] text-talentia-blue">Del 1 al último</span>
+                    <h3 className="text-[13px] font-bold text-talentia-primary">Historial de intentos</h3>
+                    <span className="text-[12px] text-talentia-muted">Del 1 al último</span>
                   </div>
 
                   {loadingAttempts ? (
-                    <p className="rounded-md border border-talentia-border bg-talentia-surface p-2 text-[14px] text-talentia-blue">Cargando intentos...</p>
+                    <p className="rounded-md border border-talentia-border bg-talentia-surface p-2 text-[13px] text-talentia-blue">Cargando intentos...</p>
                   ) : attemptsError ? (
-                    <p role="alert" className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg p-2 text-[14px] text-talentia-danger">{attemptsError}</p>
+                    <p role="alert" className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg p-2 text-[13px] text-talentia-danger">{attemptsError}</p>
                   ) : selectedAttempts.length > 0 ? (
                     <div className="space-y-[7px]">
                       {selectedAttempts.map((attempt) => (
                         <div key={attempt.entrega_id} className="rounded-md border border-talentia-border bg-talentia-surface p-[9px]">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[14px] font-bold text-talentia-blue">Intento {attempt.numero_intento}</span>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-[13px] font-semibold text-talentia-primary">Intento {attempt.numero_intento}</span>
                             <span className={`rounded-[5px] px-[7px] py-[3px] text-[12px] font-semibold ${attempt.nota == null ? "bg-talentia-warning-bg text-talentia-warning" : "bg-talentia-success-bg text-talentia-success"}`}>
                               {attempt.nota == null ? "Pendiente de nota" : "Calificado"}
                             </span>
                           </div>
-                          <p className="mt-[5px] text-[12px] text-talentia-blue">Entrega: {formattedDateTime(attempt.entregada_en)}</p>
+                          <p className="mt-[5px] text-[12px] text-talentia-muted">Entrega: {formattedDateTime(attempt.entregada_en)}</p>
                           <div className="mt-[5px] flex items-center justify-between gap-2">
-                            <span className="text-[14px] text-talentia-primary">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
+                            <span className="text-[13px] text-talentia-primary">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
                             <Link
                               href={`/docente/cursos/${courseId}/actividades/${activityId}/alumno/${selectedStudent.alumno_id}?entregaId=${attempt.entrega_id}`}
                               className="activity-primary inline-flex h-[25px] shrink-0 items-center justify-center rounded-[5px] px-[9px] text-[12px] font-medium"
@@ -1659,18 +1659,18 @@ function selectStudent(
                       ))}
                     </div>
                   ) : (
-                    <p className="rounded-md border border-talentia-border bg-talentia-surface p-2 text-[14px] text-talentia-blue">Este estudiante todavía no ha enviado ningún intento.</p>
+                    <p className="rounded-md border border-talentia-border bg-talentia-surface p-2 text-[13px] text-talentia-blue">Este estudiante todavía no ha enviado ningún intento.</p>
                   )}
                 </div>
 
-                <div className="mt-[13px] flex items-center gap-2 text-[14px] font-bold text-talentia-blue"><Icon type="chat" size={16}/> Comentarios del docente (opcional)</div>
+                <div className="mt-[13px] flex items-center gap-2 text-[15px] font-semibold text-talentia-primary"><Icon type="chat" size={16}/> Comentarios del docente (opcional)</div>
                 <label className="sr-only" htmlFor="comentario-docente">Comentario del docente</label>
-                <textarea id="comentario-docente" rows={5} maxLength={5000} value={teacherComment} onChange={(event) => setTeacherComment(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[14px] placeholder:text-talentia-placeholder" />
-                <button type="button" onClick={addComment} disabled={savingComment || !selectedStudent.entrega_id || selectedStudent.nota == null} className="activity-primary mt-[12px] flex h-[29px] w-full items-center justify-center rounded-[6px] text-[14px] font-medium disabled:cursor-not-allowed disabled:opacity-50">{savingComment ? "Guardando..." : "Agregar Comentario"}</button>
+                <textarea id="comentario-docente" rows={5} maxLength={5000} value={teacherComment} onChange={(event) => setTeacherComment(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[13px] placeholder:text-talentia-placeholder" />
+                <button type="button" onClick={addComment} disabled={savingComment || !selectedStudent.entrega_id || selectedStudent.nota == null} className="activity-primary mt-[12px] flex h-[29px] w-full items-center justify-center rounded-[6px] text-[13px] font-medium disabled:cursor-not-allowed disabled:opacity-50">{savingComment ? "Guardando..." : "Agregar Comentario"}</button>
                 {selectedStudent.nota == null && <p className="mt-1 text-[12px] text-talentia-muted">Para guardar un comentario desde aquí, primero debe existir una calificación.</p>}
               </>
             ) : (
-              <p className="mt-3 text-[14px] text-talentia-muted">
+              <p className="mt-3 text-[13px] text-talentia-muted">
                 Selecciona un
                 estudiante de la
                 tabla.

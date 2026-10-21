@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { API_URL } from "@/lib/api";
 import ContentViewer from "@/components/common/contenido/ContentViewer";
 import QuizViewer from "@/components/common/contenido/QuizViewer";
@@ -20,9 +20,10 @@ type Contenido = {
 type Props = {
   courseId: number;
   contentId: number;
+  backLink?: ReactNode;
 };
 
-export default function MaterialViewer({ courseId, contentId }: Props) {
+export default function MaterialViewer({ courseId, contentId, backLink }: Props) {
   const [material, setMaterial] = useState<{
     titulo: string;
     tipo: "pdf" | "ppt" | "word" | "video" | "activity" | "evaluation";
@@ -186,10 +187,11 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
     };
   }, [courseId, contentId]);
 
-  if (error) return <p role="alert">{error}</p>;
-  if (!material) return <p>Cargando material...</p>;
+  if (error) return <>{backLink && <div className="mb-4">{backLink}</div>}<p role="alert">{error}</p></>;
+  if (!material) return <>{backLink && <div className="mb-4">{backLink}</div>}<p>Cargando material...</p></>;
   return (
     <>
+      {material.tipo !== "activity" && backLink && <div className="mb-4">{backLink}</div>}
       {material.tipo === "activity" ? (
         <ActivityViewer
           activityId={contentId}
@@ -199,6 +201,7 @@ export default function MaterialViewer({ courseId, contentId }: Props) {
           nextHref={material.nextHref}
           exitHref={`/alumno/cursos/${courseId}`}
           trackLocalProgress={true}
+          backLink={backLink}
         />
       ) : material.tipo === "evaluation" ? (
         <QuizViewer

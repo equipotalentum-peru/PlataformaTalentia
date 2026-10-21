@@ -1453,6 +1453,11 @@ a {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.activity-student-root,
+.app-page:has(.activity-student-root) .app-back-link {
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+}
+
 .activity-page-root button,
 .activity-page-root input,
 .activity-page-root textarea,
@@ -1567,6 +1572,141 @@ a {
   outline-offset: -2px;
 }
 
+.activity-page-root .activity-visual-content,
+.activity-page-root .activity-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+.activity-page-root .activity-visual-content {
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.activity-visual-content h1 {
+  font-size: 24px !important;
+}
+
+.activity-visual-content h2,
+.activity-visual-content h3,
+.activity-visual-content .activity-card-title {
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+.activity-visual-content h2.activity-deliveries-title {
+  font-size: 16px !important;
+}
+
+.activity-visual-content .activity-side-item {
+  align-items: flex-start;
+}
+
+.activity-page-root .activity-visual-content .activity-side-item p {
+  color: var(--talentia-text-muted);
+  font-size: 13px;
+}
+
+.activity-visual-content .activity-side-item > div > div {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.activity-visual-content .activity-side-item > div > div > span {
+  font-size: 12px;
+}
+
+.activity-visual-content .activity-primary,
+.activity-visual-content .activity-download {
+  min-height: 36px;
+  height: auto;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.activity-visual-content .activity-file-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--talentia-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.activity-visual-content .activity-file-icon {
+  background: var(--talentia-selected);
+  color: var(--talentia-blue);
+}
+
+.activity-visual-content .activity-file-name {
+  min-width: 120px;
+  flex: 1;
+}
+
+.activity-visual-content .activity-file-name p:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.activity-visual-content .activity-success-callout {
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.activity-visual-content .activity-success-callout > svg {
+  flex-shrink: 0;
+}
+
+.activity-visual-content .activity-success-callout h1 {
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+.activity-visual-content .activity-success-callout p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.activity-visual-content > aside,
+.activity-visual-content > aside [class~="text-[13px]"],
+.activity-visual-content > aside .activity-side-item > div > div,
+.activity-visual-content > aside .activity-side-item > div > div > span {
+  font-size: 14px;
+}
+
+.activity-page-root .activity-visual-content > aside .activity-side-item p {
+  font-size: 14px;
+}
+
+.activity-visual-content > aside h2.activity-card-title {
+  font-size: 16px !important;
+}
+
+.activity-visual-content > aside h3 {
+  font-size: 14px !important;
+}
+
+.activity-visual-content > aside .activity-primary {
+  font-size: 12px;
+}
+
+.activity-visual-content > aside span[class~="text-[12px]"][class~="font-semibold"] {
+  font-size: 11px;
+}
+
+@media (min-width: 1024px) {
+  .activity-page-root .activity-visual-content,
+  .activity-page-root .activity-content-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
 @media (min-width: 961px) {
   /* El prototipo usa sidebar de 232 px incluso en laptops de 995 px. */
   body:has(.activity-page-root) {
@@ -1590,6 +1730,19 @@ a {
     max-width: none;
     margin: 0;
     padding: 16px;
+  }
+
+  .app-shell:has(.activity-teacher-list-root),
+  .app-shell:has(.activity-student-root) {
+    --page-px: inherit;
+    --page-py: inherit;
+  }
+
+  .app-page:has(.activity-teacher-list-root),
+  .app-page:has(.activity-student-root) {
+    max-width: calc(var(--page-max) + (var(--page-px) * 2));
+    margin-inline: auto;
+    padding: var(--page-py) var(--page-px);
   }
 
   .app-shell:has(.activity-page-root) .app-mobile-header {
