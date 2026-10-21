@@ -21,6 +21,13 @@ type RelationDetail = {
   respuestaAlumno: string;
 };
 
+type AttachedFile = {
+  id: string;
+  nombreArchivo: string;
+  mimeType: string | null;
+  tamanoBytes: number | null;
+};
+
 type QuestionDetail = {
   id: string;
   numero: number;
@@ -33,6 +40,7 @@ type QuestionDetail = {
     esCorrecta: boolean | null;
     puntosObtenidos: number | null;
   };
+  archivos: AttachedFile[];
   opciones: OptionDetail[];
   relaciones: RelationDetail[];
 };
@@ -61,8 +69,9 @@ type AttemptDetail = {
     iniciadoEn: string;
     enviadoEn: string | null;
     estado: string;
-    puntosObtenidos: number;
+    puntosObtenidos: number | null;
     puntajeTotal: number | null;
+    nota: number | null;
     tiempoUsadoSegundos: number | null;
   };
   preguntas: QuestionDetail[];
@@ -208,10 +217,17 @@ export default function StudentEvaluationAttemptReview({
             <p className="mt-1 text-base font-bold text-talentia-primary">{detail.intento.estado}</p>
           </div>
           <div className="rounded-xl bg-talentia-selected p-4">
-            <p className="text-xs text-talentia-muted">Puntaje</p>
-            <p className="mt-1 text-base font-bold text-talentia-primary">
-              {detail.intento.puntosObtenidos.toFixed(2)} / {Number(detail.intento.puntajeTotal ?? 0).toFixed(2)} pts
-            </p>
+            <p className="text-xs text-talentia-muted">{detail.intento.estado === "Calificado" ? "Nota final" : "Calificación"}</p>
+            {detail.intento.estado === "Calificado" && detail.intento.nota !== null ? (
+              <>
+                <p className="mt-1 text-base font-bold text-talentia-primary">{detail.intento.nota.toFixed(2)} / 20</p>
+                <p className="mt-1 text-xs text-talentia-muted">
+                  {Number(detail.intento.puntosObtenidos ?? 0).toFixed(2)} / {Number(detail.intento.puntajeTotal ?? 0).toFixed(2)} pts
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 text-sm font-bold text-talentia-primary">Pendiente de calificación</p>
+            )}
           </div>
           <div className="rounded-xl bg-talentia-selected p-4">
             <p className="text-xs text-talentia-muted">Tiempo usado</p>
@@ -222,6 +238,11 @@ export default function StudentEvaluationAttemptReview({
             <p className="mt-1 text-sm font-semibold text-talentia-primary">{formatDate(detail.intento.enviadoEn)}</p>
           </div>
         </div>
+        {detail.intento.estado !== "Calificado" && (
+          <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            La nota aparecerá aquí y en Calificaciones cuando el docente haya puntuado todas las preguntas.
+          </p>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -264,6 +285,23 @@ export default function StudentEvaluationAttemptReview({
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-talentia-primary">
                   {question.respuesta.texto?.trim() || "Sin respuesta."}
                 </p>
+                {question.archivos.length > 0 && (
+                  <div className="mt-4 border-t border-talentia-border pt-3">
+                    <p className="text-xs font-semibold text-talentia-primary">Documentos enviados</p>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {question.archivos.map((file) => (
+                        <a
+                          key={file.id}
+                          href={`${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/archivo/${file.id}`}
+                          className="inline-flex w-fit max-w-full items-center gap-2 text-sm font-medium text-talentia-blue underline underline-offset-2"
+                        >
+                          <span className="truncate">{file.nombreArchivo}</span>
+                          <span className="shrink-0">Descargar</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -286,9 +324,15 @@ export default function StudentEvaluationAttemptReview({
               {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Respuesta correcta</span>}
               {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Respuesta incorrecta</span>}
               {question.respuesta.esCorrecta === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
-              <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">
-                {Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts
-              </span>
+              {detail.intento.estado === "Calificado" ? (
+                <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">
+                  {Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts
+                </span>
+              ) : (
+                <span className="rounded-full bg-amber-50 px-3 py-1.5 font-semibold text-amber-800">
+                  Puntaje pendiente
+                </span>
+              )}
             </div>
           </article>
         ))}

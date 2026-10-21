@@ -21,12 +21,21 @@ type RelationDetail = {
   respuestaAlumno: string;
 };
 
+type AttachedFile = {
+  id: string;
+  nombreArchivo: string;
+  mimeType: string | null;
+  tamanoBytes: number | null;
+};
+
 type QuestionDetail = {
   id: string;
   numero: number;
   enunciado: string;
   tipo: string;
   puntaje: number;
+  permiteArchivos: boolean;
+  archivos: AttachedFile[];
   respuesta: {
     texto: string | null;
     esCorrecta: boolean | null;
@@ -56,6 +65,7 @@ type AttemptDetail = {
     estado: string;
     puntosObtenidos: number;
     puntajeTotal: number | null;
+    nota: number | null;
     tiempoUsadoSegundos: number | null;
   };
   preguntas: QuestionDetail[];
@@ -114,6 +124,10 @@ export default function TeacherEvaluationAttemptReview({
   const [detail, setDetail] = useState<AttemptDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [puntajesBorrador, setPuntajesBorrador] = useState<Record<string, string>>({});
+  const [preguntaGuardando, setPreguntaGuardando] = useState<string | null>(null);
+  const [mensajeCalificacion, setMensajeCalificacion] = useState("");
+  const [errorCalificacion, setErrorCalificacion] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -140,7 +154,16 @@ export default function TeacherEvaluationAttemptReview({
           throw new Error(data.message || "No se pudo cargar el intento.");
         }
 
-        setDetail(data as AttemptDetail);
+        const loadedDetail = data as AttemptDetail;
+        setDetail(loadedDetail);
+        setPuntajesBorrador(Object.fromEntries(
+          loadedDetail.preguntas
+            .filter((question) => question.tipo === "respuesta_abierta")
+            .map((question) => [
+              question.id,
+              question.respuesta.puntosObtenidos == null ? "" : String(question.respuesta.puntosObtenidos),
+            ])
+        ));
       } catch (loadError) {
         if (controller.signal.aborted) return;
         setError(loadError instanceof Error ? loadError.message : "No se pudo cargar el intento.");
@@ -152,6 +175,56 @@ export default function TeacherEvaluationAttemptReview({
     void load();
     return () => controller.abort();
   }, [attemptId, contentId, courseId, router, studentId]);
+
+  async function guardarPuntaje(question: QuestionDetail) {
+    const raw = puntajesBorrador[question.id] ?? "";
+    const points = raw.trim() === "" ? Number.NaN : Number(raw);
+    if (!Number.isFinite(points) || points < 0 || points > question.puntaje || Math.abs(points * 100 - Math.round(points * 100)) > 1e-8) {
+      setErrorCalificacion(`Escribe un puntaje entre 0 y ${question.puntaje} con hasta dos decimales.`);
+      setMensajeCalificacion("");
+      return;
+    }
+
+    setPreguntaGuardando(question.id);
+    setErrorCalificacion("");
+    setMensajeCalificacion("");
+    try {
+      const endpoint = `${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/docente/alumnos/${studentId}/intentos/${attemptId}`;
+      const response = await fetch(`${endpoint}/preguntas/${question.id}/calificacion`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ puntosObtenidos: points }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!response.ok) throw new Error(result.message || "No se pudo guardar el puntaje.");
+
+      const detailResponse = await fetch(`${endpoint}/detalle`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const updatedDetail = await detailResponse.json().catch(() => ({}));
+      if (!detailResponse.ok) throw new Error(updatedDetail.message || "El puntaje se guardó, pero no se pudo actualizar la vista.");
+      const nextDetail = updatedDetail as AttemptDetail;
+      setDetail(nextDetail);
+      setPuntajesBorrador(Object.fromEntries(
+        nextDetail.preguntas
+          .filter((item) => item.tipo === "respuesta_abierta")
+          .map((item) => [item.id, item.respuesta.puntosObtenidos == null ? "" : String(item.respuesta.puntosObtenidos)])
+      ));
+      setMensajeCalificacion(result.message || "Puntaje guardado correctamente.");
+      setErrorCalificacion("");
+    } catch (saveError) {
+      setErrorCalificacion(saveError instanceof Error ? saveError.message : "No se pudo guardar el puntaje.");
+      setMensajeCalificacion("");
+    } finally {
+      setPreguntaGuardando(null);
+    }
+  }
 
   const backHref = `/docente/cursos/${courseId}/evaluaciones/${contentId}/seguimiento`;
 
@@ -188,11 +261,17 @@ export default function TeacherEvaluationAttemptReview({
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl bg-talentia-selected p-4"><p className="text-xs text-talentia-muted">Estado</p><p className="mt-1 font-bold text-talentia-primary">{detail.intento.estado}</p></div>
-          <div className="rounded-xl bg-talentia-selected p-4"><p className="text-xs text-talentia-muted">Puntaje</p><p className="mt-1 font-bold text-talentia-primary">{detail.intento.puntosObtenidos.toFixed(2)} / {Number(detail.intento.puntajeTotal ?? 0).toFixed(2)} pts</p></div>
+          <div className="rounded-xl bg-talentia-selected p-4"><p className="text-xs text-talentia-muted">Puntaje</p><p className="mt-1 font-bold text-talentia-primary">{detail.intento.puntosObtenidos.toFixed(2)} / {Number(detail.intento.puntajeTotal ?? 0).toFixed(2)} pts</p>{detail.intento.nota !== null && <p className="mt-1 text-xs font-semibold text-talentia-primary">Nota final: {detail.intento.nota.toFixed(2)} / 20</p>}</div>
           <div className="rounded-xl bg-talentia-selected p-4"><p className="text-xs text-talentia-muted">Tiempo usado</p><p className="mt-1 font-bold text-talentia-primary">{formatTime(detail.intento.tiempoUsadoSegundos)}</p></div>
           <div className="rounded-xl bg-talentia-selected p-4"><p className="text-xs text-talentia-muted">Enviado</p><p className="mt-1 text-sm font-semibold text-talentia-primary">{formatDate(detail.intento.enviadoEn)}</p></div>
         </div>
       </section>
+
+      {(mensajeCalificacion || errorCalificacion) && (
+        <p role={errorCalificacion ? "alert" : "status"} className={`rounded-lg border px-4 py-3 text-sm ${errorCalificacion ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+          {errorCalificacion || mensajeCalificacion}
+        </p>
+      )}
 
       <section className="space-y-4">
         {detail.preguntas.map((question) => (
@@ -228,6 +307,19 @@ export default function TeacherEvaluationAttemptReview({
               <div className="mt-5 rounded-lg border border-talentia-border bg-talentia-selected/30 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-talentia-muted">Respuesta del alumno</p>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-talentia-primary">{question.respuesta.texto?.trim() || "Sin respuesta."}</p>
+                {question.archivos.length > 0 && (
+                  <div className="mt-4 border-t border-talentia-border pt-3">
+                    <p className="text-xs font-semibold text-talentia-primary">Documentos adjuntos</p>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {question.archivos.map((file) => (
+                        <a key={file.id} href={`${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/archivo/${file.id}`} className="inline-flex w-fit max-w-full items-center gap-2 text-sm font-medium text-talentia-blue underline underline-offset-2">
+                          <span className="truncate">{file.nombreArchivo}</span>
+                          <span className="shrink-0">Descargar</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -249,9 +341,30 @@ export default function TeacherEvaluationAttemptReview({
             <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-talentia-border pt-4 text-xs">
               {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Correcta</span>}
               {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>}
-              {question.respuesta.esCorrecta === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
-              <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">{Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts</span>
+              {question.respuesta.puntosObtenidos === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
+              {question.tipo !== "respuesta_abierta" && <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">{Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts</span>}
             </div>
+            {question.tipo === "respuesta_abierta" && (
+              <div className="mt-4 flex flex-col gap-3 rounded-lg bg-talentia-selected/30 p-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="w-full sm:max-w-[240px]">
+                  <label htmlFor={`puntaje-${question.id}`} className="mb-1.5 block text-xs font-semibold text-talentia-primary">Puntos obtenidos (máximo {question.puntaje})</label>
+                  <input
+                    id={`puntaje-${question.id}`}
+                    type="number"
+                    min={0}
+                    max={question.puntaje}
+                    step="0.01"
+                    value={puntajesBorrador[question.id] ?? ""}
+                    onChange={(event) => setPuntajesBorrador((current) => ({ ...current, [question.id]: event.target.value }))}
+                    disabled={preguntaGuardando === question.id}
+                    className="w-full rounded-md border border-talentia-border bg-white px-3 py-2 text-sm text-talentia-primary outline-none focus:border-talentia-blue disabled:opacity-60"
+                  />
+                </div>
+                <button type="button" onClick={() => void guardarPuntaje(question)} disabled={preguntaGuardando !== null} className="rounded-md bg-talentia-action px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60">
+                  {preguntaGuardando === question.id ? "Guardando..." : "Guardar puntaje"}
+                </button>
+              </div>
+            )}
           </article>
         ))}
       </section>

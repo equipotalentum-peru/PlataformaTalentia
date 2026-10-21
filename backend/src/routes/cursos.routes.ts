@@ -25,7 +25,10 @@ import {
   obtenerSeguimientoEvaluacionDocente,
   obtenerIntentosEvaluacionAlumnoDocente,
   obtenerDetalleIntentoEvaluacionDocente,
+  calificarRespuestaEvaluacionDocente,
+  descargarArchivoRespuestaEvaluacion,
 } from "../controllers/evaluaciones-intentos.controller";
+import { recibirArchivosEvaluacion } from "../middleware/evaluacion-upload.middleware";
 
 const router = Router();
 
@@ -37,11 +40,13 @@ router.patch("/:cursoId/modulos/:moduloId/evaluaciones/:contenidoId", requireAut
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion", requireAuth, obtenerEvaluacionCurso);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion/intentos", requireAuth, obtenerIntentosEvaluacionAlumno);
 router.post("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/iniciar", requireAuth, iniciarIntentoEvaluacionAlumno);
-router.post("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/:intentoId/enviar", requireAuth, enviarIntentoEvaluacionAlumno);
+router.post("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/:intentoId/enviar", requireAuth, recibirArchivosEvaluacion, enviarIntentoEvaluacionAlumno);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion/intentos/:intentoId/detalle", requireAuth, obtenerDetalleIntentoEvaluacionAlumno);
+router.get("/:cursoId/contenidos/:contenidoId/evaluacion/archivo/:archivoId", requireAuth, descargarArchivoRespuestaEvaluacion);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/seguimiento", requireAuth, obtenerSeguimientoEvaluacionDocente);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos", requireAuth, obtenerIntentosEvaluacionAlumnoDocente);
 router.get("/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos/:intentoId/detalle", requireAuth, obtenerDetalleIntentoEvaluacionDocente);
+router.patch("/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos/:intentoId/preguntas/:preguntaId/calificacion", requireAuth, calificarRespuestaEvaluacionDocente);
 router.get("/:cursoId/modulos/:moduloId/evaluaciones/componentes-calificacion", requireAuth, listarComponentesCalificacionDocente);
 router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);

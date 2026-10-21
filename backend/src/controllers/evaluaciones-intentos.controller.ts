@@ -1,7 +1,18 @@
 import type { Response } from "express";
 import type { PoolClient } from "pg";
+import { randomUUID } from "node:crypto";
+import path from "node:path";
+import { unlink } from "node:fs/promises";
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
+import { formatosArchivoEvaluacion } from "../middleware/evaluacion-upload.middleware";
+import {
+  deleteObjectFromR2,
+  getObjectFromR2,
+  isR2NotFoundError,
+  streamBodyToResponse,
+  uploadFileToR2,
+} from "../services/r2.service";
 
 type RespuestaIntentoEntrada = {
   preguntaId?: unknown;
@@ -135,6 +146,136 @@ function calcularTiempoUsado(
   return Math.min(usado, tiempoLimiteMinutos * 60);
 }
 
+function nombreArchivoSeguro(nombre: string) {
+  return path
+    .basename(nombre.replaceAll("\\", "/"))
+    .replace(/[\x00-\x1f\x7f]/g, "")
+    .slice(0, 255) || "archivo";
+}
+
+function parsearRespuestasEntrada(valor: unknown): RespuestaIntentoEntrada[] | null {
+  if (Array.isArray(valor)) return valor as RespuestaIntentoEntrada[];
+  if (typeof valor !== "string") return null;
+  try {
+    const parsed: unknown = JSON.parse(valor);
+    return Array.isArray(parsed) ? (parsed as RespuestaIntentoEntrada[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+type ResultadoCalificacionIntento = {
+  estado: "Enviado" | "Calificado";
+  puntosObtenidos: number;
+  puntajeTotal: number | null;
+  nota: number | null;
+};
+
+/** Actualiza el estado solo cuando existe una respuesta puntuada por pregunta.
+ * Si la evaluación está vinculada a un componente calificable, publica la nota
+ * sobre 20 en la tabla calificaciones del mismo intento. */
+async function actualizarEstadoYNotaIntento(
+  client: PoolClient,
+  intentoId: number,
+  calificadoPor: number | null = null
+): Promise<ResultadoCalificacionIntento> {
+  const result = await client.query(
+    `SELECT
+       ie.id::TEXT AS id,
+       ie.numero_intento AS "numeroIntento",
+       ie.matricula_id::TEXT AS "matriculaId",
+       ie.evaluacion_id::TEXT AS "evaluacionId",
+       e.calificada,
+       e.puntaje_total::NUMERIC AS "puntajeTotal",
+       COUNT(p.id)::INTEGER AS "preguntasTotal",
+       COUNT(re.id)::INTEGER AS "respuestasTotal",
+       COUNT(*) FILTER (
+         WHERE p.id IS NOT NULL
+           AND (re.id IS NULL OR re.puntos_obtenidos IS NULL)
+       )::INTEGER AS pendientes,
+       COALESCE(SUM(re.puntos_obtenidos), 0)::NUMERIC AS "puntosObtenidos"
+     FROM intentos_evaluacion ie
+     JOIN evaluaciones e ON e.id = ie.evaluacion_id
+     LEFT JOIN preguntas_evaluacion p ON p.evaluacion_id = e.id
+     LEFT JOIN respuestas_evaluacion re
+       ON re.pregunta_id = p.id
+      AND re.intento_id = ie.id
+     WHERE ie.id = $1
+     GROUP BY ie.id, e.id`,
+    [intentoId]
+  );
+
+  if (!result.rowCount) throw new Error("No se encontró el intento para actualizar su calificación.");
+  const row = result.rows[0];
+  const preguntasTotal = Number(row.preguntasTotal ?? 0);
+  const respuestasTotal = Number(row.respuestasTotal ?? 0);
+  const puntosObtenidos = Number(row.puntosObtenidos ?? 0);
+  const puntajeTotal = row.puntajeTotal == null ? null : Number(row.puntajeTotal);
+  const completo = preguntasTotal > 0 && respuestasTotal === preguntasTotal && Number(row.pendientes) === 0;
+  const estado: ResultadoCalificacionIntento["estado"] = completo ? "Calificado" : "Enviado";
+
+  await client.query(
+    `UPDATE intentos_evaluacion
+     SET estado = $2
+     WHERE id = $1`,
+    [intentoId, estado]
+  );
+
+  let nota: number | null = null;
+  if (completo && puntajeTotal !== null && puntajeTotal > 0) {
+    nota = Math.max(0, Math.min(20, Number(((puntosObtenidos / puntajeTotal) * 20).toFixed(2))));
+  }
+
+  if (completo && row.calificada === true && nota !== null) {
+    const componentes = await client.query(
+      `SELECT cc.id::TEXT AS id
+       FROM componentes_calificacion cc
+       JOIN matriculas m ON m.id = $2
+       WHERE cc.evaluacion_id = $1
+         AND cc.oferta_curso_id = m.oferta_curso_id`,
+      [row.evaluacionId, row.matriculaId]
+    );
+
+    for (const componente of componentes.rows) {
+      await client.query(
+        `INSERT INTO calificaciones AS calificacion_actual (
+           componente_id,
+           matricula_id,
+           intento_evaluacion_id,
+           nota,
+           calificado_por,
+           calificado_en
+         )
+         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+         ON CONFLICT (componente_id, matricula_id)
+         DO UPDATE SET
+           intento_evaluacion_id = EXCLUDED.intento_evaluacion_id,
+           nota = EXCLUDED.nota,
+           calificado_por = EXCLUDED.calificado_por,
+           calificado_en = CURRENT_TIMESTAMP
+         WHERE calificacion_actual.intento_evaluacion_id IS NULL
+            OR COALESCE((
+                 SELECT nuevo.numero_intento
+                 FROM intentos_evaluacion nuevo
+                 WHERE nuevo.id = EXCLUDED.intento_evaluacion_id
+               ), 0) >= COALESCE((
+                 SELECT anterior.numero_intento
+                 FROM intentos_evaluacion anterior
+                 WHERE anterior.id = calificacion_actual.intento_evaluacion_id
+               ), 0)`,
+        [componente.id, row.matriculaId, intentoId, nota, calificadoPor]
+      );
+    }
+  }
+
+  return {
+    estado,
+    puntosObtenidos: Number(puntosObtenidos.toFixed(2)),
+    puntajeTotal,
+    nota,
+  };
+}
+
 async function construirEstadoIntentos(
   client: PoolClient,
   contexto: ContextoEvaluacionAlumno
@@ -176,14 +317,21 @@ async function construirEstadoIntentos(
               contexto.tiempoLimiteMinutos * 60 - (tiempoUsadoSegundos ?? 0)
             );
 
+    const calificado = String(row.estado) === "Calificado";
+    const puntosFinales = Number(row.puntosObtenidos ?? 0);
+    const notaFinal = calificado && contexto.puntajeTotal !== null && contexto.puntajeTotal > 0
+      ? Math.max(0, Math.min(20, Number(((puntosFinales / contexto.puntajeTotal) * 20).toFixed(2))))
+      : null;
+
     return {
       id: String(row.id),
       numeroIntento: Number(row.numeroIntento),
       iniciadoEn: row.iniciadoEn,
       enviadoEn: row.enviadoEn,
       estado: String(row.estado),
-      puntosObtenidos: Number(row.puntosObtenidos ?? 0),
+      puntosObtenidos: calificado ? Number(puntosFinales.toFixed(2)) : null,
       puntajeTotal: contexto.puntajeTotal,
+      nota: notaFinal,
       tiempoUsadoSegundos,
       tiempoRestanteSegundos,
     };
@@ -370,233 +518,320 @@ export async function enviarIntentoEvaluacionAlumno(
   req: AuthenticatedRequest,
   res: Response
 ) {
-  const cursoId = idPositivo(req.params.cursoId);
-  const contenidoId = idPositivo(req.params.contenidoId);
-  const intentoId = idPositivo(req.params.intentoId);
-  const usuarioId = req.userId;
-  const respuestasEntrada = Array.isArray(req.body?.respuestas)
-    ? (req.body.respuestas as RespuestaIntentoEntrada[])
-    : [];
-
-  if (!cursoId || !contenidoId || !intentoId || !usuarioId) {
-    return res.status(400).json({ message: "Evaluación, intento o sesión no válidos." });
-  }
-
-  const client = await pool.connect();
+  const archivosTemporales = Array.isArray(req.files) ? req.files : [];
+  const clavesR2Nuevas: string[] = [];
+  const rutasR2Anteriores: string[] = [];
 
   try {
-    await client.query("BEGIN");
+    const cursoId = idPositivo(req.params.cursoId);
+    const contenidoId = idPositivo(req.params.contenidoId);
+    const intentoId = idPositivo(req.params.intentoId);
+    const usuarioId = req.userId;
+    const respuestasEntrada = parsearRespuestasEntrada(req.body?.respuestas);
 
-    const contexto = await obtenerContextoEvaluacionAlumno(
-      client,
-      cursoId,
-      contenidoId,
-      usuarioId
-    );
-
-    if (!contexto) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({
-        message: "La evaluación no existe o no tienes una matrícula válida para resolverla.",
-      });
+    if (!cursoId || !contenidoId || !intentoId || !usuarioId) {
+      return res.status(400).json({ message: "Evaluación, intento o sesión no válidos." });
+    }
+    if (!respuestasEntrada) {
+      return res.status(400).json({ message: "No se pudieron leer las respuestas del examen." });
     }
 
-    const intentoResult = await client.query(
-      `SELECT id, estado, iniciado_en
-       FROM intentos_evaluacion
-       WHERE id = $1
-         AND evaluacion_id = $2
-         AND matricula_id = $3
-       FOR UPDATE`,
-      [intentoId, contexto.evaluacionId, contexto.matriculaId]
-    );
-
-    if (!intentoResult.rowCount) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ message: "El intento no existe." });
-    }
-
-    if (intentoResult.rows[0].estado !== "En curso") {
-      await client.query("ROLLBACK");
-      return res.status(409).json({
-        message: "Este intento ya fue enviado y no puede modificarse.",
-      });
-    }
-
-    const preguntasResult = await client.query(
-      `SELECT id::TEXT AS id, tipo, puntaje::NUMERIC AS puntaje
-       FROM preguntas_evaluacion
-       WHERE evaluacion_id = $1
-       ORDER BY numero, id`,
-      [contexto.evaluacionId]
-    );
-
-    const preguntaIds = preguntasResult.rows.map((row) => String(row.id));
-
-    const opcionesResult = preguntaIds.length
-      ? await client.query(
-          `SELECT
-             id::TEXT AS id,
-             pregunta_id::TEXT AS "preguntaId",
-             es_correcta AS "esCorrecta"
-           FROM opciones_pregunta
-           WHERE pregunta_id = ANY($1::BIGINT[])`,
-          [preguntaIds]
-        )
-      : { rows: [] as Array<Record<string, unknown>> };
-
-    const relacionesResult = preguntaIds.length
-      ? await client.query(
-          `SELECT
-             id::TEXT AS id,
-             pregunta_id::TEXT AS "preguntaId",
-             elemento_derecha AS "elementoDerecha"
-           FROM relaciones_pregunta
-           WHERE pregunta_id = ANY($1::BIGINT[])`,
-          [preguntaIds]
-        )
-      : { rows: [] as Array<Record<string, unknown>> };
-
-    const entradaPorPregunta = new Map<string, RespuestaIntentoEntrada>();
-    for (const entrada of respuestasEntrada) {
-      const preguntaId = idPositivo(entrada?.preguntaId);
-      if (preguntaId) entradaPorPregunta.set(String(preguntaId), entrada);
-    }
-
-    await client.query(
-      "DELETE FROM respuestas_evaluacion WHERE intento_id = $1",
-      [intentoId]
-    );
-
-    let puntosObtenidos = 0;
-    let requiereRevision = false;
-
-    for (const pregunta of preguntasResult.rows) {
-      const preguntaId = String(pregunta.id);
-      const tipo = String(pregunta.tipo);
-      const puntaje = Number(pregunta.puntaje ?? 0);
-      const entrada = entradaPorPregunta.get(preguntaId) ?? {};
-
-      const opcionesValidas = opcionesResult.rows
-        .filter((opcion) => String(opcion.preguntaId) === preguntaId)
-        .map((opcion) => ({
-          id: String(opcion.id),
-          esCorrecta: opcion.esCorrecta === true,
-        }));
-
-      const idsOpcionesValidas = new Set(opcionesValidas.map((opcion) => opcion.id));
-      const opcionesSeleccionadas = Array.isArray(entrada.opcionesSeleccionadas)
-        ? Array.from(
-            new Set(
-              entrada.opcionesSeleccionadas
-                .map((valor) => String(valor))
-                .filter((valor) => idsOpcionesValidas.has(valor))
-            )
-          )
-        : [];
-
-      let textoRespuesta: string | null = null;
-      let esCorrecta: boolean | null = null;
-      let puntosPregunta: number | null = null;
-
-      if (["seleccion_unica", "seleccion_multiple", "verdadero_falso"].includes(tipo)) {
-        const correctas = opcionesValidas
-          .filter((opcion) => opcion.esCorrecta)
-          .map((opcion) => opcion.id)
-          .sort();
-        const seleccionadas = [...opcionesSeleccionadas].sort();
-
-        esCorrecta =
-          correctas.length === seleccionadas.length &&
-          correctas.every((id, index) => id === seleccionadas[index]);
-        puntosPregunta = esCorrecta ? puntaje : 0;
-      } else if (tipo === "respuesta_abierta") {
-        textoRespuesta =
-          typeof entrada.textoRespuesta === "string"
-            ? entrada.textoRespuesta.trim()
-            : "";
-        requiereRevision = true;
-      } else if (tipo === "relacional") {
-        const relacionesCorrectas = relacionesResult.rows
-          .filter((relacion) => String(relacion.preguntaId) === preguntaId)
-          .map((relacion) => ({
-            id: String(relacion.id),
-            derecha: String(relacion.elementoDerecha),
-          }));
-
-        const relacionesEntrada =
-          entrada.relaciones && typeof entrada.relaciones === "object" && !Array.isArray(entrada.relaciones)
-            ? (entrada.relaciones as Record<string, unknown>)
-            : {};
-
-        const relacionesLimpias = Object.fromEntries(
-          Object.entries(relacionesEntrada).map(([key, value]) => [key, String(value ?? "")])
-        );
-
-        textoRespuesta = JSON.stringify({ relaciones: relacionesLimpias });
-        esCorrecta =
-          relacionesCorrectas.length > 0 &&
-          relacionesCorrectas.every(
-            (relacion) => relacionesLimpias[relacion.id] === relacion.derecha
-          );
-        puntosPregunta = esCorrecta ? puntaje : 0;
+    const archivosPorPregunta = new Map<string, Express.Multer.File[]>();
+    for (const archivo of archivosTemporales) {
+      const match = /^archivo_(\d+)$/.exec(archivo.fieldname);
+      if (!match) {
+        return res.status(400).json({ message: "Uno de los archivos no está asociado a una pregunta." });
       }
+      const preguntaId = String(Number(match[1]));
+      const grupo = archivosPorPregunta.get(preguntaId) ?? [];
+      grupo.push(archivo);
+      archivosPorPregunta.set(preguntaId, grupo);
+    }
 
-      const respuestaResult = await client.query(
-        `INSERT INTO respuestas_evaluacion (
-           intento_id,
-           pregunta_id,
-           texto_respuesta,
-           es_correcta,
-           puntos_obtenidos
-         )
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [intentoId, preguntaId, textoRespuesta, esCorrecta, puntosPregunta]
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const contexto = await obtenerContextoEvaluacionAlumno(
+        client,
+        cursoId,
+        contenidoId,
+        usuarioId
       );
 
-      const respuestaId = respuestaResult.rows[0].id;
-      for (const opcionId of opcionesSeleccionadas) {
-        await client.query(
-          `INSERT INTO opciones_respuesta_evaluacion (respuesta_id, opcion_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [respuestaId, opcionId]
-        );
+      if (!contexto) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({
+          message: "La evaluación no existe o no tienes una matrícula válida para resolverla.",
+        });
       }
 
-      if (puntosPregunta !== null) puntosObtenidos += puntosPregunta;
+      const intentoResult = await client.query(
+        `SELECT id, estado, iniciado_en
+         FROM intentos_evaluacion
+         WHERE id = $1
+           AND evaluacion_id = $2
+           AND matricula_id = $3
+         FOR UPDATE`,
+        [intentoId, contexto.evaluacionId, contexto.matriculaId]
+      );
+
+      if (!intentoResult.rowCount) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ message: "El intento no existe." });
+      }
+
+      if (intentoResult.rows[0].estado !== "En curso") {
+        await client.query("ROLLBACK");
+        return res.status(409).json({
+          message: "Este intento ya fue enviado y no puede modificarse.",
+        });
+      }
+
+      const preguntasResult = await client.query(
+        `SELECT
+           id::TEXT AS id,
+           tipo,
+           puntaje::NUMERIC AS puntaje,
+           COALESCE(permite_archivos, FALSE) AS "permiteArchivos"
+         FROM preguntas_evaluacion
+         WHERE evaluacion_id = $1
+         ORDER BY numero, id`,
+        [contexto.evaluacionId]
+      );
+
+      const preguntaPorId = new Map<string, Record<string, unknown>>(
+        preguntasResult.rows.map((row) => [String(row.id), row])
+      );
+
+      for (const preguntaId of archivosPorPregunta.keys()) {
+        const pregunta = preguntaPorId.get(preguntaId);
+        if (!pregunta || pregunta.tipo !== "respuesta_abierta" || pregunta.permiteArchivos !== true) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({
+            message: "Solo puedes adjuntar archivos a preguntas de respuesta libre que permitan documentos.",
+          });
+        }
+      }
+
+      const preguntaIds = preguntasResult.rows.map((row) => String(row.id));
+      const opcionesResult = preguntaIds.length
+        ? await client.query(
+            `SELECT
+               id::TEXT AS id,
+               pregunta_id::TEXT AS "preguntaId",
+               es_correcta AS "esCorrecta"
+             FROM opciones_pregunta
+             WHERE pregunta_id = ANY($1::BIGINT[])`,
+            [preguntaIds]
+          )
+        : { rows: [] as Array<Record<string, unknown>> };
+
+      const relacionesResult = preguntaIds.length
+        ? await client.query(
+            `SELECT
+               id::TEXT AS id,
+               pregunta_id::TEXT AS "preguntaId",
+               elemento_derecha AS "elementoDerecha"
+             FROM relaciones_pregunta
+             WHERE pregunta_id = ANY($1::BIGINT[])`,
+            [preguntaIds]
+          )
+        : { rows: [] as Array<Record<string, unknown>> };
+
+      const entradaPorPregunta = new Map<string, RespuestaIntentoEntrada>();
+      for (const entrada of respuestasEntrada) {
+        const preguntaId = idPositivo(entrada?.preguntaId);
+        if (preguntaId) entradaPorPregunta.set(String(preguntaId), entrada);
+      }
+
+      const anterioresResult = await client.query(
+        `SELECT DISTINCT f.ruta_archivo
+         FROM archivos_respuesta_evaluacion f
+         JOIN respuestas_evaluacion re ON re.id = f.respuesta_id
+         WHERE re.intento_id = $1`,
+        [intentoId]
+      );
+      for (const row of anterioresResult.rows) {
+        if (typeof row.ruta_archivo === "string") rutasR2Anteriores.push(row.ruta_archivo);
+      }
+
+      await client.query(
+        "DELETE FROM respuestas_evaluacion WHERE intento_id = $1",
+        [intentoId]
+      );
+
+      for (const pregunta of preguntasResult.rows) {
+        const preguntaId = String(pregunta.id);
+        const tipo = String(pregunta.tipo);
+        const puntaje = Number(pregunta.puntaje ?? 0);
+        const entrada = entradaPorPregunta.get(preguntaId) ?? {};
+
+        const opcionesValidas = opcionesResult.rows
+          .filter((opcion) => String(opcion.preguntaId) === preguntaId)
+          .map((opcion) => ({
+            id: String(opcion.id),
+            esCorrecta: opcion.esCorrecta === true,
+          }));
+
+        const idsOpcionesValidas = new Set(opcionesValidas.map((opcion) => opcion.id));
+        const opcionesSeleccionadas = Array.isArray(entrada.opcionesSeleccionadas)
+          ? Array.from(
+              new Set(
+                entrada.opcionesSeleccionadas
+                  .map((valor) => String(valor))
+                  .filter((valor) => idsOpcionesValidas.has(valor))
+              )
+            )
+          : [];
+
+        let textoRespuesta: string | null = null;
+        let esCorrecta: boolean | null = null;
+        let puntosPregunta: number | null = null;
+
+        if (["seleccion_unica", "seleccion_multiple", "verdadero_falso"].includes(tipo)) {
+          const correctas = opcionesValidas
+            .filter((opcion) => opcion.esCorrecta)
+            .map((opcion) => opcion.id)
+            .sort();
+          const seleccionadas = [...opcionesSeleccionadas].sort();
+
+          esCorrecta =
+            correctas.length === seleccionadas.length &&
+            correctas.every((id, index) => id === seleccionadas[index]);
+          puntosPregunta = esCorrecta ? puntaje : 0;
+        } else if (tipo === "respuesta_abierta") {
+          textoRespuesta =
+            typeof entrada.textoRespuesta === "string"
+              ? entrada.textoRespuesta.trim()
+              : "";
+        } else if (tipo === "relacional") {
+          const relacionesCorrectas = relacionesResult.rows
+            .filter((relacion) => String(relacion.preguntaId) === preguntaId)
+            .map((relacion) => ({
+              id: String(relacion.id),
+              derecha: String(relacion.elementoDerecha),
+            }));
+
+          const relacionesEntrada =
+            entrada.relaciones && typeof entrada.relaciones === "object" && !Array.isArray(entrada.relaciones)
+              ? (entrada.relaciones as Record<string, unknown>)
+              : {};
+
+          const relacionesLimpias = Object.fromEntries(
+            Object.entries(relacionesEntrada).map(([key, value]) => [key, String(value ?? "")])
+          );
+
+          textoRespuesta = JSON.stringify({ relaciones: relacionesLimpias });
+          esCorrecta =
+            relacionesCorrectas.length > 0 &&
+            relacionesCorrectas.every(
+              (relacion) => relacionesLimpias[relacion.id] === relacion.derecha
+            );
+          puntosPregunta = esCorrecta ? puntaje : 0;
+        }
+
+        const respuestaResult = await client.query(
+          `INSERT INTO respuestas_evaluacion (
+             intento_id,
+             pregunta_id,
+             texto_respuesta,
+             es_correcta,
+             puntos_obtenidos
+           )
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id::TEXT AS id`,
+          [intentoId, preguntaId, textoRespuesta, esCorrecta, puntosPregunta]
+        );
+
+        const respuestaId = String(respuestaResult.rows[0].id);
+        for (const opcionId of opcionesSeleccionadas) {
+          await client.query(
+            `INSERT INTO opciones_respuesta_evaluacion (respuesta_id, opcion_id)
+             VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [respuestaId, opcionId]
+          );
+        }
+
+        const archivosPregunta = archivosPorPregunta.get(preguntaId) ?? [];
+        for (const archivo of archivosPregunta) {
+          const nombreArchivo = nombreArchivoSeguro(archivo.originalname);
+          const extension = path.extname(nombreArchivo).toLowerCase();
+          const mimeType = formatosArchivoEvaluacion[extension];
+          if (!mimeType) throw new Error("Formato de archivo no permitido.");
+
+          const claveR2 = `evaluation-responses/course-${cursoId}/content-${contenidoId}/attempt-${intentoId}/question-${preguntaId}/${randomUUID()}${extension}`;
+          await uploadFileToR2({
+            filePath: archivo.path,
+            key: claveR2,
+            contentType: mimeType,
+            contentLength: archivo.size,
+            originalName: nombreArchivo,
+          });
+          clavesR2Nuevas.push(claveR2);
+
+          await client.query(
+            `INSERT INTO archivos_respuesta_evaluacion (
+               respuesta_id, nombre_archivo, ruta_archivo, mime_type, tamano_bytes
+             ) VALUES ($1, $2, $3, $4, $5)`,
+            [respuestaId, nombreArchivo, `r2://${claveR2}`, mimeType, archivo.size]
+          );
+        }
+      }
+
+      await client.query(
+        `UPDATE intentos_evaluacion
+         SET enviado_en = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [intentoId]
+      );
+
+      const calificacion = await actualizarEstadoYNotaIntento(client, intentoId, null);
+      await client.query("COMMIT");
+
+      for (const ruta of rutasR2Anteriores) {
+        if (ruta.startsWith("r2://")) {
+          await deleteObjectFromR2(ruta.slice(5)).catch((error) => {
+            console.warn("No se pudo eliminar un archivo anterior de la respuesta:", error);
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Evaluación enviada correctamente.",
+        intento: {
+          id: String(intentoId),
+          estado: calificacion.estado,
+          puntosObtenidos: calificacion.estado === "Calificado" ? calificacion.puntosObtenidos : null,
+          puntajeTotal: calificacion.puntajeTotal,
+          nota: calificacion.estado === "Calificado" ? calificacion.nota : null,
+        },
+      });
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      for (const key of clavesR2Nuevas) {
+        await deleteObjectFromR2(key).catch((cleanupError) => {
+          console.warn("No se pudo limpiar un archivo de evaluación tras un error:", cleanupError);
+        });
+      }
+      throw error;
+    } finally {
+      client.release();
     }
-
-    const estadoFinal = requiereRevision ? "Enviado" : "Calificado";
-
-    const updateResult = await client.query(
-      `UPDATE intentos_evaluacion
-       SET estado = $2,
-           enviado_en = CURRENT_TIMESTAMP
-       WHERE id = $1
-       RETURNING enviado_en AS "enviadoEn"`,
-      [intentoId, estadoFinal]
-    );
-
-    await client.query("COMMIT");
-
-    return res.status(200).json({
-      message: "Evaluación enviada correctamente.",
-      intento: {
-        id: String(intentoId),
-        estado: estadoFinal,
-        enviadoEn: updateResult.rows[0]?.enviadoEn ?? null,
-        puntosObtenidos: Number(puntosObtenidos.toFixed(2)),
-        puntajeTotal: contexto.puntajeTotal,
-      },
-    });
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => undefined);
     console.error("Error enviando intento de evaluación:", error);
-    return res.status(500).json({ message: "No se pudo enviar la evaluación." });
+    return res.status(500).json({ message: "No se pudo enviar la evaluación ni guardar sus archivos." });
   } finally {
-    client.release();
+    await Promise.all(
+      archivosTemporales.map((archivo) =>
+        unlink(archivo.path).catch((cleanupError) => {
+          if ((cleanupError as NodeJS.ErrnoException).code !== "ENOENT") {
+            console.warn("No se pudo limpiar un archivo temporal de evaluación:", cleanupError);
+          }
+        })
+      )
+    );
   }
 }
 
@@ -789,6 +1024,21 @@ async function construirDetalleIntento(
       )
     : { rows: [] as Array<Record<string, unknown>> };
 
+  const archivosResult = respuestaIds.length
+    ? await client.query(
+        `SELECT
+           f.id::TEXT AS id,
+           f.respuesta_id::TEXT AS "respuestaId",
+           f.nombre_archivo AS "nombreArchivo",
+           f.mime_type AS "mimeType",
+           f.tamano_bytes::BIGINT AS "tamanoBytes"
+         FROM archivos_respuesta_evaluacion f
+         WHERE f.respuesta_id = ANY($1::BIGINT[])
+         ORDER BY f.id`,
+        [respuestaIds]
+      )
+    : { rows: [] as Array<Record<string, unknown>> };
+
   const relacionesResult = preguntaIds.length
     ? await client.query(
         `SELECT
@@ -841,6 +1091,14 @@ async function construirDetalleIntento(
             ? null
             : Number(pregunta.puntosObtenidos),
       },
+      archivos: archivosResult.rows
+        .filter((archivo) => respuestaId !== null && String(archivo.respuestaId) === respuestaId)
+        .map((archivo) => ({
+          id: String(archivo.id),
+          nombreArchivo: String(archivo.nombreArchivo),
+          mimeType: archivo.mimeType == null ? null : String(archivo.mimeType),
+          tamanoBytes: archivo.tamanoBytes == null ? null : Number(archivo.tamanoBytes),
+        })),
       opciones: opcionesResult.rows
         .filter((opcion) => String(opcion.preguntaId) === preguntaId)
         .map((opcion) => ({
@@ -872,6 +1130,9 @@ async function construirDetalleIntento(
     intento.enviadoEn,
     intento.tiempoLimiteMinutos == null ? null : Number(intento.tiempoLimiteMinutos)
   );
+  const notaFinal = intento.estado === "Calificado" && Number(intento.puntajeTotal ?? 0) > 0
+    ? Math.max(0, Math.min(20, Number(((puntosObtenidos / Number(intento.puntajeTotal)) * 20).toFixed(2))))
+    : null;
 
   return {
     contenido: {
@@ -900,6 +1161,7 @@ async function construirDetalleIntento(
       estado: String(intento.estado),
       puntosObtenidos: Number(puntosObtenidos.toFixed(2)),
       puntajeTotal: intento.puntajeTotal == null ? null : Number(intento.puntajeTotal),
+      nota: notaFinal,
       tiempoUsadoSegundos,
     },
     preguntas,
@@ -948,6 +1210,17 @@ export async function obtenerDetalleIntentoEvaluacionAlumno(
     const detalle = await construirDetalleIntento(client, cursoId, contenidoId, intentoId);
     if (!detalle) {
       return res.status(404).json({ message: "No se encontró el intento." });
+    }
+
+    if (detalle.intento.estado !== "Calificado") {
+      return res.status(200).json({
+        ...detalle,
+        intento: { ...detalle.intento, puntosObtenidos: null, nota: null },
+        preguntas: detalle.preguntas.map((pregunta) => ({
+          ...pregunta,
+          respuesta: { ...pregunta.respuesta, puntosObtenidos: null },
+        })),
+      });
     }
 
     return res.status(200).json(detalle);
@@ -1251,5 +1524,194 @@ export async function obtenerDetalleIntentoEvaluacionDocente(
     return res.status(500).json({ message: "No se pudo cargar el detalle del intento." });
   } finally {
     client.release();
+  }
+}
+
+/** PATCH /api/cursos/:cursoId/contenidos/:contenidoId/evaluacion/docente/alumnos/:alumnoId/intentos/:intentoId/preguntas/:preguntaId/calificacion */
+export async function calificarRespuestaEvaluacionDocente(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  const cursoId = idPositivo(req.params.cursoId);
+  const contenidoId = idPositivo(req.params.contenidoId);
+  const alumnoId = idPositivo(req.params.alumnoId);
+  const intentoId = idPositivo(req.params.intentoId);
+  const preguntaId = idPositivo(req.params.preguntaId);
+  const usuarioId = idPositivo(req.userId);
+  const valorPuntaje = req.body?.puntosObtenidos;
+  const puntos = valorPuntaje === "" || valorPuntaje === null || valorPuntaje === undefined
+    ? Number.NaN
+    : Number(valorPuntaje);
+
+  if (!cursoId || !contenidoId || !alumnoId || !intentoId || !preguntaId || !usuarioId) {
+    return res.status(400).json({ message: "Evaluación, intento, pregunta o sesión no válidos." });
+  }
+  if (!Number.isFinite(puntos) || puntos < 0 || Math.abs(puntos * 100 - Math.round(puntos * 100)) > 1e-8) {
+    return res.status(400).json({ message: "Escribe un puntaje válido con hasta dos decimales." });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const acceso = await docenteTieneAccesoCurso(client, cursoId, String(usuarioId));
+    if (!acceso) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({ message: "No tienes acceso docente a este curso." });
+    }
+
+    const respuestaResult = await client.query(
+      `SELECT
+         ie.id::TEXT AS id,
+         ie.estado,
+         ie.matricula_id::TEXT AS "matriculaId",
+         ie.evaluacion_id::TEXT AS "evaluacionId",
+         p.puntaje::NUMERIC AS "puntajeMaximo",
+         p.tipo
+       FROM intentos_evaluacion ie
+       JOIN matriculas m ON m.id = ie.matricula_id
+       JOIN ofertas_curso oc ON oc.id = m.oferta_curso_id
+       JOIN evaluaciones e ON e.id = ie.evaluacion_id
+       JOIN contenidos_curso cc ON cc.id = e.contenido_id
+       JOIN modulos_curso mc ON mc.id = cc.modulo_id
+       JOIN preguntas_evaluacion p ON p.evaluacion_id = e.id
+       JOIN respuestas_evaluacion re
+         ON re.intento_id = ie.id
+        AND re.pregunta_id = p.id
+       WHERE ie.id = $1
+         AND m.estudiante_id = $2
+         AND cc.id = $3
+         AND mc.curso_id = $4
+         AND p.id = $5
+         AND p.tipo = 'respuesta_abierta'
+         AND oc.docente_id = $6
+         AND oc.estado <> 'Cancelado'
+         AND ie.estado IN ('Enviado', 'Calificado')
+       FOR UPDATE OF ie, re`,
+      [intentoId, alumnoId, contenidoId, cursoId, preguntaId, usuarioId]
+    );
+
+    if (!respuestaResult.rowCount) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "No se encontró la respuesta o no pertenece a una pregunta abierta de este curso." });
+    }
+
+    const respuesta = respuestaResult.rows[0];
+    const maximo = Number(respuesta.puntajeMaximo ?? 0);
+    if (puntos > maximo) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: `El puntaje no puede superar ${maximo.toFixed(2)} puntos.` });
+    }
+
+    await client.query(
+      `UPDATE respuestas_evaluacion
+       SET puntos_obtenidos = $1
+       WHERE intento_id = $2
+         AND pregunta_id = $3`,
+      [puntos, intentoId, preguntaId]
+    );
+
+    const calificacion = await actualizarEstadoYNotaIntento(client, intentoId, usuarioId);
+    await client.query("COMMIT");
+
+    return res.status(200).json({
+      message: calificacion.estado === "Calificado"
+        ? "Puntaje guardado. El examen terminó de calificarse y la nota quedó publicada."
+        : "Puntaje guardado. Todavía hay preguntas pendientes de calificación.",
+      preguntaId: String(preguntaId),
+      puntosObtenidos: puntos,
+      intento: {
+        id: String(intentoId),
+        estado: calificacion.estado,
+        puntosObtenidos: calificacion.estado === "Calificado" ? calificacion.puntosObtenidos : null,
+        puntajeTotal: calificacion.puntajeTotal,
+        nota: calificacion.estado === "Calificado" ? calificacion.nota : null,
+      },
+    });
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    console.error("Error calificando pregunta abierta de evaluación:", error);
+    return res.status(500).json({ message: "No se pudo guardar el puntaje de la pregunta." });
+  } finally {
+    client.release();
+  }
+}
+
+/** GET /api/cursos/:cursoId/contenidos/:contenidoId/evaluacion/archivo/:archivoId */
+export async function descargarArchivoRespuestaEvaluacion(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  const cursoId = idPositivo(req.params.cursoId);
+  const contenidoId = idPositivo(req.params.contenidoId);
+  const archivoId = idPositivo(req.params.archivoId);
+  const usuarioId = idPositivo(req.userId);
+
+  if (!cursoId || !contenidoId || !archivoId || !usuarioId) {
+    return res.status(400).json({ message: "Archivo o sesión no válidos." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+         f.ruta_archivo AS "rutaArchivo",
+         f.nombre_archivo AS "nombreArchivo",
+         f.mime_type AS "mimeType"
+       FROM archivos_respuesta_evaluacion f
+       JOIN respuestas_evaluacion re ON re.id = f.respuesta_id
+       JOIN intentos_evaluacion ie ON ie.id = re.intento_id
+       JOIN evaluaciones e ON e.id = ie.evaluacion_id
+       JOIN contenidos_curso cc ON cc.id = e.contenido_id
+       JOIN modulos_curso mc ON mc.id = cc.modulo_id
+       JOIN cursos c ON c.id = mc.curso_id
+       JOIN matriculas m ON m.id = ie.matricula_id
+       JOIN ofertas_curso oc ON oc.id = m.oferta_curso_id
+       JOIN usuarios u ON u.id = $4 AND u.activo = TRUE
+       WHERE f.id = $3
+         AND c.id = $1
+         AND cc.id = $2
+         AND ie.estado IN ('Enviado', 'Calificado')
+         AND (
+           (u.rol = 'Estudiante' AND m.estudiante_id = u.id AND m.estado IN ('Activa', 'Completada'))
+           OR
+           (u.rol = 'Docente' AND oc.docente_id = u.id AND oc.estado <> 'Cancelado')
+         )
+       LIMIT 1`,
+      [cursoId, contenidoId, archivoId, usuarioId]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "El archivo no existe o no tienes permiso para consultarlo." });
+    }
+
+    const row = result.rows[0];
+    const ruta = typeof row.rutaArchivo === "string" ? row.rutaArchivo : "";
+    if (!ruta.startsWith("r2://") || !ruta.slice(5)) {
+      return res.status(404).json({ message: "El documento no está disponible en Cloudflare R2." });
+    }
+
+    let object;
+    try {
+      object = await getObjectFromR2(ruta.slice(5));
+    } catch (error) {
+      if (isR2NotFoundError(error)) {
+        return res.status(404).json({ message: "El documento ya no está disponible en Cloudflare R2." });
+      }
+      throw error;
+    }
+
+    if (!object.Body) {
+      return res.status(404).json({ message: "El documento no contiene datos." });
+    }
+
+    const nombre = nombreArchivoSeguro(String(row.nombreArchivo ?? "archivo"));
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Content-Type", String(row.mimeType ?? "application/octet-stream"));
+    res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(nombre)}`);
+    streamBodyToResponse(object.Body, res);
+  } catch (error) {
+    console.error("Error descargando archivo de respuesta de evaluación:", error);
+    if (!res.headersSent) return res.status(500).json({ message: "No se pudo descargar el documento." });
   }
 }

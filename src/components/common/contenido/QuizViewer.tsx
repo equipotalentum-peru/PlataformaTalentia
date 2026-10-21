@@ -88,8 +88,9 @@ type AttemptSummary = {
   iniciadoEn: string;
   enviadoEn: string | null;
   estado: string;
-  puntosObtenidos: number;
+  puntosObtenidos: number | null;
   puntajeTotal: number | null;
+  nota: number | null;
   tiempoUsadoSegundos: number | null;
   tiempoRestanteSegundos: number | null;
 };
@@ -219,7 +220,7 @@ export default function QuizViewer({
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
   const [textAnswers, setTextAnswers] = useState<Record<string, string>>({});
   const [relationAnswers, setRelationAnswers] = useState<Record<string, Record<string, string>>>({});
-  const [selectedFiles, setSelectedFiles] = useState<Record<string, string[]>>({});
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File[]>>({});
   const [attemptStatus, setAttemptStatus] = useState<AttemptStatusResponse | null>(null);
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(null);
   const [activeAttemptNumber, setActiveAttemptNumber] = useState<number | null>(null);
@@ -227,6 +228,7 @@ export default function QuizViewer({
   const [startingAttempt, setStartingAttempt] = useState(false);
   const [submittingAttempt, setSubmittingAttempt] = useState(false);
   const finalizandoRef = useRef(false);
+  const ultimoIntento = attemptStatus?.intentos[attemptStatus.intentos.length - 1] ?? null;
 
   const cargarEstadoIntentos = useCallback(
     async (signal?: AbortSignal): Promise<AttemptStatusResponse | null> => {
@@ -480,16 +482,21 @@ export default function QuizViewer({
         textoRespuesta: textAnswers[item.id] ?? "",
         relaciones: relationAnswers[item.id] ?? {},
       }));
+      const formData = new FormData();
+      formData.append("respuestas", JSON.stringify(respuestas));
+      for (const item of questions) {
+        if (!item.allowFiles) continue;
+        for (const file of selectedFiles[item.id] ?? []) {
+          formData.append(`archivo_${item.id}`, file, file.name);
+        }
+      }
 
       const response = await fetch(
         `${API_URL}/cursos/${encodeURIComponent(String(courseId))}/contenidos/${encodeURIComponent(String(databaseContentId))}/evaluacion/intentos/${encodeURIComponent(activeAttemptId)}/enviar`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ respuestas }),
+          body: formData,
         }
       );
 
@@ -685,6 +692,26 @@ export default function QuizViewer({
           </div>
         )}
 
+        {databaseContentId && !preview && ultimoIntento && ultimoIntento.estado !== "En curso" && (
+          <div className="mt-3 rounded-lg border border-talentia-border bg-talentia-selected/30 px-4 py-3 text-sm text-talentia-primary">
+            {ultimoIntento.estado === "Calificado" ? (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold">Última nota publicada</span>
+                <span className="font-bold">
+                  {ultimoIntento.nota !== null ? `${ultimoIntento.nota.toFixed(2)} / 20` : "Calificado"}
+                  {ultimoIntento.puntosObtenidos !== null && ultimoIntento.puntajeTotal !== null
+                    ? ` · ${ultimoIntento.puntosObtenidos.toFixed(2)} / ${ultimoIntento.puntajeTotal.toFixed(2)} pts`
+                    : ""}
+                </span>
+              </div>
+            ) : (
+              <p>
+                Tu último intento está pendiente de calificación. La nota aparecerá aquí y en Calificaciones cuando todas las preguntas tengan puntaje.
+              </p>
+            )}
+          </div>
+        )}
+
         {attemptError && (
           <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {attemptError}
@@ -800,17 +827,18 @@ export default function QuizViewer({
                     id={`archivo-${question.id}`}
                     type="file"
                     multiple
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar"
                     onChange={(event) =>
                       setSelectedFiles((current) => ({
                         ...current,
-                        [question.id]: Array.from(event.target.files ?? []).map((file) => file.name),
+                        [question.id]: Array.from(event.target.files ?? []),
                       }))
                     }
                     className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-talentia-selected file:px-3 file:py-2 file:text-sm file:font-semibold file:text-talentia-primary"
                   />
                   {(selectedFiles[question.id] ?? []).length > 0 && (
                     <p className="mt-2 text-xs text-talentia-muted">
-                      Seleccionados: {(selectedFiles[question.id] ?? []).join(", ")}
+                      Seleccionados: {(selectedFiles[question.id] ?? []).map((file) => file.name).join(", ")}
                     </p>
                   )}
                 </div>
@@ -897,7 +925,9 @@ export default function QuizViewer({
         </h2>
         <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-talentia-primary">
           {databaseContentId && !preview
-            ? "Tus respuestas fueron enviadas y el intento quedó guardado en la base de datos."
+            ? attemptStatus?.intentos[attemptStatus.intentos.length - 1]?.estado === "Calificado"
+              ? "Tu evaluación ya fue calificada. Puedes consultar la nota en este resumen y en Calificaciones."
+              : "Tus respuestas fueron enviadas y quedaron guardadas. La nota estará disponible cuando todas las preguntas estén calificadas."
             : "Has llegado al final de esta evaluación."}
         </p>
 
@@ -944,7 +974,10 @@ export default function QuizViewer({
                     </span>
                     {intento.estado === "Calificado" && intento.puntajeTotal !== null && (
                       <span className="rounded-full bg-white px-3 py-1.5 font-semibold text-talentia-primary">
-                        {intento.puntosObtenidos.toFixed(2)} / {intento.puntajeTotal.toFixed(2)} pts
+                        {intento.nota !== null ? `Nota: ${intento.nota.toFixed(2)} / 20` : "Calificado"}
+                        {intento.puntosObtenidos !== null
+                          ? ` · ${intento.puntosObtenidos.toFixed(2)} / ${intento.puntajeTotal.toFixed(2)} pts`
+                          : ""}
                       </span>
                     )}
                     {["Enviado", "Calificado"].includes(intento.estado) && (
