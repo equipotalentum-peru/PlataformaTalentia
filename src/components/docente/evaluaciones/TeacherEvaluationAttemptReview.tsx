@@ -340,14 +340,19 @@ export default function TeacherEvaluationAttemptReview({
 
             <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-talentia-border pt-4 text-xs">
               {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Correcta</span>}
-              {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>}
+              {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) > 0 && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Parcialmente correcta</span>}
+              {question.respuesta.esCorrecta === false && Number(question.respuesta.puntosObtenidos ?? 0) <= 0 && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Incorrecta</span>}
               {question.respuesta.puntosObtenidos === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
               {question.tipo !== "respuesta_abierta" && <span className="rounded-full bg-talentia-selected px-3 py-1.5 font-semibold text-talentia-primary">{Number(question.respuesta.puntosObtenidos ?? 0).toFixed(2)} / {question.puntaje.toFixed(2)} pts</span>}
             </div>
             {question.tipo === "respuesta_abierta" && (
               <div className="mt-4 flex flex-col gap-3 rounded-lg bg-talentia-selected/30 p-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="w-full sm:max-w-[240px]">
-                  <label htmlFor={`puntaje-${question.id}`} className="mb-1.5 block text-xs font-semibold text-talentia-primary">Puntos obtenidos (máximo {question.puntaje})</label>
+                  <label htmlFor={`puntaje-${question.id}`} className="mb-1.5 block text-xs font-semibold text-talentia-primary">
+                    {question.respuesta.puntosObtenidos !== null
+                      ? `Puntaje guardado: ${Number(question.respuesta.puntosObtenidos).toFixed(2)} / ${question.puntaje} pts`
+                      : `Puntos obtenidos (máximo ${question.puntaje})`}
+                  </label>
                   <input
                     id={`puntaje-${question.id}`}
                     type="number"
@@ -356,12 +361,16 @@ export default function TeacherEvaluationAttemptReview({
                     step="0.01"
                     value={puntajesBorrador[question.id] ?? ""}
                     onChange={(event) => setPuntajesBorrador((current) => ({ ...current, [question.id]: event.target.value }))}
-                    disabled={preguntaGuardando === question.id}
-                    className="w-full rounded-md border border-talentia-border bg-white px-3 py-2 text-sm text-talentia-primary outline-none focus:border-talentia-blue disabled:opacity-60"
+                    disabled={preguntaGuardando === question.id || question.respuesta.puntosObtenidos !== null}
+                    className="w-full rounded-md border border-talentia-border bg-white px-3 py-2 text-sm text-talentia-primary outline-none focus:border-talentia-blue disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
-                <button type="button" onClick={() => void guardarPuntaje(question)} disabled={preguntaGuardando !== null} className="rounded-md bg-talentia-action px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60">
-                  {preguntaGuardando === question.id ? "Guardando..." : "Guardar puntaje"}
+                <button type="button" onClick={() => void guardarPuntaje(question)} disabled={preguntaGuardando !== null || question.respuesta.puntosObtenidos !== null} className="rounded-md bg-talentia-action px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60">
+                  {preguntaGuardando === question.id
+                    ? "Guardando..."
+                    : question.respuesta.puntosObtenidos !== null
+                      ? "Pregunta calificada"
+                      : "Guardar puntaje"}
                 </button>
               </div>
             )}

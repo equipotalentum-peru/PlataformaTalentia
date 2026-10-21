@@ -31,48 +31,26 @@ function calcularPromedio(
     porcentaje: number | null;
   }>
 ) {
-  const calificadas = notas.filter(
-    (item) => item.nota !== null
+  // El peso representa el porcentaje real del curso: nota * porcentaje / 100.
+  const calificadasConPeso = notas.filter(
+    (item) =>
+      item.nota !== null &&
+      Number(item.porcentaje ?? 0) > 0
   );
 
-  if (calificadas.length === 0) {
+  if (calificadasConPeso.length === 0) {
     return null;
   }
 
-  const conPeso = calificadas.filter(
-    (item) => Number(item.porcentaje ?? 0) > 0
-  );
-
-  if (conPeso.length > 0) {
-    const pesoTotal = conPeso.reduce(
-      (total, item) =>
-        total + Number(item.porcentaje ?? 0),
-      0
-    );
-
-    if (pesoTotal > 0) {
-      const sumaPonderada = conPeso.reduce(
-        (total, item) =>
-          total +
-          Number(item.nota) *
-            Number(item.porcentaje ?? 0),
-        0
-      );
-
-      return Number(
-        (sumaPonderada / pesoTotal).toFixed(2)
-      );
-    }
-  }
-
-  const suma = calificadas.reduce(
-    (total, item) => total + Number(item.nota),
+  const promedioPonderado = calificadasConPeso.reduce(
+    (total, item) =>
+      total +
+      Number(item.nota) *
+        (Number(item.porcentaje ?? 0) / 100),
     0
   );
 
-  return Number(
-    (suma / calificadas.length).toFixed(2)
-  );
+  return Number(promedioPonderado.toFixed(2));
 }
 
 async function validarDocente(

@@ -331,7 +331,8 @@ export default function StudentEvaluationAttemptReview({
               ) : (
                 <>
                   {question.respuesta.esCorrecta === true && <span className="rounded-full bg-emerald-100 px-3 py-1.5 font-semibold text-emerald-800">Respuesta correcta</span>}
-                  {question.respuesta.esCorrecta === false && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Respuesta incorrecta</span>}
+                  {question.respuesta.esCorrecta === false && detail.intento.estado === "Calificado" && Number(question.respuesta.puntosObtenidos ?? 0) > 0 && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Parcialmente correcta</span>}
+                  {question.respuesta.esCorrecta === false && !(detail.intento.estado === "Calificado" && Number(question.respuesta.puntosObtenidos ?? 0) > 0) && <span className="rounded-full bg-rose-100 px-3 py-1.5 font-semibold text-rose-800">Respuesta incorrecta</span>}
                   {question.respuesta.esCorrecta === null && <span className="rounded-full bg-amber-100 px-3 py-1.5 font-semibold text-amber-800">Pendiente de revisión</span>}
                 </>
               )}

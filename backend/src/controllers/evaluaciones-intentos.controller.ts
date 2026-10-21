@@ -697,9 +697,29 @@ export async function enviarIntentoEvaluacionAlumno(
           const seleccionadas = [...opcionesSeleccionadas].sort();
 
           esCorrecta =
+            correctas.length > 0 &&
             correctas.length === seleccionadas.length &&
             correctas.every((id, index) => id === seleccionadas[index]);
-          puntosPregunta = esCorrecta ? puntaje : 0;
+
+          if (esCorrecta) {
+            puntosPregunta = puntaje;
+          } else if (tipo === "seleccion_multiple" && correctas.length > 0) {
+            // Crédito parcial: cada opción correcta seleccionada aporta una parte
+            // proporcional del puntaje, igual que cada relación acertada. La
+            // cantidad seleccionada también se considera para que marcar opciones
+            // incorrectas no permita obtener automáticamente el puntaje completo.
+            const conjuntoCorrectas = new Set(correctas);
+            const aciertos = seleccionadas.filter((id) => conjuntoCorrectas.has(id)).length;
+            const cantidadComparada = Math.max(correctas.length, seleccionadas.length);
+            puntosPregunta = Number(
+              Math.max(
+                0,
+                Math.min(puntaje, puntaje * aciertos / cantidadComparada)
+              ).toFixed(2)
+            );
+          } else {
+            puntosPregunta = 0;
+          }
         } else if (tipo === "respuesta_abierta") {
           textoRespuesta =
             typeof entrada.textoRespuesta === "string"
@@ -723,12 +743,17 @@ export async function enviarIntentoEvaluacionAlumno(
           );
 
           textoRespuesta = JSON.stringify({ relaciones: relacionesLimpias });
+          const aciertosRelacion = relacionesCorrectas.filter(
+            (relacion) => relacionesLimpias[relacion.id] === relacion.derecha
+          ).length;
           esCorrecta =
             relacionesCorrectas.length > 0 &&
-            relacionesCorrectas.every(
-              (relacion) => relacionesLimpias[relacion.id] === relacion.derecha
-            );
-          puntosPregunta = esCorrecta ? puntaje : 0;
+            aciertosRelacion === relacionesCorrectas.length;
+          puntosPregunta = esCorrecta
+            ? puntaje
+            : relacionesCorrectas.length > 0
+              ? Number((puntaje * aciertosRelacion / relacionesCorrectas.length).toFixed(2))
+              : 0;
         }
 
         const respuestaResult = await client.query(
@@ -1571,7 +1596,8 @@ export async function calificarRespuestaEvaluacionDocente(
          ie.matricula_id::TEXT AS "matriculaId",
          ie.evaluacion_id::TEXT AS "evaluacionId",
          p.puntaje::NUMERIC AS "puntajeMaximo",
-         p.tipo
+         p.tipo,
+         re.puntos_obtenidos::NUMERIC AS "puntosObtenidos"
        FROM intentos_evaluacion ie
        JOIN matriculas m ON m.id = ie.matricula_id
        JOIN ofertas_curso oc ON oc.id = m.oferta_curso_id
@@ -1601,6 +1627,11 @@ export async function calificarRespuestaEvaluacionDocente(
     }
 
     const respuesta = respuestaResult.rows[0];
+    if (respuesta.puntosObtenidos !== null && respuesta.puntosObtenidos !== undefined) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ message: "Esta pregunta ya fue calificada y no se puede modificar." });
+    }
+
     const maximo = Number(respuesta.puntajeMaximo ?? 0);
     if (puntos > maximo) {
       await client.query("ROLLBACK");

@@ -265,7 +265,7 @@ export default function TeacherEvaluationTracking({
                     <th className="px-4 py-3 text-left font-semibold text-talentia-primary">Alumno</th>
                     <th className="px-4 py-3 text-center font-semibold text-talentia-primary">Intentos</th>
                     <th className="px-4 py-3 text-center font-semibold text-talentia-primary">Estado</th>
-                    <th className="px-4 py-3 text-center font-semibold text-talentia-primary">Nota último intento</th>
+                    <th className="px-4 py-3 text-center font-semibold text-talentia-primary">Nota</th>
                   </tr>
                 </thead>
                 <tbody>

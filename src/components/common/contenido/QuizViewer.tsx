@@ -537,10 +537,6 @@ export default function QuizViewer({
     }
   }
 
-  function goPreviousQuestion() {
-    setCurrentQuestion((current) => Math.max(0, current - 1));
-  }
-
   function toggleOption(questionId: string, optionId: string, multiple: boolean) {
     setSelectedOptions((current) => {
       const previous = current[questionId] ?? [];
@@ -672,7 +668,7 @@ export default function QuizViewer({
         <div className="space-y-4 px-1 pt-2 text-sm font-semibold leading-relaxed text-talentia-primary">
           <p>1. Una vez iniciado, {durationMinutes ? `cuentas con ${durationMinutes} minutos para resolverlo` : "puedes resolverlo sin límite de tiempo"}.</p>
           <p>2. La evaluación consta de {totalQuestions} {totalQuestions === 1 ? "pregunta" : "preguntas"}.</p>
-          <p>3. Puedes utilizar Anterior y Siguiente para revisar las preguntas antes de terminar.</p>
+          <p>3. Después de avanzar a la siguiente pregunta, no podrás volver a la anterior.</p>
           <p>4. Respeta las instrucciones y completa las respuestas que correspondan.</p>
           <p>5. Al terminar, tus respuestas se guardarán y el intento quedará registrado.</p>
         </div>
@@ -889,15 +885,7 @@ export default function QuizViewer({
             </p>
           )}
 
-          <div className="mt-10 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={goPreviousQuestion}
-              disabled={currentQuestion === 0}
-              className="rounded-md border border-talentia-border bg-talentia-surface px-5 py-2.5 text-sm text-talentia-primary transition hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              ← Anterior
-            </button>
+          <div className="mt-10 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={goNextQuestion}

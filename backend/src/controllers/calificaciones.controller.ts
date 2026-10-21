@@ -17,67 +17,27 @@ type ComponenteFila = {
 function calcularPromedio(
   componentes: ComponenteFila[]
 ) {
-  const calificados = componentes.filter(
+  // Cada nota aporta al promedio del curso según el porcentaje configurado
+  // para su componente. No se reescala según los componentes ya calificados.
+  const conNotaYPeso = componentes.filter(
     (componente) =>
-      componente.nota !== null
+      componente.nota !== null &&
+      Number(componente.porcentaje ?? 0) > 0
   );
 
-  if (calificados.length === 0) {
+  if (conNotaYPeso.length === 0) {
     return null;
   }
 
-  const conPeso = calificados.filter(
-    (componente) =>
-      Number(
-        componente.porcentaje ?? 0
-      ) > 0
+  const promedioPonderado = conNotaYPeso.reduce(
+    (total, componente) =>
+      total +
+      Number(componente.nota) *
+        (Number(componente.porcentaje ?? 0) / 100),
+    0
   );
 
-  if (conPeso.length > 0) {
-    const pesoTotal =
-      conPeso.reduce(
-        (total, componente) =>
-          total +
-          Number(
-            componente.porcentaje ?? 0
-          ),
-        0
-      );
-
-    if (pesoTotal > 0) {
-      const sumaPonderada =
-        conPeso.reduce(
-          (total, componente) =>
-            total +
-            Number(componente.nota) *
-              Number(
-                componente.porcentaje ?? 0
-              ),
-          0
-        );
-
-      return Number(
-        (
-          sumaPonderada / pesoTotal
-        ).toFixed(2)
-      );
-    }
-  }
-
-  const suma =
-    calificados.reduce(
-      (total, componente) =>
-        total +
-        Number(componente.nota),
-      0
-    );
-
-  return Number(
-    (
-      suma /
-      calificados.length
-    ).toFixed(2)
-  );
+  return Number(promedioPonderado.toFixed(2));
 }
 
 export async function obtenerMisCalificaciones(

@@ -137,105 +137,37 @@ function calcularPromedioFila(
   row: TeacherGradeRow,
   componentes: ComponenteCalificacion[]
 ) {
-  const notas =
-    row.calificaciones
-
-      .map((calificacion) => {
-        const componente =
-          componentes.find(
-            (item) =>
-              item.id ===
-              calificacion.componenteId
-          );
-
-        return {
-          nota:
-            calificacion.nota,
-
-          porcentaje:
-            componente?.porcentaje ??
-            null,
-        };
-      })
-
-      .filter(
-        (item) =>
-          item.nota !== null
+  const notasConPeso = row.calificaciones
+    .map((calificacion) => {
+      const componente = componentes.find(
+        (item) => item.id === calificacion.componenteId
       );
 
-  if (
-    notas.length === 0
-  ) {
+      return {
+        nota: calificacion.nota,
+        porcentaje: componente?.porcentaje ?? null,
+      };
+    })
+    .filter(
+      (item) =>
+        item.nota !== null &&
+        Number(item.porcentaje ?? 0) > 0
+    );
+
+  if (notasConPeso.length === 0) {
     return null;
   }
 
-  const conPeso =
-    notas.filter(
-      (item) =>
-        Number(
-          item.porcentaje ?? 0
-        ) > 0
-    );
-
-  if (
-    conPeso.length > 0
-  ) {
-    const pesoTotal =
-      conPeso.reduce(
-        (
-          total,
-          item
-        ) =>
-          total +
-          Number(
-            item.porcentaje ?? 0
-          ),
-        0
-      );
-
-    if (pesoTotal > 0) {
-      const sumaPonderada =
-        conPeso.reduce(
-          (
-            total,
-            item
-          ) =>
-            total +
-            Number(item.nota) *
-              Number(
-                item.porcentaje ?? 0
-              ),
-          0
-        );
-
-      return Number(
-        (
-          sumaPonderada /
-          pesoTotal
-        ).toFixed(2)
-      );
-    }
-  }
-
-  const suma =
-    notas.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        Number(item.nota),
-      0
-    );
-
-  return Number(
-    (
-      suma /
-      notas.length
-    ).toFixed(2)
+  const promedioPonderado = notasConPeso.reduce(
+    (total, item) =>
+      total +
+      Number(item.nota) *
+        (Number(item.porcentaje ?? 0) / 100),
+    0
   );
-}
 
+  return Number(promedioPonderado.toFixed(2));
+}
 function nombreCortoComponente(
   componente: ComponenteCalificacion
 ) {
