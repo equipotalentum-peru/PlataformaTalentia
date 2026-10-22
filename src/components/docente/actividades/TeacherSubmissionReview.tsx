@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
+import TeacherRubricScoringModal from "./TeacherRubricScoringModal";
 
 type Props = { courseId: number; activityId: number; studentId: number; initialSubmissionId?: number };
 
@@ -22,6 +23,37 @@ type Submission = {
   archivo_id: number | null;
   nombre_archivo: string | null;
   tamano_bytes: number | null;
+  criterios_calificados?: SavedCriterionScore[] | null;
+};
+
+type RubricCriterion = {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  puntaje_maximo: number | string;
+  orden?: number;
+};
+
+type RubricInfo = {
+  id?: number;
+  titulo?: string;
+  ruta_archivo?: string | null;
+  nombre_archivo?: string | null;
+  criterios: RubricCriterion[];
+};
+
+type SavedCriterionScore = {
+  criterio_rubrica_id: number | null;
+  nombre_criterio: string;
+  descripcion_criterio?: string | null;
+  puntaje_maximo: number | string;
+  puntaje_obtenido: number | string;
+  orden: number;
+};
+
+type EditableCriterionScore = {
+  criterioId: number;
+  puntaje: string;
 };
 
 type ActivityInfo = {
@@ -201,10 +233,37 @@ function DetailRow({ icon, label, children }: { icon: "calendar" | "check" | "st
   return <div className="activity-side-item"><span className="activity-icon-circle"><Icon type={icon} size={19} /></span><div className="min-w-0 flex-1"><p className="text-talentia-blue">{label}</p><div className="text-[10px] leading-[1.35] text-talentia-primary">{children}</div></div></div>;
 }
 
+function buildEditableScores(
+  rubric: RubricInfo | null,
+  submission: Submission | null | undefined,
+): EditableCriterionScore[] {
+  if (!rubric || rubric.ruta_archivo || rubric.criterios.length === 0) return [];
+
+  const saved = submission?.criterios_calificados ?? [];
+  return rubric.criterios.map((criterion, index) => {
+    const existing = saved.find((item) =>
+      (item.criterio_rubrica_id != null && Number(item.criterio_rubrica_id) === Number(criterion.id)) ||
+      (item.nombre_criterio === criterion.nombre && Number(item.orden) === Number(criterion.orden ?? index + 1))
+    );
+
+    return {
+      criterioId: Number(criterion.id),
+      puntaje: existing ? String(existing.puntaje_obtenido) : "",
+    };
+  });
+}
+
+function formatPoints(value: number): string {
+  return String(Math.round(value * 100) / 100);
+}
+
 export default function TeacherSubmissionReview({ courseId, activityId, studentId, initialSubmissionId }: Props) {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
   const [activity, setActivity] = useState<ActivityInfo>({});
+  const [rubrica, setRubrica] = useState<RubricInfo | null>(null);
+  const [showRubricScoring, setShowRubricScoring] = useState(false);
+  const [criterionScores, setCriterionScores] = useState<EditableCriterionScore[]>([]);
   const [grade, setGrade] = useState("");
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
@@ -234,6 +293,10 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
 
       setActivity(data.actividad ?? {});
       setSubmissions(items);
+      const loadedRubric = data.rubrica && typeof data.rubrica === "object"
+        ? (data.rubrica as RubricInfo)
+        : null;
+      setRubrica(loadedRubric);
 
       // Al entrar, se selecciona el primer intento pendiente de nota; si todos
       // ya fueron calificados, se muestra el intento más reciente. Al guardar,
@@ -257,6 +320,8 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
       setSelectedSubmissionId(selected?.entrega_id ?? null);
       setGrade(selected?.nota == null ? "" : String(selected.nota));
       setFeedback(selected?.retroalimentacion ?? "");
+      setCriterionScores(buildEditableScores(loadedRubric, selected));
+      setShowRubricScoring(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al cargar la entrega.");
     } finally {
@@ -272,6 +337,33 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
   const maxGrade = Number(activity.puntaje_maximo ?? 20);
   const maxAttempts = Number(activity.intentos_permitidos ?? 3);
   const isGraded = activity.calificada !== false;
+  const hasCriteriaRubric = Boolean(
+    isGraded && rubrica && !rubrica.ruta_archivo && rubrica.criterios.length > 0
+  );
+  const criteriaScoresComplete = !hasCriteriaRubric || Boolean(
+    rubrica && rubrica.criterios.every((criterion) => {
+      const entry = criterionScores.find((item) => item.criterioId === Number(criterion.id));
+      if (!entry || entry.puntaje.trim() === "") return false;
+      const value = Number(entry.puntaje);
+      return Number.isFinite(value) && value >= 0 && value <= Number(criterion.puntaje_maximo);
+    })
+  );
+  const rubricGrade = hasCriteriaRubric && rubrica
+    ? rubrica.criterios.reduce((sum, criterion) => {
+        const entry = criterionScores.find((item) => item.criterioId === Number(criterion.id));
+        return sum + (entry && entry.puntaje.trim() !== "" && Number.isFinite(Number(entry.puntaje)) ? Number(entry.puntaje) : 0);
+      }, 0)
+    : 0;
+
+  function applyRubricScores(scores: Array<{ criterioId: number; puntaje: number }>) {
+    const next = scores.map((item) => ({ criterioId: item.criterioId, puntaje: String(item.puntaje) }));
+    const total = next.reduce((sum, item) => sum + Number(item.puntaje), 0);
+    setCriterionScores(next);
+    setGrade(formatPoints(total));
+    setShowRubricScoring(false);
+    setError("");
+    setMessage("");
+  }
 
   const PASSING_GRADE = 14;
 
@@ -298,8 +390,14 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
   async function save() {
     if (!submission?.entrega_id) return;
     if (locked) return;
-    const numericGrade = Number(grade);
-    if (isGraded && (grade.trim() === "" || !Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > maxGrade)) {
+
+    if (hasCriteriaRubric && !criteriaScoresComplete) {
+      setError("Completa la puntuación de todos los criterios en la rúbrica antes de publicar la nota.");
+      return;
+    }
+
+    const numericGrade = hasCriteriaRubric ? rubricGrade : Number(grade);
+    if (isGraded && ((!hasCriteriaRubric && grade.trim() === "") || !Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > maxGrade)) {
       setError(`Introduce una nota entre 0 y ${maxGrade}.`);
       return;
     }
@@ -312,7 +410,20 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isGraded ? { nota: numericGrade, retroalimentacion: feedback } : { retroalimentacion: feedback }),
+        body: JSON.stringify(isGraded
+          ? {
+              nota: numericGrade,
+              retroalimentacion: feedback,
+              ...(hasCriteriaRubric
+                ? {
+                    puntajesCriterios: criterionScores.map((item) => ({
+                      criterioId: item.criterioId,
+                      puntaje: Number(item.puntaje),
+                    })),
+                  }
+                : {}),
+            }
+          : { retroalimentacion: feedback }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "No se pudo guardar la calificación.");
@@ -382,25 +493,55 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
           <section className="activity-card p-4">
             <h2 className="activity-card-title">{isGraded ? "Calificación · Intento" : "Intento"} {submission.numero_intento}</h2>
             {isGraded && (
-              <label
-                htmlFor="nota-entrega"
-                className={`mt-4 flex min-h-11 items-center gap-2 rounded-md border bg-talentia-surface px-3 text-[13px] ${gradeColor} ${gradeBorder}`}
-              >
-                <Icon type="trophy" size={17} />
-                <input
-                  id="nota-entrega"
-                  type="number"
-                  aria-label="Calificación del intento"
-                  min={0}
-                  max={maxGrade}
-                  step="0.1"
-                  value={grade}
-                  disabled={locked}
-                  onChange={(event) => setGrade(event.target.value)}
-                  placeholder="Insertar calificación"
-                  className={`min-w-0 flex-1 border-0 bg-transparent text-[13px] font-semibold outline-none placeholder:font-normal placeholder:text-talentia-placeholder disabled:cursor-not-allowed ${gradeColor}`}
-                />
-              </label>
+              <>
+                <label
+                  htmlFor="nota-entrega"
+                  className={`mt-4 flex min-h-11 items-center gap-2 rounded-md border bg-talentia-surface px-3 text-[13px] ${gradeColor} ${gradeBorder}`}
+                >
+                  <Icon type="trophy" size={17} />
+                  <input
+                    id="nota-entrega"
+                    type="number"
+                    aria-label="Calificación del intento"
+                    min={0}
+                    max={maxGrade}
+                    step="0.01"
+                    value={hasCriteriaRubric ? (criteriaScoresComplete ? formatPoints(rubricGrade) : "") : grade}
+                    readOnly={hasCriteriaRubric}
+                    disabled={locked}
+                    onChange={(event) => { if (!hasCriteriaRubric) setGrade(event.target.value); }}
+                    placeholder={hasCriteriaRubric ? "Se calcula con la rúbrica" : "Insertar calificación"}
+                    className={`min-w-0 flex-1 border-0 bg-transparent text-[13px] font-semibold outline-none placeholder:font-normal placeholder:text-talentia-placeholder disabled:cursor-not-allowed read-only:cursor-default ${gradeColor}`}
+                  />
+                </label>
+
+                {hasCriteriaRubric && rubrica && (
+                  <div className="mt-2 space-y-2">
+                    <button
+                      type="button"
+                      disabled={locked}
+                      onClick={() => { setError(""); setMessage(""); setShowRubricScoring(true); }}
+                      className="flex min-h-10 w-full items-center justify-center rounded-md border border-talentia-blue bg-talentia-surface px-3 py-2 text-[13px] font-semibold text-talentia-blue transition hover:bg-talentia-selected disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {criteriaScoresComplete ? "Editar puntuación por criterios" : "Calificar con rúbrica"}
+                    </button>
+                    <p className="text-[12px] leading-[1.4] text-talentia-muted">
+                      {criteriaScoresComplete
+                        ? `Total por criterios: ${formatPoints(rubricGrade)} / ${maxGrade} puntos`
+                        : "Abre la rúbrica y asigna los puntos de cada criterio. La nota se calculará automáticamente."}
+                    </p>
+                  </div>
+                )}
+
+                {!hasCriteriaRubric && rubrica?.ruta_archivo && (
+                  <a
+                    href={`${API_URL}/actividades/${courseId}/${activityId}/rubrica`}
+                    className="activity-link mt-2 inline-flex items-center gap-2 text-[12px]"
+                  >
+                    Descargar rúbrica PDF ↗
+                  </a>
+                )}
+              </>
             )}
             <div className="mt-[13px] flex items-center gap-2 text-[15px] font-semibold text-talentia-primary"><Icon type="chat" size={16} /> Comentarios del docente (opcional)</div>
             <label htmlFor="retroalimentacion-entrega" className="sr-only">Comentarios del docente</label>
@@ -412,15 +553,23 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
               Solo lectura: ya se calificó un intento posterior.
             </p>
           ) : (
-            <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" disabled={saving || !submission.entrega_id || (isGraded && hasCriteriaRubric && !criteriaScoresComplete)} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">
               {saving ? "Publicando..." : isGraded ? `Publicar nota del intento ${submission.numero_intento}` : "Publicar comentario"}
             </button>
           )}
           <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="flex h-[27px] w-full items-center justify-center rounded-[6px] bg-talentia-surface text-[12px] font-medium text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
         </aside>
       </div>
+
+      {showRubricScoring && hasCriteriaRubric && rubrica && (
+        <TeacherRubricScoringModal
+          rubrica={rubrica}
+          maxGrade={maxGrade}
+          initialScores={criterionScores}
+          onClose={() => setShowRubricScoring(false)}
+          onApply={applyRubricScores}
+        />
+      )}
     </div>
   );
 }
-
-

@@ -2,6 +2,11 @@ SELECT *
 FROM mensajes_chat
 ORDER BY id ASC;
 
+SELECT * FROM conversaciones_chat;
+SELECT * FROM adjuntos_chat;
+SELECT * FROM lecturas_chat;
+select * from contenidos_curso;
+select * from contenidos_curso where titulo = 'Operaciones gravadas, exoneradas y no gravadas: criterios especificos.';
 SELECT
     id,
     conversacion_id,
@@ -78,3 +83,4 @@ RESTART IDENTITY;
 
 COMMIT;
 
+select 

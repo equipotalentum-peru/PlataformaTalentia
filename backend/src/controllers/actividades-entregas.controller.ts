@@ -372,7 +372,8 @@ export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res
           TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
           f.id AS archivo_id,
           f.nombre_archivo,
-          f.tamano_bytes
+          f.tamano_bytes,
+          COALESCE(criterios_calificados.detalle, '[]'::json) AS criterios_calificados
        FROM modulos_curso mc
        JOIN contenidos_curso cc ON cc.modulo_id = mc.id
        JOIN cursos c ON c.id = mc.curso_id
@@ -397,6 +398,23 @@ export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res
           ORDER BY ar.subido_en DESC, ar.id DESC
           LIMIT 1
        ) f ON TRUE
+       LEFT JOIN LATERAL (
+         SELECT COALESCE(
+           json_agg(
+             json_build_object(
+               'criterio_rubrica_id', cr.criterio_rubrica_id,
+               'nombre_criterio', cr.nombre_criterio,
+               'descripcion_criterio', cr.descripcion_criterio,
+               'puntaje_maximo', cr.puntaje_maximo,
+               'puntaje_obtenido', cr.puntaje_obtenido,
+               'orden', cr.orden
+             ) ORDER BY cr.orden
+           ),
+           '[]'::json
+         ) AS detalle
+         FROM calificaciones_criterios_rubrica cr
+         WHERE cr.entrega_id = e.id
+       ) criterios_calificados ON TRUE
       WHERE c.id = $1
         AND cc.id = $2
         AND cc.tipo = 'actividad'
@@ -426,6 +444,9 @@ export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res
     });
   } catch (error) {
     console.error("obtenerEntregaAlumnoDocente:", error);
+    if ((error as { code?: string }).code === "42P01") {
+      return res.status(503).json({ message: "Falta ejecutar backend/migrations/calificaciones_criterios_rubrica.sql en PostgreSQL." });
+    }
     return res.status(500).json({ message: "No se pudo cargar la entrega." });
   }
 }
@@ -435,19 +456,30 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
   const courseId = Number(req.params.cursoId);
   const contentId = Number(req.params.contenidoId);
   const entregaId = Number(req.params.entregaId);
-  const nota = Number(req.body?.nota);
+  const notaSolicitada = req.body?.nota == null || req.body?.nota === ""
+    ? Number.NaN
+    : Number(req.body.nota);
   const soloVisualizar = req.body?.soloVisualizar === true;
-  const retroalimentacion = typeof req.body?.retroalimentacion === "string" ? req.body.retroalimentacion.trim().slice(0, 5000) : null;
-  if (!valid(userId, courseId, contentId, entregaId)) return res.status(400).json({ message: "Parámetros no válidos." });
-  try {
-    if (!(await role(userId, "Docente"))) return res.status(403).json({ message: "Solo los docentes pueden calificar." });
-    const ctx = await teacherContext(courseId, contentId, userId);
-    if (!ctx.rowCount) return res.status(404).json({ message: "Actividad no encontrada." });
+  const retroalimentacion = typeof req.body?.retroalimentacion === "string"
+    ? req.body.retroalimentacion.trim().slice(0, 5000)
+    : null;
 
-    // ACTIVIDAD NO CALIFICABLE: no hay nota; el docente solo visualiza la entrega
-    // y, opcionalmente, publica un comentario. "calificado_en" actúa como marca
-    // de "visualizado" (el estado se mantiene en 'Entregada' para no alterar
-    // los contadores de los dashboards).
+  if (!valid(userId, courseId, contentId, entregaId)) {
+    return res.status(400).json({ message: "Parámetros no válidos." });
+  }
+
+  try {
+    if (!(await role(userId, "Docente"))) {
+      return res.status(403).json({ message: "Solo los docentes pueden calificar." });
+    }
+
+    const ctx = await teacherContext(courseId, contentId, userId);
+    if (!ctx.rowCount) {
+      return res.status(404).json({ message: "Actividad no encontrada." });
+    }
+
+    // Las actividades no calificables solo registran que el docente la revisó
+    // y, opcionalmente, el comentario. Nunca se crea una nota por esta vía.
     if (!ctx.rows[0].calificada) {
       const seen = await pool.query(
         `UPDATE entregas_actividades e
@@ -463,17 +495,114 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
             AND c.id=$5 AND m.id=e.matricula_id
             AND oc.id=m.oferta_curso_id AND oc.curso_id=c.id
             AND oc.docente_id=$2 AND oc.estado <> 'Cancelado'
-        RETURNING e.id, e.nota, e.retroalimentacion, e.calificado_en`,
+         RETURNING e.id, e.nota, e.retroalimentacion, e.calificado_en`,
         [retroalimentacion, userId, entregaId, contentId, courseId, soloVisualizar]
       );
-      if (!seen.rowCount) return res.status(404).json({ message: "Entrega no encontrada para esta actividad." });
-      return res.json({ message: soloVisualizar ? "Entrega visualizada." : "Comentario publicado.", calificacion: seen.rows[0] });
+      if (!seen.rowCount) {
+        return res.status(404).json({ message: "Entrega no encontrada para esta actividad." });
+      }
+      return res.json({
+        message: soloVisualizar ? "Entrega visualizada." : "Comentario publicado.",
+        calificacion: seen.rows[0],
+      });
     }
 
-    if (!Number.isFinite(nota)) return res.status(400).json({ message: "Nota o parámetros no válidos." });
-    const max = Number(ctx.rows[0].puntaje_maximo ?? 20);
-    if (nota < 0 || nota > max) return res.status(400).json({ message: `La nota debe estar entre 0 y ${max}.` });
-    // Si ya se calificó un intento posterior, este intento queda solo lectura.
+    const rubric = await obtenerRubrica(Number(ctx.rows[0].actividad_id));
+    const hasCriteriaRubric = Boolean(
+      rubric && !rubric.ruta_archivo && Array.isArray(rubric.criterios) && rubric.criterios.length > 0
+    );
+    const maxGrade = Number(ctx.rows[0].puntaje_maximo ?? 20);
+    let finalGrade = notaSolicitada;
+    const validatedCriterionScores: Array<{
+      criterioId: number;
+      puntaje: number;
+      nombre: string;
+      descripcion: string | null;
+      puntajeMaximo: number;
+      orden: number;
+    }> = [];
+
+    if (hasCriteriaRubric && rubric) {
+      const incoming = req.body?.puntajesCriterios;
+      if (!Array.isArray(incoming)) {
+        return res.status(400).json({
+          message: "Esta actividad tiene una rúbrica por criterios. Califica cada criterio antes de publicar la nota.",
+        });
+      }
+
+      const criteria = rubric.criterios as Array<{
+        id: number | string;
+        nombre: string;
+        descripcion: string | null;
+        puntaje_maximo: number | string;
+        orden?: number;
+      }>;
+      const maximumFromCriteria = criteria.reduce(
+        (sum, criterion) => sum + Number(criterion.puntaje_maximo),
+        0,
+      );
+      if (Math.round(maximumFromCriteria * 100) !== Math.round(maxGrade * 100)) {
+        return res.status(409).json({
+          message: "La suma máxima de la rúbrica no coincide con la puntuación de la actividad. Edita la rúbrica antes de calificar.",
+        });
+      }
+
+      if (incoming.length !== criteria.length) {
+        return res.status(400).json({ message: "Debes enviar una puntuación para cada criterio de la rúbrica." });
+      }
+
+      const receivedById = new Map<number, unknown>();
+      for (const item of incoming) {
+        if (!item || typeof item !== "object") {
+          return res.status(400).json({ message: "El detalle de la rúbrica no es válido." });
+        }
+        const criterionScore = item as { criterioId?: unknown; puntaje?: unknown };
+        const criterioId = Number(criterionScore.criterioId);
+        if (!Number.isSafeInteger(criterioId) || criterioId <= 0 || receivedById.has(criterioId)) {
+          return res.status(400).json({ message: "Hay criterios duplicados o identificadores no válidos." });
+        }
+        receivedById.set(criterioId, criterionScore.puntaje);
+      }
+
+      for (const [index, criterion] of criteria.entries()) {
+        const criterioId = Number(criterion.id);
+        if (!receivedById.has(criterioId)) {
+          return res.status(400).json({ message: "Falta la puntuación de uno de los criterios." });
+        }
+
+        const maxCriterion = Number(criterion.puntaje_maximo);
+        const received = receivedById.get(criterioId);
+        const value = typeof received === "number" || (typeof received === "string" && received.trim() !== "")
+          ? Number(received)
+          : Number.NaN;
+        if (!Number.isFinite(value) || value < 0 || value > maxCriterion) {
+          return res.status(400).json({
+            message: `El puntaje de «${criterion.nombre}» debe estar entre 0 y ${maxCriterion}.`,
+          });
+        }
+
+        validatedCriterionScores.push({
+          criterioId,
+          puntaje: Math.round(value * 100) / 100,
+          nombre: String(criterion.nombre),
+          descripcion: criterion.descripcion == null ? null : String(criterion.descripcion),
+          puntajeMaximo: maxCriterion,
+          orden: Number(criterion.orden ?? index + 1),
+        });
+      }
+
+      finalGrade = Math.round(
+        validatedCriterionScores.reduce((sum, criterion) => sum + criterion.puntaje, 0) * 100
+      ) / 100;
+    } else if (!Number.isFinite(finalGrade)) {
+      return res.status(400).json({ message: "Introduce una nota válida." });
+    }
+
+    if (finalGrade < 0 || finalGrade > maxGrade) {
+      return res.status(400).json({ message: `La nota debe estar entre 0 y ${maxGrade}.` });
+    }
+
+    // Evita que un intento anterior se modifique después de calificar uno posterior.
     const later = await pool.query(
       `SELECT 1
          FROM entregas_actividades e1
@@ -489,28 +618,88 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
     if (later.rowCount) {
       return res.status(409).json({ message: "Este intento ya no se puede editar porque se calificó un intento posterior." });
     }
-    const saved = await pool.query(
-      `WITH actividad_actual AS (
-         SELECT id, contenido_id, puntaje_maximo, calificada FROM actividades
-         WHERE contenido_id=$5 FOR SHARE
-       ) UPDATE entregas_actividades e
-          SET nota=$1, retroalimentacion=$2, calificado_por=$3,
-              calificado_en=CURRENT_TIMESTAMP, estado='Calificada', actualizado_en=CURRENT_TIMESTAMP
-         FROM actividad_actual a, contenidos_curso cc, modulos_curso mc, cursos c,
-              matriculas m, ofertas_curso oc
-        WHERE e.id=$4 AND e.actividad_id=a.id AND a.contenido_id=cc.id
-          AND a.calificada=TRUE AND $1 <= COALESCE(a.puntaje_maximo,20)
-          AND cc.id=$5 AND cc.modulo_id=mc.id AND mc.curso_id=c.id
-          AND c.id=$6 AND m.id=e.matricula_id
-          AND oc.id=m.oferta_curso_id AND oc.curso_id=c.id
-          AND oc.docente_id=$3 AND oc.estado <> 'Cancelado'
-        RETURNING e.id, e.nota, e.retroalimentacion, e.calificado_en`,
-      [nota, retroalimentacion, userId, entregaId, contentId, courseId]
-    );
-    if (!saved.rowCount) return res.status(404).json({ message: "Entrega no encontrada para esta actividad." });
-    return res.json({ message: "Calificación guardada.", calificacion: saved.rows[0] });
+
+    const client = await pool.connect();
+    let transactionOpen = false;
+    try {
+      await client.query("BEGIN");
+      transactionOpen = true;
+
+      const saved = await client.query(
+        `WITH actividad_actual AS (
+           SELECT id, contenido_id, puntaje_maximo, calificada FROM actividades
+           WHERE contenido_id=$5 FOR SHARE
+         ) UPDATE entregas_actividades e
+            SET nota=$1, retroalimentacion=$2, calificado_por=$3,
+                calificado_en=CURRENT_TIMESTAMP, estado='Calificada', actualizado_en=CURRENT_TIMESTAMP
+           FROM actividad_actual a, contenidos_curso cc, modulos_curso mc, cursos c,
+                matriculas m, ofertas_curso oc
+          WHERE e.id=$4 AND e.actividad_id=a.id AND a.contenido_id=cc.id
+            AND a.calificada=TRUE AND $1 <= COALESCE(a.puntaje_maximo,20)
+            AND cc.id=$5 AND cc.modulo_id=mc.id AND mc.curso_id=c.id
+            AND c.id=$6 AND m.id=e.matricula_id
+            AND oc.id=m.oferta_curso_id AND oc.curso_id=c.id
+            AND oc.docente_id=$3 AND oc.estado <> 'Cancelado'
+          RETURNING e.id, e.nota, e.retroalimentacion, e.calificado_en`,
+        [finalGrade, retroalimentacion, userId, entregaId, contentId, courseId]
+      );
+
+      if (!saved.rowCount) {
+        await client.query("ROLLBACK");
+        transactionOpen = false;
+        return res.status(404).json({ message: "Entrega no encontrada para esta actividad." });
+      }
+
+      // Reemplaza el detalle anterior del mismo intento con la rúbrica aplicada ahora.
+      await client.query(
+        "DELETE FROM calificaciones_criterios_rubrica WHERE entrega_id=$1",
+        [entregaId],
+      );
+
+      if (hasCriteriaRubric) {
+        for (const criterion of validatedCriterionScores) {
+          await client.query(
+            `INSERT INTO calificaciones_criterios_rubrica (
+               entrega_id, criterio_rubrica_id, nombre_criterio, descripcion_criterio,
+               puntaje_maximo, puntaje_obtenido, orden
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+            [
+              entregaId,
+              criterion.criterioId,
+              criterion.nombre,
+              criterion.descripcion,
+              criterion.puntajeMaximo,
+              criterion.puntaje,
+              criterion.orden,
+            ],
+          );
+        }
+      }
+
+      await client.query("COMMIT");
+      transactionOpen = false;
+      return res.json({
+        message: hasCriteriaRubric ? "Calificación por rúbrica guardada." : "Calificación guardada.",
+        calificacion: saved.rows[0],
+        criterios: validatedCriterionScores.map((criterion) => ({
+          criterio_rubrica_id: criterion.criterioId,
+          nombre_criterio: criterion.nombre,
+          puntaje_maximo: criterion.puntajeMaximo,
+          puntaje_obtenido: criterion.puntaje,
+          orden: criterion.orden,
+        })),
+      });
+    } catch (error) {
+      if (transactionOpen) await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error("calificarEntrega:", error);
+    if ((error as { code?: string }).code === "42P01") {
+      return res.status(503).json({ message: "Falta ejecutar backend/migrations/calificaciones_criterios_rubrica.sql en PostgreSQL." });
+    }
     return res.status(500).json({ message: "No se pudo guardar la calificación." });
   }
 }
@@ -572,10 +761,3 @@ export async function descargarArchivoEntrega(req: AuthenticatedRequest, res: Re
     if (!res.headersSent) return res.status(500).json({ message: "No se pudo descargar el archivo." });
   }
 }
-
-
-
-
-
-
-
