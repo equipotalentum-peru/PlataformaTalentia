@@ -2113,4 +2113,3 @@ displayedSubmission && (
     </div>
   );
 }
-
