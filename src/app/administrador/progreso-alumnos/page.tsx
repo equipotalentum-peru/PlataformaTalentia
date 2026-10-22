@@ -20,6 +20,78 @@ type RegistroProgreso = {
   notas: { id: string; nombre: string; porcentaje: number | null; puntajeMaximo: number | null; nota: number | null }[];
 };
 
+function NotasModal({ registro, onClose }: { registro: RegistroProgreso; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    return () => dialog?.close();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClose={(event) => { if (!event.currentTarget.open) onClose(); }}
+      aria-labelledby="progreso-notas-titulo"
+      aria-describedby="progreso-notas-alumno"
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialogRef.current?.close();
+      }}
+      className="m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-lg border border-talentia-border bg-talentia-surface p-5 text-talentia-primary shadow-xl backdrop:bg-talentia-primary/40 sm:p-6"
+    >
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 id="progreso-notas-titulo" className="text-lg font-bold">Notas de evaluaciones</h2>
+          <p id="progreso-notas-alumno" className="mt-2 break-words text-[13px] font-semibold">{registro.alumno}</p>
+          <p className="mt-1 break-words text-[12px] text-talentia-muted">{registro.curso} · {registro.periodo}</p>
+        </div>
+        <button type="button" autoFocus onClick={() => dialogRef.current?.close()} aria-label="Cerrar notas" title="Cerrar" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-xl text-talentia-muted hover:bg-talentia-hover hover:text-talentia-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30">×</button>
+      </header>
+      <div className="mt-5 overflow-x-auto rounded-lg border border-talentia-border">
+        <table className="w-full min-w-[480px] table-fixed border-collapse text-left text-[13px] leading-5">
+          <caption className="sr-only">Notas de {registro.alumno} en {registro.curso}</caption>
+          <colgroup><col className="w-[38%]" /><col className="w-[14%]" /><col className="w-[22%]" /><col className="w-[26%]" /></colgroup>
+          <thead className="bg-talentia-table-header">
+            <tr>
+              <th scope="col" className="px-4 py-3 font-semibold">Evaluación</th>
+              <th scope="col" className="px-2 py-3 text-center font-semibold">Peso</th>
+              <th scope="col" className="px-2 py-3 text-center font-semibold">Nota</th>
+              <th scope="col" className="px-3 py-3 text-center font-semibold">Estado</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-talentia-border border-t border-talentia-border">
+            {registro.notas.map((nota) => {
+              const pendiente = nota.nota === null;
+              const aprobado = !pendiente && nota.nota! >= 14;
+              return (
+                <tr key={nota.id}>
+                  <td className="break-words px-4 py-3 font-medium">{nota.nombre}</td>
+                  <td className="px-2 py-3 text-center tabular-nums text-talentia-muted">{nota.porcentaje === null ? "—" : `${nota.porcentaje} %`}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">
+                    {pendiente ? "—" : <><span className="font-semibold">{nota.nota!.toFixed(2)}</span>{nota.puntajeMaximo !== null && <span className="text-[12px] text-talentia-muted"> / {nota.puntajeMaximo}</span>}</>}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-semibold ${pendiente ? "bg-talentia-warning-bg text-talentia-warning" : aprobado ? "bg-talentia-success-bg text-talentia-success" : "bg-talentia-danger-bg text-talentia-danger"}`}>
+                      {pendiente ? "Pendiente" : aprobado ? "Aprobado" : "Desaprobado"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[13px]">
+        <p className="text-talentia-muted">{registro.estado === "En curso" ? "Promedio actual" : "Promedio final"}<span className="ml-2 font-bold tabular-nums text-talentia-primary">{registro.promedio === null ? "—" : registro.promedio.toFixed(2)}</span></p>
+        <button type="button" onClick={() => dialogRef.current?.close()} className="h-9 rounded-lg border border-talentia-border px-4 font-semibold hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30">Cerrar</button>
+      </footer>
+    </dialog>
+  );
+}
+
 function useListado<T = Opcion>(ruta: string | null, campo: string, alCargar?: (opciones: T[]) => void) {
   const [resultado, setResultado] = useState<{ ruta: string | null; opciones: T[]; error: string }>({
     ruta: "", opciones: [], error: "",
@@ -183,6 +255,9 @@ function FiltroBusqueda({ id, label, placeholder, emptyText, todos, valor, opcio
 }
 
 export default function ProgresoAlumnosPage() {
+  const [notasSeleccionadas, setNotasSeleccionadas] = useState<RegistroProgreso | null>(null);
+  const [exportando, setExportando] = useState(false);
+  const [errorExportacion, setErrorExportacion] = useState("");
   const [periodoId, setPeriodoId] = useState("");
   const [curso, setCurso] = useState<Opcion | null>(null);
   const [alumno, setAlumno] = useState<Opcion | null>(null);
@@ -212,6 +287,60 @@ export default function ProgresoAlumnosPage() {
     "registros"
   );
   const cargandoRegistros = hayFiltros && (filtrosCargando || registros.cargando);
+  const puedeExportar = !cargandoRegistros && !filtrosConError && !registros.error && registros.opciones.length > 0;
+
+  async function exportarExcel() {
+    if (!puedeExportar || exportando) return;
+    setExportando(true);
+    setErrorExportacion("");
+    try {
+      const XLSX = await import("xlsx");
+      const fecha = new Date();
+      const claveNota = (nota: RegistroProgreso["notas"][number]) => JSON.stringify([nota.nombre, nota.porcentaje, nota.puntajeMaximo]);
+      const evaluaciones = new Map<string, RegistroProgreso["notas"][number]>();
+      for (const registro of registros.opciones) {
+        for (const nota of registro.notas) evaluaciones.set(claveNota(nota), nota);
+      }
+      const columnasNotas = [...evaluaciones.entries()];
+      const cabeceras = [
+        "Periodo", "Código del curso", "Curso", "Código del alumno", "Alumno",
+        ...columnasNotas.map(([, nota]) => `${nota.nombre}${nota.porcentaje === null ? "" : ` (${nota.porcentaje} %)`}${nota.puntajeMaximo === null ? "" : ` / ${nota.puntajeMaximo} pts`}`),
+        "Promedio del alumno", "Estado",
+      ];
+      const filas = registros.opciones.map((registro) => {
+        const notas = new Map(registro.notas.map((nota) => [claveNota(nota), nota.nota]));
+        return [
+          registro.periodo, registro.codigoCurso, registro.curso, registro.codigoAlumno, registro.alumno,
+          ...columnasNotas.map(([clave]) => notas.has(clave) ? notas.get(clave) ?? "Pendiente" : ""),
+          registro.promedio ?? "", registro.estado,
+        ];
+      });
+      const contenido = [
+        ["Calificaciones de alumnos"],
+        [`Periodo: ${periodos.opciones.find((opcion) => opcion.id === periodoId)?.nombre ?? "Todos los periodos"}`],
+        [`Curso: ${etiqueta(curso) || "Todos los cursos"}`],
+        [`Alumno: ${etiqueta(alumno) || "Todos los alumnos"}`],
+        [`Fecha de exportación: ${fecha.toLocaleString("es-PE", { timeZone: "America/Lima" })}`],
+        [], cabeceras, ...filas,
+      ];
+      const hoja = XLSX.utils.aoa_to_sheet(contenido);
+      hoja["!merges"] = [0, 1, 2, 3, 4].map((fila) => ({ s: { r: fila, c: 0 }, e: { r: fila, c: cabeceras.length - 1 } }));
+      hoja["!cols"] = [
+        { wch: 36 }, { wch: 18 }, { wch: 36 }, { wch: 18 }, { wch: 32 },
+        ...columnasNotas.map(([, nota]) => ({ wch: Math.max(22, Math.min(40, nota.nombre.length + 16)) })),
+        { wch: 22 }, { wch: 18 },
+      ];
+      hoja["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 6, c: 0 }, e: { r: 6 + filas.length, c: cabeceras.length - 1 } }) };
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
+      const codigoSeguro = curso?.codigo?.replace(/[^a-z0-9_-]/gi, "_") || "Todos_los_cursos";
+      XLSX.writeFile(libro, `Calificaciones_${codigoSeguro}_${fecha.toISOString().slice(0, 10)}.xlsx`);
+    } catch {
+      setErrorExportacion("No se pudo generar el archivo Excel. Inténtalo nuevamente.");
+    } finally {
+      setExportando(false);
+    }
+  }
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl bg-talentia-surface p-8">
@@ -240,6 +369,18 @@ export default function ProgresoAlumnosPage() {
           <FiltroBusqueda id="progreso-alumno" label="Alumno" placeholder="Buscar alumno" emptyText="No hay alumnos disponibles." todos="Todos los alumnos" valor={alumno} opciones={alumnos.opciones} cargando={alumnos.cargando} error={alumnos.error} onChange={setAlumno} />
         </div>
 
+        <div className="flex flex-col items-end gap-2">
+          <button type="button" onClick={() => void exportarExcel()} disabled={!puedeExportar || exportando} aria-busy={exportando} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-talentia-action px-4 text-[13px] font-semibold text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+            <svg aria-hidden="true" className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            {exportando ? "Exportando..." : "Exportar Excel"}
+          </button>
+          {errorExportacion && <p role="alert" className="text-[12px] text-talentia-danger">{errorExportacion}</p>}
+        </div>
+
         <div className="overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface">
           <div className="overflow-x-auto">
             <table aria-busy={cargandoRegistros} className="w-full min-w-[1160px] table-fixed border-collapse text-left text-[13px] leading-5">
@@ -261,7 +402,7 @@ export default function ProgresoAlumnosPage() {
                   <th scope="col" className="px-4 py-4 text-center">Promedio</th>
                   <th scope="col" className="px-4 py-4 text-center">Estado</th>
                   <th scope="col" className="px-4 py-4">Notas de evaluaciones</th>
-                  <th scope="col" className="px-4 py-4 text-center">Acciones</th>
+                  <th scope="col" className="px-4 py-4 text-center">Certificado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-talentia-border">
@@ -290,21 +431,7 @@ export default function ProgresoAlumnosPage() {
                     </td>
                     <td className="break-words px-4 py-4">
                       {registro.notas.length > 0 ? (
-                        <details className="group">
-                          <summary className="flex h-10 cursor-pointer list-none items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-talentia-blue/30 bg-talentia-surface px-3 text-[13px] font-semibold text-talentia-blue transition-colors hover:border-talentia-blue hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-                            Ver notas
-                            <span aria-hidden="true" className="mb-1 h-2 w-2 shrink-0 rotate-45 border-b-2 border-r-2 border-current transition-transform group-open:mb-0 group-open:rotate-[225deg]" />
-                          </summary>
-                          <ul className="mt-3 space-y-3">
-                            {registro.notas.map((nota) => (
-                              <li key={nota.id} className="border-t border-talentia-border pt-2">
-                                <p className="font-medium">{nota.nombre}</p>
-                                {nota.porcentaje !== null && <p className="text-[12px] text-talentia-muted">{nota.porcentaje} %</p>}
-                                <p className="mt-1 tabular-nums">{nota.nota === null ? "Pendiente" : `${nota.nota.toFixed(2)}${nota.puntajeMaximo !== null ? ` / ${nota.puntajeMaximo}` : ""}`}</p>
-                              </li>
-                            ))}
-                          </ul>
-                        </details>
+                        <button type="button" aria-haspopup="dialog" onClick={() => setNotasSeleccionadas(registro)} className="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-lg border border-talentia-blue/30 bg-talentia-surface px-3 text-[13px] font-semibold text-talentia-blue transition-colors hover:border-talentia-blue hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 focus-visible:ring-offset-2">Ver notas</button>
                       ) : <span className="text-talentia-muted">Sin evaluaciones configuradas.</span>}
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -327,6 +454,7 @@ export default function ProgresoAlumnosPage() {
           </div>
         </div>
       </div>
+      {notasSeleccionadas && <NotasModal registro={notasSeleccionadas} onClose={() => setNotasSeleccionadas(null)} />}
     </div>
   );
 }
