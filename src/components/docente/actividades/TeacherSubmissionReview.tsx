@@ -472,7 +472,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
               <div className="activity-file-row mt-3 min-w-0 bg-talentia-surface">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-talentia-surface"><FileTypeIcon filename={submission.nombre_archivo} className="h-7 w-7" /></span>
                 <div className="activity-file-name min-w-0 flex-1"><p className="text-[13px] text-talentia-primary">{submission.nombre_archivo}</p><p className="mt-1 text-[12px] text-talentia-muted">{formatSize(submission.tamano_bytes)}</p></div>
-                <a href={`${API_URL}/actividades/archivo/${submission.archivo_id}`} className="activity-link activity-download inline-flex shrink-0 items-center gap-2 rounded-md border border-talentia-blue"><Icon type="download" size={14} /> Descargar</a>
+                <a href={`${API_URL}/actividades/archivo/${submission.archivo_id}`} aria-label={`Descargar ${submission.nombre_archivo}`} title="Descargar archivo" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-blue transition hover:bg-talentia-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg></a>
               </div>
             ) : !submission.comentario ? (
               <p className="rounded bg-talentia-surface p-3 text-[13px] text-talentia-muted">El estudiante no adjuntó un documento ni un comentario.</p>

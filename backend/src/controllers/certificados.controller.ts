@@ -70,6 +70,9 @@ export async function listarCertificadosEstudiante(
         `SELECT
            cert.id,
 
+           c.id
+             AS "cursoId",
+
            c.nombre
              AS curso,
 

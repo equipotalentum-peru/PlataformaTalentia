@@ -13,11 +13,15 @@ import CertificateDownloadButton
 import {
   API_URL,
 } from "@/lib/api";
+import {
+  resolverImagenPortadaCurso,
+} from "@/lib/curso-imagen";
 
 
 
 type Certificado = {
   id: number;
+  cursoId: number;
   curso: string;
   codigo: string;
   fecha: string;
@@ -111,6 +115,7 @@ const [
               (
                 item: {
                   id: number;
+                  cursoId: number | string;
                   curso: string;
                   codigoCurso: string;
                   emitidoEn: string;
@@ -122,6 +127,11 @@ const [
                 id:
                   Number(
                     item.id
+                  ),
+
+                cursoId:
+                  Number(
+                    item.cursoId
                   ),
 
                 curso:
@@ -250,8 +260,19 @@ const [
             {/* IMAGEN */}
             <div className="relative h-[165px] overflow-hidden">
               <img
-                src={certificado.imagen}
+                src={resolverImagenPortadaCurso(
+                  certificado.imagen,
+                  certificado.cursoId,
+                  IMAGEN_POR_DEFECTO
+                )}
                 alt={certificado.curso}
+                onError={(event) => {
+                  const elemento = event.currentTarget;
+
+                  if (elemento.src !== IMAGEN_POR_DEFECTO) {
+                    elemento.src = IMAGEN_POR_DEFECTO;
+                  }
+                }}
                 className="h-full w-full object-cover"
               />
 
@@ -344,3 +365,4 @@ const [
     </div>
   );
 }
+

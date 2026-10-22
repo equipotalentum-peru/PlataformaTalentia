@@ -1562,16 +1562,11 @@ const isGraded =
 
                     <a
                       href={`${API_URL}/actividades/archivo/${displayedSubmission.archivo_id}`}
-                      className="activity-link activity-download inline-flex shrink-0 items-center gap-2 rounded-md border border-talentia-blue px-3 py-2 text-[13px]"
+                      aria-label={`Descargar ${displayedSubmission.nombre_archivo}`}
+                      title="Descargar archivo"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-blue transition hover:bg-talentia-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue"
                     >
-                      <Icon
-                        type="download"
-                        size={
-                          14
-                        }
-                      />
-
-                      Descargar
+                      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
                     </a>
                   </div>
                 ) : !displayedSubmission.comentario ? (
