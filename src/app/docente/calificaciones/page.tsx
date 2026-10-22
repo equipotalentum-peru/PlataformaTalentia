@@ -34,6 +34,9 @@ type CursoDocente = {
   codigo: string;
   ofertaId: number;
   alumnos: number;
+  periodoNombre: string | null;
+  periodoFechaInicio: string | null;
+  periodoFechaFin: string | null;
 };
 
 type CalificacionesResponse = {
@@ -44,6 +47,9 @@ type CalificacionesResponse = {
     nombre: string;
     codigo: string;
     ofertaId: number;
+    periodoNombre: string | null;
+    periodoFechaInicio: string | null;
+    periodoFechaFin: string | null;
   } | null;
 
   componentes: ComponenteCalificacion[];
@@ -816,6 +822,98 @@ export default function TeacherGradesPage() {
       }
     };
 
+  const exportarExcel = async () => {
+    if (!selectedCourseObject) {
+      return;
+    }
+
+    try {
+      // Se carga XLSX solo al solicitar la descarga para no aumentar
+      // el paquete inicial de la página.
+      const XLSX = await import("xlsx");
+      const fecha = new Date();
+      const totalColumnas = componentes.length + 2;
+      const cabeceras = [
+        "Alumno",
+        ...componentes.map((componente) => nombreCortoComponente(componente)),
+        "Promedio del alumno",
+      ];
+
+      const filasAlumnos = grades.map((row) => {
+        const promedio = row.promedio ?? calcularPromedioFila(row, componentes);
+
+        return [
+          row.alumno,
+          ...componentes.map((componente) => {
+            const nota = getGrade(row, componente.id);
+            return nota === null ? "" : nota;
+          }),
+          promedio ?? "",
+        ];
+      });
+
+      const contenido: (string | number)[][] = [
+        ["Calificaciones por Curso"],
+        [`Curso: ${selectedCourseObject.nombre}`],
+        [`Código: ${selectedCourseObject.codigo}`],
+        [`Periodo académico: ${selectedCourseObject.periodoNombre ?? "No asignado"}`],
+        [
+          `Vigencia del periodo: ${selectedCourseObject.periodoFechaInicio ?? "No disponible"} al ${selectedCourseObject.periodoFechaFin ?? "No disponible"}`,
+        ],
+        [
+          `Fecha de exportación: ${fecha.toLocaleDateString("es-PE")} ${fecha.toLocaleTimeString("es-PE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`,
+        ],
+        [],
+        cabeceras,
+        ...filasAlumnos,
+      ];
+
+      const hoja = XLSX.utils.aoa_to_sheet(contenido);
+      hoja["!merges"] = [0, 1, 2, 3, 4, 5].map((fila) => ({
+        s: { r: fila, c: 0 },
+        e: { r: fila, c: totalColumnas - 1 },
+      }));
+      hoja["!cols"] = [
+        { wch: 32 },
+        ...componentes.map((componente) => ({
+          wch: Math.max(
+            18,
+            Math.min(
+              36,
+              componente.nombre.length + (componente.porcentaje !== null ? 9 : 2)
+            )
+          ),
+        })),
+        { wch: 22 },
+      ];
+
+      // Permite filtrar por alumno o por evaluación en Excel.
+      if (grades.length > 0) {
+        hoja["!autofilter"] = {
+          ref: XLSX.utils.encode_range({
+            s: { r: 7, c: 0 },
+            e: { r: 7 + grades.length, c: totalColumnas - 1 },
+          }),
+        };
+      }
+
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
+
+      const codigoSeguro = selectedCourseObject.codigo.replace(/[^a-z0-9_-]/gi, "_");
+      const fechaArchivo = fecha.toISOString().slice(0, 10);
+      XLSX.writeFile(
+        libro,
+        `Calificaciones_${codigoSeguro}_${fechaArchivo}.xlsx`
+      );
+    } catch {
+      setError("No se pudo generar el archivo Excel. Inténtalo nuevamente.");
+    }
+  };
+
   if (
     cargando &&
     cursos.length ===
@@ -1026,39 +1124,64 @@ export default function TeacherGradesPage() {
         </div>
       )}
 
-      {/* BUSCADOR */}
-      <div className="mb-4 flex h-10 w-[280px] items-center rounded-md border border-talentia-border bg-talentia-surface px-3">
-        <svg
-          className="mr-2 h-4 w-4 text-talentia-primary"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle
-            cx="11"
-            cy="11"
-            r="7"
+      {/* BUSCADOR Y EXPORTACIÓN */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex h-10 w-[280px] items-center rounded-md border border-talentia-border bg-talentia-surface px-3">
+          <svg
+            className="mr-2 h-4 w-4 text-talentia-primary"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+            />
+
+            <path d="m20 20-4-4" />
+          </svg>
+
+          <input
+            value={
+              search
+            }
+            onChange={(event) => {
+              setSearch(
+                event.target
+                  .value
+              );
+
+              setPage(1);
+            }}
+            placeholder="Buscar alumno por nombre"
+            className="w-full bg-transparent text-[15px] outline-none"
           />
+        </div>
 
-          <path d="m20 20-4-4" />
-        </svg>
-
-        <input
-          value={
-            search
-          }
-          onChange={(event) => {
-            setSearch(
-              event.target
-                .value
-            );
-
-            setPage(1);
-          }}
-          placeholder="Buscar alumno por nombre"
-          className="w-full bg-transparent text-[15px] outline-none"
-        />
+        <button
+          type="button"
+          onClick={() => void exportarExcel()}
+          disabled={!selectedCourseObject || cargando || grades.length === 0}
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-talentia-action px-4 text-[14px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M12 15V3" />
+          </svg>
+          Descargar Excel
+        </button>
       </div>
 
       {/* TABLA */}

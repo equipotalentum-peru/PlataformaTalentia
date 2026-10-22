@@ -1056,7 +1056,8 @@ async function construirDetalleIntento(
            f.respuesta_id::TEXT AS "respuestaId",
            f.nombre_archivo AS "nombreArchivo",
            f.mime_type AS "mimeType",
-           f.tamano_bytes::BIGINT AS "tamanoBytes"
+           f.tamano_bytes::BIGINT AS "tamanoBytes",
+           f.subido_en AS "subidoEn"
          FROM archivos_respuesta_evaluacion f
          WHERE f.respuesta_id = ANY($1::BIGINT[])
          ORDER BY f.id`,
@@ -1127,6 +1128,9 @@ async function construirDetalleIntento(
           nombreArchivo: String(archivo.nombreArchivo),
           mimeType: archivo.mimeType == null ? null : String(archivo.mimeType),
           tamanoBytes: archivo.tamanoBytes == null ? null : Number(archivo.tamanoBytes),
+          subidoEn: archivo.subidoEn instanceof Date
+            ? archivo.subidoEn.toISOString()
+            : String(archivo.subidoEn ?? ""),
         })),
       opciones: opcionesResult.rows
         .filter((opcion) => String(opcion.preguntaId) === preguntaId)

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import ChatAttachmentIcon from "@/components/common/chat/ChatAttachmentIcon";
+import { formatearHoraChat } from "@/lib/chat-time";
 
 type OptionDetail = {
   id: string;
@@ -26,6 +28,7 @@ type AttachedFile = {
   nombreArchivo: string;
   mimeType: string | null;
   tamanoBytes: number | null;
+  subidoEn: string;
 };
 
 type QuestionDetail = {
@@ -291,14 +294,39 @@ export default function StudentEvaluationAttemptReview({
                     <p className="text-xs font-semibold text-talentia-primary">Documentos enviados</p>
                     <div className="mt-2 flex flex-col gap-2">
                       {question.archivos.map((file) => (
-                        <a
-                          key={file.id}
-                          href={`${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/archivo/${file.id}`}
-                          className="inline-flex w-fit max-w-full items-center gap-2 text-sm font-medium text-talentia-blue underline underline-offset-2"
-                        >
-                          <span className="truncate">{file.nombreArchivo}</span>
-                          <span className="shrink-0">Descargar</span>
-                        </a>
+                        <div key={file.id} className="w-[300px] max-w-full">
+                          <div className="rounded-xl border border-talentia-border bg-talentia-surface p-3 shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-talentia-surface text-talentia-muted">
+                                <ChatAttachmentIcon filename={file.nombreArchivo} className="h-7 w-7" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[13px] font-semibold text-talentia-primary" title={file.nombreArchivo}>
+                                  {file.nombreArchivo}
+                                </p>
+                                <p className="mt-0.5 text-[12px] text-talentia-muted">
+                                  {file.tamanoBytes ? `${(file.tamanoBytes / (1024 * 1024)).toFixed(1)} MB` : ""}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => window.open(`${API_URL}/cursos/${courseId}/contenidos/${contentId}/evaluacion/archivo/${file.id}`, "_blank", "noopener,noreferrer")}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-blue transition hover:bg-talentia-hover hover:text-talentia-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue"
+                                aria-label={`Descargar ${file.nombreArchivo}`}
+                                title="Descargar archivo"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M12 3v12" />
+                                  <path d="m7 10 5 5 5-5" />
+                                  <path d="M5 21h14" />
+                                </svg>
+                              </button>
+                            </div>
+                            <p className="mt-2 text-right text-[12px] text-talentia-muted">
+                              {formatearHoraChat(file.subidoEn)}
+                            </p>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>

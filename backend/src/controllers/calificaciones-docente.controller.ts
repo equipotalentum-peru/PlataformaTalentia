@@ -18,6 +18,9 @@ type CursoDocente = {
   codigo: string;
   ofertaId: number;
   alumnos: number;
+  periodoNombre: string | null;
+  periodoFechaInicio: string | null;
+  periodoFechaFin: string | null;
 };
 
 function numeroValido(value: unknown) {
@@ -140,6 +143,9 @@ export async function obtenerCalificacionesDocente(
          c.nombre,
          c.codigo,
          oc.id AS oferta_id,
+         p.nombre AS periodo_nombre,
+         TO_CHAR(p.fecha_inicio, 'DD/MM/YYYY') AS periodo_fecha_inicio,
+         TO_CHAR(p.fecha_fin, 'DD/MM/YYYY') AS periodo_fecha_fin,
 
          (
            SELECT COUNT(*)::INTEGER
@@ -152,6 +158,8 @@ export async function obtenerCalificacionesDocente(
 
        INNER JOIN cursos c
          ON c.id = oc.curso_id
+       LEFT JOIN periodos_academicos p
+         ON p.id = oc.periodo_id
 
        WHERE oc.docente_id = $1
          AND oc.estado <> 'Cancelado'
@@ -171,6 +179,9 @@ export async function obtenerCalificacionesDocente(
         codigo: curso.codigo,
         ofertaId: Number(curso.oferta_id),
         alumnos: Number(curso.alumnos ?? 0),
+        periodoNombre: curso.periodo_nombre ?? null,
+        periodoFechaInicio: curso.periodo_fecha_inicio ?? null,
+        periodoFechaFin: curso.periodo_fecha_fin ?? null,
       })
     );
 
@@ -411,6 +422,9 @@ export async function obtenerCalificacionesDocente(
         codigo: cursoSeleccionado.codigo,
         ofertaId:
           cursoSeleccionado.ofertaId,
+        periodoNombre: cursoSeleccionado.periodoNombre,
+        periodoFechaInicio: cursoSeleccionado.periodoFechaInicio,
+        periodoFechaFin: cursoSeleccionado.periodoFechaFin,
       },
 
       componentes,
