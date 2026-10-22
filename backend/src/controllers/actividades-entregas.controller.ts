@@ -473,6 +473,22 @@ export async function calificarEntrega(req: AuthenticatedRequest, res: Response)
     if (!Number.isFinite(nota)) return res.status(400).json({ message: "Nota o parámetros no válidos." });
     const max = Number(ctx.rows[0].puntaje_maximo ?? 20);
     if (nota < 0 || nota > max) return res.status(400).json({ message: `La nota debe estar entre 0 y ${max}.` });
+    // Si ya se calificó un intento posterior, este intento queda solo lectura.
+    const later = await pool.query(
+      `SELECT 1
+         FROM entregas_actividades e1
+         JOIN entregas_actividades e2
+           ON e2.actividad_id = e1.actividad_id
+          AND e2.matricula_id = e1.matricula_id
+          AND e2.numero_intento > e1.numero_intento
+          AND e2.nota IS NOT NULL
+        WHERE e1.id = $1
+        LIMIT 1`,
+      [entregaId]
+    );
+    if (later.rowCount) {
+      return res.status(409).json({ message: "Este intento ya no se puede editar porque se calificó un intento posterior." });
+    }
     const saved = await pool.query(
       `WITH actividad_actual AS (
          SELECT id, contenido_id, puntaje_maximo, calificada FROM actividades
@@ -556,6 +572,10 @@ export async function descargarArchivoEntrega(req: AuthenticatedRequest, res: Re
     if (!res.headersSent) return res.status(500).json({ message: "No se pudo descargar el archivo." });
   }
 }
+
+
+
+
 
 
 

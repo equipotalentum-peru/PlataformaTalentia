@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 
 type Props = { courseId: number; activityId: number; studentId: number; initialSubmissionId?: number };
 
@@ -238,7 +239,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
       // ya fueron calificados, se muestra el intento más reciente. Al guardar,
       // se conserva seleccionado el intento que se acaba de calificar.
       const graded = data.actividad?.calificada !== false;
-      const selected = items.find((item) => item.entrega_id === preferredSubmissionId)
+      const selected = items.find((item) => Number(item.entrega_id) === Number(preferredSubmissionId))
         ?? items.find((item) => (graded ? item.nota == null : !item.calificado_en))
         ?? items[items.length - 1]
         ?? null;
@@ -272,9 +273,31 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
   const maxAttempts = Number(activity.intentos_permitidos ?? 3);
   const isGraded = activity.calificada !== false;
 
+  const PASSING_GRADE = 14;
+
+  // Solo lectura si ya se calificó un intento posterior
+  const locked =
+    isGraded &&
+    !!submission &&
+    submissions.some((s) => s.numero_intento > submission.numero_intento && s.nota != null);
+
+  const gradeNumber = grade.trim() === "" ? null : Number(grade);
+  const hasGrade = gradeNumber != null && Number.isFinite(gradeNumber);
+  const gradeColor = !hasGrade
+    ? "text-talentia-primary"
+    : gradeNumber! >= PASSING_GRADE
+      ? "text-talentia-success"
+      : "text-talentia-danger";
+  const gradeBorder = !hasGrade
+    ? "border-talentia-border focus-within:border-talentia-blue"
+    : gradeNumber! >= PASSING_GRADE
+      ? "border-talentia-success"
+      : "border-talentia-danger";
+
 
   async function save() {
     if (!submission?.entrega_id) return;
+    if (locked) return;
     const numericGrade = Number(grade);
     if (isGraded && (grade.trim() === "" || !Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > maxGrade)) {
       setError(`Introduce una nota entre 0 y ${maxGrade}.`);
@@ -336,7 +359,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
             {submission.comentario && <p className="min-h-[54px] whitespace-pre-wrap rounded-sm border border-talentia-border bg-talentia-surface px-[11px] py-[10px] text-[13px] leading-[1.35] text-talentia-primary">{submission.comentario}</p>}
             {submission.nombre_archivo && submission.archivo_id ? (
               <div className="activity-file-row mt-3 min-w-0 bg-talentia-surface">
-                <span className="activity-file-icon flex h-[38px] w-[32px] shrink-0 items-center justify-center rounded"><Icon type="file" size={23} /></span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-talentia-surface"><FileTypeIcon filename={submission.nombre_archivo} className="h-7 w-7" /></span>
                 <div className="activity-file-name min-w-0 flex-1"><p className="text-[13px] text-talentia-primary">{submission.nombre_archivo}</p><p className="mt-1 text-[12px] text-talentia-muted">{formatSize(submission.tamano_bytes)}</p></div>
                 <a href={`${API_URL}/actividades/archivo/${submission.archivo_id}`} className="activity-link activity-download inline-flex shrink-0 items-center gap-2 rounded-md border border-talentia-blue"><Icon type="download" size={14} /> Descargar</a>
               </div>
@@ -359,26 +382,44 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
           <section className="activity-card p-4">
             <h2 className="activity-card-title">{isGraded ? "Calificación · Intento" : "Intento"} {submission.numero_intento}</h2>
             {isGraded && (
-              <>
-            <label htmlFor="nota-entrega" className="mt-4 flex min-h-11 items-center gap-2 rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] text-talentia-primary focus-within:border-talentia-blue">
-              <Icon type="trophy" size={17} />
-              <input id="nota-entrega" type="number" aria-label="Calificación del intento" min={0} max={maxGrade} step="0.1" value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Insertar calificación" className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-talentia-primary outline-none placeholder:text-talentia-placeholder" />
-            </label>
-            <div className="mt-[8px] flex items-center gap-[2px] text-[13px] text-talentia-primary">
-              <span className="min-w-[35px] rounded-l-[4px] bg-talentia-surface px-2 py-[4px]">{grade || "—"}</span>
-              <span className="rounded-r-[4px] bg-talentia-surface px-2 py-[4px]">Pts</span>
-            </div>
-              </>
+              <label
+                htmlFor="nota-entrega"
+                className={`mt-4 flex min-h-11 items-center gap-2 rounded-md border bg-talentia-surface px-3 text-[13px] ${gradeColor} ${gradeBorder}`}
+              >
+                <Icon type="trophy" size={17} />
+                <input
+                  id="nota-entrega"
+                  type="number"
+                  aria-label="Calificación del intento"
+                  min={0}
+                  max={maxGrade}
+                  step="0.1"
+                  value={grade}
+                  disabled={locked}
+                  onChange={(event) => setGrade(event.target.value)}
+                  placeholder="Insertar calificación"
+                  className={`min-w-0 flex-1 border-0 bg-transparent text-[13px] font-semibold outline-none placeholder:font-normal placeholder:text-talentia-placeholder disabled:cursor-not-allowed ${gradeColor}`}
+                />
+              </label>
             )}
             <div className="mt-[13px] flex items-center gap-2 text-[15px] font-semibold text-talentia-primary"><Icon type="chat" size={16} /> Comentarios del docente (opcional)</div>
             <label htmlFor="retroalimentacion-entrega" className="sr-only">Comentarios del docente</label>
-            <textarea id="retroalimentacion-entrega" rows={5} maxLength={5000} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[13px] placeholder:text-talentia-placeholder" />
+            <textarea id="retroalimentacion-entrega" rows={5} maxLength={5000} value={feedback} disabled={locked} onChange={(event) => setFeedback(event.target.value)} placeholder="Insertar comentario" className="activity-input mt-[8px] h-[119px] resize-none p-[10px] text-[13px] placeholder:text-talentia-placeholder" />
           </section>
 
-          <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Publicando..." : isGraded ? `Publicar nota del intento ${submission.numero_intento}` : "Publicar comentario"}</button>
+          {locked ? (
+            <p className="rounded-md bg-talentia-surface p-2 text-center text-[12px] text-talentia-primary">
+              Solo lectura: ya se calificó un intento posterior.
+            </p>
+          ) : (
+            <button type="button" disabled={saving || !submission.entrega_id} onClick={save} className="activity-primary flex h-[29px] w-full items-center justify-center rounded-[6px] text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50">
+              {saving ? "Publicando..." : isGraded ? `Publicar nota del intento ${submission.numero_intento}` : "Publicar comentario"}
+            </button>
+          )}
           <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="flex h-[27px] w-full items-center justify-center rounded-[6px] bg-talentia-surface text-[12px] font-medium text-talentia-primary hover:bg-talentia-border">Cancelar</Link>
         </aside>
       </div>
     </div>
   );
 }
+

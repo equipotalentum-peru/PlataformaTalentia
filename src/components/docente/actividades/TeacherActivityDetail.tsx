@@ -1676,7 +1676,7 @@ function selectStudent(
                           <p className="mt-[5px] text-[12px] text-talentia-muted">Entrega: {formattedDateTime(attempt.entregada_en)}</p>
                           <div className="mt-[5px] flex items-center justify-between gap-2">
                             {isGraded ? (
-                              <span className="text-[13px] text-talentia-primary">Nota: <strong>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
+                              <span className="text-[13px] text-talentia-primary">Nota: <strong className={attempt.nota == null ? "" : Number(attempt.nota) >= 14 ? "text-talentia-success" : "text-talentia-danger"}>{attempt.nota == null ? "—" : `${attempt.nota}/${maxGrade}`}</strong></span>
                             ) : (
                               <span />
                             )}
@@ -1684,7 +1684,13 @@ function selectStudent(
                               href={`/docente/cursos/${courseId}/actividades/${activityId}/alumno/${selectedStudent.alumno_id}?entregaId=${attempt.entrega_id}`}
                               className="activity-primary inline-flex h-[25px] shrink-0 items-center justify-center rounded-[5px] px-[9px] text-[12px] font-medium"
                             >
-                              {isGraded ? (attempt.nota == null ? "Calificar" : "Ver / editar") : "Ver"}
+                              {isGraded
+                                ? attempt.nota == null
+                                  ? "Calificar"
+                                  : selectedAttempts.some((a) => a.numero_intento > attempt.numero_intento && a.nota != null)
+                                    ? "Ver"
+                                    : "Ver / editar"
+                                : "Ver"}
                             </Link>
                           </div>
                         </div>

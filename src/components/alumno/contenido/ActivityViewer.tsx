@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { API_URL } from "@/lib/api";
+import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import { activities, type ActivityDefinition } from "@/data/activities";
 import { markContentViewed } from "@/lib/progress";
 
@@ -1538,12 +1539,10 @@ const isGraded =
                 {displayedSubmission.nombre_archivo &&
                 displayedSubmission.archivo_id ? (
                   <div className="activity-file-row mt-3 flex min-w-0 items-center gap-3 rounded-md bg-talentia-surface px-3 py-2">
-                    <span className="activity-file-icon flex h-[38px] w-[32px] shrink-0 items-center justify-center rounded bg-talentia-selected text-talentia-blue">
-                      <Icon
-                        type="file"
-                        size={
-                          23
-                        }
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-talentia-surface">
+                      <FileTypeIcon
+                        filename={displayedSubmission.nombre_archivo}
+                        className="h-7 w-7"
                       />
                     </span>
 
@@ -1699,12 +1698,14 @@ const isGraded =
                     }`}
                   >
                     <span className="text-talentia-primary">
-                      <Icon
-                        type="file"
-                        size={
-                          25
-                        }
-                      />
+                      {file ? (
+                        <FileTypeIcon
+                          filename={file.name}
+                          className="h-9 w-9"
+                        />
+                      ) : (
+                        <Icon type="file" size={25} />
+                      )}
                     </span>
 
                     <span className="mt-[4px] text-[14px] text-talentia-primary">
@@ -2112,3 +2113,4 @@ displayedSubmission && (
     </div>
   );
 }
+

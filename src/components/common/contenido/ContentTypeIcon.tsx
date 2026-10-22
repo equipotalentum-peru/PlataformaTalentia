@@ -157,7 +157,8 @@ export default function ContentTypeIcon({
         </g>
       </svg>
     );
-  } else if (type === "file"){
+  } else if (type === "file") {
+    return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -175,7 +176,8 @@ export default function ContentTypeIcon({
       <path d="M14 3v5h5" />
       <path d="M9 13h6M9 17h6" />
     </svg>
-  } 
+    );
+  }
 
   return null;
 }
