@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { API_URL } from "@/lib/api";
+import SidebarAvatar from "@/components/common/layout/SidebarAvatar";
+import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount";
 
 type AsistenciaAlumno = {
   alumno: { nombre: string; correo: string };
@@ -14,6 +16,7 @@ const formatoFecha = new Intl.DateTimeFormat("es-PE", { day: "2-digit", month: "
 
 export default function StudentAttendanceModal({ courseId, onClose }: { courseId: number; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { fotoPerfil } = useSidebarAccount();
   const [intento, setIntento] = useState(0);
   const [pagina, setPagina] = useState(1);
   const [resultado, setResultado] = useState<{ intento: number; datos: AsistenciaAlumno | null; error: string }>({ intento: -1, datos: null, error: "" });
@@ -73,7 +76,11 @@ export default function StudentAttendanceModal({ courseId, onClose }: { courseId
           ) : datos && (
             <>
               <div className="flex items-center gap-3">
-                <span aria-hidden="true" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-talentia-selected text-[14px] font-bold text-talentia-blue">{datos.alumno.nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join("")}</span>
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-talentia-selected text-[14px] font-bold text-talentia-blue">
+                  <SidebarAvatar fotoPerfil={fotoPerfil} nombre={datos.alumno.nombre}>
+                    <span aria-hidden="true">{datos.alumno.nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join("")}</span>
+                  </SidebarAvatar>
+                </span>
                 <div className="min-w-0">
                   <p className="break-words text-[14px] font-semibold">{datos.alumno.nombre}</p>
                   <p className="mt-0.5 break-all text-[12px] text-talentia-muted">{datos.alumno.correo}</p>

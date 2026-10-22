@@ -341,7 +341,7 @@ export default function TeacherDashboardPage() {
         <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
           Dashboard del docente
         </h1>
-        <div className="mt-8 rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-4 text-[14px] text-talentia-danger">
+        <div className="mt-8 rounded-lg border border-talentia-danger/20 bg-talentia-danger-bg px-5 py-4 text-[14px] text-talentia-danger">
           {error}
         </div>
       </div>
@@ -349,43 +349,43 @@ export default function TeacherDashboardPage() {
   }
 
   return (
-    <main className="min-h-screen px-[24px] py-[22px] lg:px-[30px]">
+    <main className="min-h-screen px-5 py-6 text-[14px] leading-relaxed text-talentia-primary sm:px-6 lg:px-[30px]">
       {/* ENCABEZADO */}
-      <header className="mb-5">
-        <h1 className="teacher-page-title text-[38px] font-semibold tracking-[-0.7px] text-talentia-primary">
+      <header className="mb-6">
+        <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
           Bienvenida {datos?.docente.nombres || "Docente"}
         </h1>
 
-        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.6px] text-talentia-blue">
+        <p className="mt-2 text-[12px] font-medium uppercase text-talentia-muted">
           {formatearFechaLarga()}
         </p>
 
-        <p className="mt-1 text-[14px] text-talentia-blue">
+        <p className="mt-2 text-[14px] text-talentia-muted">
           Tienes {datos?.resumen.actividadesPorCalificar ?? 0} actividades pendientes de calificar
         </p>
       </header>
 
       {/* KPI */}
-      <section className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((item) => (
           <article
             key={item.label}
-            className={`flex min-h-[78px] items-center gap-3 rounded-[14px] px-4 py-3 ${item.box}`}
+            className={`flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg px-5 py-5 ${item.box}`}
           >
             <div
-              className={`flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[15px] ${item.icon}`}
+              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg ${item.icon}`}
             >
               <KpiIcon type={item.type} />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <p
-                className={`text-[34px] font-bold leading-none ${item.number}`}
+                className={`text-[36px] font-bold leading-none tabular-nums ${item.number}`}
               >
                 {item.value}
               </p>
 
-              <p className="mt-1 text-[13px] font-medium text-talentia-primary">
+              <p className="mt-2 break-words text-[14px] font-medium leading-5 text-talentia-primary">
                 {item.label}
               </p>
             </div>
@@ -394,22 +394,22 @@ export default function TeacherDashboardPage() {
       </section>
 
       {/* CONTENIDO PRINCIPAL */}
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr]">
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         {/* PENDIENTES */}
-        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-[18px] font-semibold text-talentia-primary">
               Pendientes de revisión
             </h2>
 
-            <span className="rounded-full bg-talentia-selected px-3 py-1 text-[10px] font-semibold text-talentia-blue">
+            <span className="rounded-full bg-talentia-selected px-3 py-1 text-[12px] font-semibold text-talentia-blue">
               {datos?.resumen.revisionesPendientes ?? 0} pendientes
             </span>
           </div>
 
           <div className="divide-y divide-talentia-border">
             {pendientesRevision.length === 0 ? (
-              <div className="py-7 text-center text-[12px] text-talentia-muted">
+              <div className="py-10 text-center text-[13px] text-talentia-muted">
                 No tienes entregas pendientes de revisión.
               </div>
             ) : (
@@ -417,10 +417,10 @@ export default function TeacherDashboardPage() {
                 <Link
                   key={`${item.tipo}-${item.id}-${item.cursoId}`}
                   href="/docente/calificaciones"
-                  className="block py-2.5 transition hover:bg-talentia-hover"
+                  className="block py-4 transition hover:bg-talentia-hover"
                 >
                   <span
-                    className={`inline-block rounded-full px-3 py-1 text-[10px] font-medium ${
+                    className={`inline-block rounded-full px-3 py-1 text-[12px] font-medium ${
                       item.tipo === "Examen"
                         ? "bg-talentia-purple-soft text-talentia-purple"
                         : item.tipo === "Evaluación"
@@ -431,13 +431,13 @@ export default function TeacherDashboardPage() {
                     {item.tipo}
                   </span>
 
-                  <div className="mt-1 flex items-center justify-between gap-3">
+                  <div className="mt-2 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[11px] font-semibold text-talentia-blue">
+                      <p className="break-words text-[14px] font-semibold text-talentia-primary">
                         {item.titulo}
                       </p>
 
-                      <p className="text-[11px] text-talentia-muted">
+                      <p className="mt-1 break-words text-[12px] text-talentia-muted">
                         {item.curso} - {item.pendientes} pendientes
                       </p>
                     </div>
@@ -451,14 +451,14 @@ export default function TeacherDashboardPage() {
         </article>
 
         {/* MIS CURSOS */}
-        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-[18px] font-semibold text-talentia-primary">
+        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
             Mis cursos
           </h2>
 
           <div className="divide-y divide-talentia-border">
             {cursos.length === 0 ? (
-              <div className="py-7 text-center text-[12px] text-talentia-muted">
+              <div className="py-10 text-center text-[13px] text-talentia-muted">
                 No tienes cursos asignados actualmente.
               </div>
             ) : (
@@ -466,7 +466,7 @@ export default function TeacherDashboardPage() {
                 <Link
                   key={course.codigo}
                   href={`/docente/cursos/${course.id}`}
-                  className="flex items-center gap-3 py-2 transition hover:bg-talentia-hover"
+                  className="flex items-center gap-4 py-4 transition hover:bg-talentia-hover"
                 >
                   
                 <img
@@ -486,24 +486,24 @@ export default function TeacherDashboardPage() {
                     imagen.dataset.fallbackApplied = "true";
                     imagen.src = IMAGEN_POR_DEFECTO;
                   }}
-                  className="h-10 w-14 rounded-md object-cover"
+                  className="h-14 w-[72px] shrink-0 rounded-md object-cover"
                 />
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[11px] font-semibold text-talentia-blue">
+                    <p className="break-words text-[14px] font-semibold leading-5 text-talentia-primary">
                       {course.nombre}
                     </p>
 
-                    <p className="text-[11px] text-talentia-muted">
+                    <p className="mt-1 text-[12px] text-talentia-muted">
                       {course.codigo}
                     </p>
 
-                    <p className="text-[11px] text-talentia-muted">
+                    <p className="text-[12px] text-talentia-muted">
                       {course.alumnos} alumnos
                     </p>
                   </div>
 
-                  <span className="text-xl text-talentia-primary">›</span>
+                  <span className="shrink-0 text-xl text-talentia-primary">›</span>
                 </Link>
               ))
             )}
@@ -512,15 +512,15 @@ export default function TeacherDashboardPage() {
       </section>
 
       {/* PARTE INFERIOR */}
-      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
         {/* RESUMEN ALUMNOS */}
-        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-center text-[20px] font-semibold text-talentia-primary">
+        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <h2 className="mb-5 text-[18px] font-semibold text-talentia-primary">
             Resumen de alumnos
           </h2>
 
-          <div className="flex items-center justify-center gap-4">
-            <div className="relative flex h-[130px] w-[130px] items-center justify-center">
+          <div className="flex flex-wrap items-center justify-center gap-5">
+            <div className="relative flex h-[156px] w-[156px] shrink-0 items-center justify-center">
               <svg
                 viewBox="0 0 140 140"
                 className="absolute inset-0 h-full w-full -rotate-90"
@@ -579,17 +579,17 @@ export default function TeacherDashboardPage() {
               </svg>
 
               <div className="text-center">
-                <p className="text-[30px] font-bold text-talentia-blue">
+                <p className="text-[34px] font-bold tabular-nums text-talentia-primary">
                   {totalAlumnos}
                 </p>
 
-                <p className="text-[11px] font-medium text-talentia-blue">
+                <p className="text-[12px] font-medium text-talentia-muted">
                   Alumnos
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2.5 text-[11px] text-talentia-primary">
+            <div className="space-y-3 text-[13px] text-talentia-primary">
               <p>
                 <span className="mr-1 text-talentia-purple">●</span>
                 Al día: {resumenAlumnos.alDia}
@@ -605,31 +605,31 @@ export default function TeacherDashboardPage() {
             </div>
           </div>
 
-          <p className="mt-3 text-center text-[9px] leading-relaxed text-talentia-muted">
-            Se considera "al día" a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. "Bajo rendimiento" se marca cuando el promedio registrado es menor a 11.
+          <p className="mt-5 text-[12px] leading-relaxed text-talentia-muted">
+            Se considera &quot;al día&quot; a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. &quot;Bajo rendimiento&quot; se marca cuando el promedio registrado es menor a 11.
           </p>
         </article>
 
         {/* EVALUACIONES */}
-        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-[20px] font-semibold text-talentia-primary">
+        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
             Próximas evaluaciones
           </h2>
 
           <div className="divide-y divide-talentia-border">
             {evaluaciones.length === 0 ? (
-              <div className="py-7 text-center text-[11px] text-talentia-muted">
+              <div className="py-10 text-center text-[13px] text-talentia-muted">
                 No hay evaluaciones próximas.
               </div>
             ) : (
               evaluaciones.map((evaluation) => (
-                <div key={evaluation.id} className="py-2">
-                  <p className="text-[10px] font-semibold text-talentia-blue">
+                <div key={evaluation.id} className="py-4">
+                  <p className="break-words text-[14px] font-semibold text-talentia-primary">
                     {evaluation.titulo}
                   </p>
 
-                  <div className="flex justify-between gap-2 text-[10px] text-talentia-muted">
-                    <span className="truncate">{evaluation.curso}</span>
+                  <div className="mt-1 flex flex-wrap justify-between gap-2 text-[12px] text-talentia-muted">
+                    <span className="min-w-0 break-words">{evaluation.curso}</span>
 
                     <span className="shrink-0">
                       {formatearFechaCorta(evaluation.fecha)}
@@ -642,27 +642,27 @@ export default function TeacherDashboardPage() {
         </article>
 
         {/* ACTIVIDAD RECIENTE */}
-        <article className="rounded-[14px] border border-talentia-border bg-talentia-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-[20px] font-semibold text-talentia-primary">
+        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
             Actividad reciente
           </h2>
 
           <div className="divide-y divide-talentia-border">
             {actividadReciente.length === 0 ? (
-              <div className="py-7 text-center text-[11px] text-talentia-muted">
+              <div className="py-10 text-center text-[13px] text-talentia-muted">
                 No hay actividad reciente registrada.
               </div>
             ) : (
               actividadReciente.map((activity, index) => (
                 <div
                   key={`${activity.tipo}-${activity.fecha}-${index}`}
-                  className="py-2.5"
+                  className="py-4"
                 >
-                  <p className="text-[10px] text-talentia-primary">
+                  <p className="break-words text-[13px] text-talentia-primary">
                     {activity.texto}
                   </p>
 
-                  <p className="mt-1 text-right text-[10px] text-talentia-muted">
+                  <p className="mt-2 text-right text-[12px] text-talentia-muted">
                     {formatearFechaHora(activity.fecha)}
                   </p>
                 </div>
