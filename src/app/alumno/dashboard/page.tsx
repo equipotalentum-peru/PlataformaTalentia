@@ -67,6 +67,8 @@ function estiloEvento(tipo: string) {
   return "bg-talentia-selected text-talentia-blue";
 }
 
+const CURSOS_VISIBLES = 5;
+
 export default function DashboardPage() {
   const router = useRouter();
   const [datos, setDatos] = useState<DashboardData | null>(null);
@@ -411,9 +413,18 @@ export default function DashboardPage() {
         </div>
 
         <aside>
-          <h2 className="mb-3 text-[22px] font-semibold text-talentia-primary">
-            Mis cursos
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-[22px] font-semibold text-talentia-primary">
+              Mis cursos
+            </h2>
+
+            <Link
+              href="/alumno/cursos"
+              className="text-[14px] font-medium text-talentia-blue transition hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
 
           <div className="space-y-3">
             {cursos.length === 0 ? (
@@ -423,7 +434,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              cursos.map((curso) => (
+              cursos.slice(0, CURSOS_VISIBLES).map((curso) => (
                 <Link
                   key={curso.id}
                   href={`/alumno/cursos/${curso.id}`}
@@ -485,3 +496,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
