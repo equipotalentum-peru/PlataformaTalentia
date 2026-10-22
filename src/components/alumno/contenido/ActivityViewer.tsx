@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent, } from "react";
 import { API_URL } from "@/lib/api";
+import { useContentBreadcrumb } from "@/lib/use-content-breadcrumb";
 import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import { activities, type ActivityDefinition } from "@/data/activities";
 import { markContentViewed } from "@/lib/progress";
@@ -410,13 +411,11 @@ function PageHeader({
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-4">
       {backLink}
-      <p className="min-w-0 text-[14px] text-talentia-primary">
-        Módulo 1:
-        Introducción a las
-        TIC &gt;{" "}
-        {title ||
-          "1.4 Práctica"}
-      </p>
+      {backLink && title && (
+        <p className="min-w-0 text-[14px] text-talentia-primary">
+          {title}
+        </p>
+      )}
     </div>
   );
 }
@@ -1448,9 +1447,16 @@ const isGraded =
   }
 
 
+  const breadcrumb =
+    useContentBreadcrumb(
+      courseId,
+      activityId
+    );
+
+
   const pageHeader = (
     <PageHeader
-      title="1.4 Práctica"
+      title={breadcrumb}
       backLink={backLink}
     />
   );
@@ -2131,3 +2137,4 @@ displayedSubmission && (
     </div>
   );
 }
+

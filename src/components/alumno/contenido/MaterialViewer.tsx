@@ -8,6 +8,7 @@ import SectionNavigation from "@/components/alumno/SectionNavigation";
 import ActivityViewer from "./ActivityViewer";
 import { activities, type ActivityDefinition } from "@/data/activities";
 import { markContentViewed, } from "@/lib/progress";
+import { useContentBreadcrumb } from "@/lib/use-content-breadcrumb";
 
 type Contenido = {
   id: string | number;
@@ -34,6 +35,18 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
     actividad?: ActivityDefinition;
   } | null>(null);
   const [error, setError] = useState("");
+  const breadcrumb = useContentBreadcrumb(courseId, contentId);
+
+  const header = backLink ? (
+    <div className="mb-4 flex min-w-0 flex-wrap items-center gap-4">
+      {backLink}
+      {breadcrumb && (
+        <p className="min-w-0 text-[14px] text-talentia-primary">
+          {breadcrumb}
+        </p>
+      )}
+    </div>
+  ) : null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -187,11 +200,11 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
     };
   }, [courseId, contentId]);
 
-  if (error) return <>{backLink && <div className="mb-4">{backLink}</div>}<p role="alert">{error}</p></>;
-  if (!material) return <>{backLink && <div className="mb-4">{backLink}</div>}<p>Cargando material...</p></>;
+  if (error) return <>{header}<p role="alert">{error}</p></>;
+  if (!material) return <>{header}<p>Cargando material...</p></>;
   return (
     <>
-      {material.tipo !== "activity" && backLink && <div className="mb-4">{backLink}</div>}
+      {material.tipo !== "activity" && header}
       {material.tipo === "activity" ? (
         <ActivityViewer
           activityId={contentId}

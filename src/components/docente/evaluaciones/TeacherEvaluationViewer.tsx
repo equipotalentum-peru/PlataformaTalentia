@@ -241,7 +241,7 @@ export default function TeacherEvaluationViewer({
           <span aria-hidden="true">{"<"}</span>
           Volver al curso
         </Link>
-        <span className="min-w-0 truncate text-xs text-talentia-primary">
+        <span className="min-w-0 text-[14px] text-talentia-primary">
           Módulo {contenido.numeroModulo}: {contenido.tituloModulo} &gt;{" "}
           {contenido.titulo}
         </span>

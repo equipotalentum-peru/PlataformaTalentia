@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { API_URL } from "@/lib/api";
+import { useContentBreadcrumb } from "@/lib/use-content-breadcrumb";
 
 
 type Student = {
@@ -652,6 +653,12 @@ export default function TeacherActivityDetail({
   courseId,
   activityId,
 }: Props) {
+  const breadcrumb =
+    useContentBreadcrumb(
+      courseId,
+      activityId
+    );
+
   const [
     students,
     setStudents,
@@ -1257,12 +1264,11 @@ function selectStudent(
         </Link>
 
 
-        <p className="min-w-0 text-[14px] text-talentia-primary">
-          Módulo 1:
-          Introducción a las
-          TIC &gt; 1.4
-          Práctica
-        </p>
+        {breadcrumb && (
+          <p className="min-w-0 text-[14px] text-talentia-primary">
+            {breadcrumb}
+          </p>
+        )}
       </div>
 
 
@@ -1745,3 +1751,4 @@ function selectStudent(
     </div>
   );
 }
+

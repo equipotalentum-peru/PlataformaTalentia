@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import { useContentBreadcrumb } from "@/lib/use-content-breadcrumb";
 import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import TeacherRubricScoringModal from "./TeacherRubricScoringModal";
 
@@ -258,6 +259,7 @@ function formatPoints(value: number): string {
 }
 
 export default function TeacherSubmissionReview({ courseId, activityId, studentId, initialSubmissionId }: Props) {
+  const breadcrumb = useContentBreadcrumb(courseId, activityId);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
   const [activity, setActivity] = useState<ActivityInfo>({});
@@ -448,7 +450,7 @@ export default function TeacherSubmissionReview({ courseId, activityId, studentI
       <div className="flex min-w-0 items-center gap-4">
         <Link href={`/docente/cursos/${courseId}/actividades/${activityId}`} className="app-back-link">
           <span aria-hidden="true">{"<"}</span> Volver</Link>
-        <p className="truncate text-[11px] text-talentia-primary">Módulo 1: Introducción a las TIC &gt; 1.4 Práctica</p>
+        {breadcrumb && <p className="min-w-0 text-[14px] text-talentia-primary">{breadcrumb}</p>}
       </div>
 
       <div className="activity-visual-content mt-[18px] items-start">

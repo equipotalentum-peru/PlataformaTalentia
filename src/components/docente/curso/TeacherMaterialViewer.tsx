@@ -57,13 +57,13 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
   }, [courseId, contentId]);
 
   return <div className="min-h-screen px-4 py-4 lg:px-5"><div className="mx-auto max-w-[1000px]">
-    <div className="mb-3 flex min-w-0 items-center gap-3">
+    <div className="mb-3 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
       <Link href={`/docente/cursos/${courseId}`} className="app-back-link">
           <span aria-hidden="true">{"<"}</span>
 
         Volver a cursos
       </Link>
-      {data && <span className="min-w-0 truncate text-[11px] text-talentia-primary">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.numeroContenido} {data.content.titulo}</span>}
+      {data && <span className="min-w-0 text-[14px] text-talentia-primary">Módulo {data.content.numeroModulo}: {data.content.tituloModulo}{" > "}{data.content.numeroModulo}.{data.content.numeroContenido} {data.content.titulo}</span>}
     </div>
     {error ? <p role="alert" className="text-sm text-talentia-danger">{error}</p> : !data ? <p role="status">Cargando contenido...</p> : <>
       {data.content.tipo === "enlace" && data.content.urlEnlace ? <a href={data.content.urlEnlace} target="_blank" rel="noopener noreferrer" className="text-sm text-talentia-blue underline">{data.content.titulo}</a> :
