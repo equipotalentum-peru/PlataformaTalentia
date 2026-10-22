@@ -187,7 +187,7 @@ export async function obtenerDashboardAdministrador(
                  WHEN tiene_activa
                   AND promedio_general
                     IS NOT NULL
-                  AND promedio_general < 11
+                  AND promedio_general < 14
                  THEN 'En riesgo'
 
                  WHEN tiene_activa
@@ -196,13 +196,13 @@ export async function obtenerDashboardAdministrador(
                  WHEN tiene_completada
                   AND promedio_general
                     IS NOT NULL
-                  AND promedio_general < 11
+                  AND promedio_general < 14
                  THEN 'Desaprobado'
 
                  WHEN tiene_completada
                   AND promedio_general
                     IS NOT NULL
-                  AND promedio_general >= 11
+                  AND promedio_general >= 14
                  THEN 'Aprobado'
 
                  ELSE 'Pendiente'
@@ -338,7 +338,7 @@ export async function obtenerDashboardAdministrador(
 
            WHERE pm.promedio IS NOT NULL
 
-  AND pm.promedio >= 11
+  AND pm.promedio >= 14
 
   AND pm.estado IN (
     'Activa',

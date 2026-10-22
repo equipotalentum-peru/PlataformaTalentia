@@ -260,7 +260,7 @@ async function obtenerDatosCategoria(categoria: CategoriaReporte): Promise<{
              CASE
                WHEN COUNT(*) = 0 THEN 0
                ELSE ROUND(
-                 100.0 * COUNT(*) FILTER (WHERE nota >= 11) / COUNT(*)
+                 100.0 * COUNT(*) FILTER (WHERE nota >= 14) / COUNT(*)
                )::INTEGER
              END AS aprobacion
            FROM calificaciones`,

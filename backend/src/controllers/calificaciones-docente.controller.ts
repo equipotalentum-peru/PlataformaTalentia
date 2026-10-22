@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
+import { calcularPromedio } from "../services/calificaciones.service";
 
 type ComponenteCalificacion = {
   id: number;
@@ -23,34 +24,6 @@ function numeroValido(value: unknown) {
   const numero = Number(value);
 
   return Number.isFinite(numero) ? numero : null;
-}
-
-function calcularPromedio(
-  notas: Array<{
-    nota: number | null;
-    porcentaje: number | null;
-  }>
-) {
-  // El peso representa el porcentaje real del curso: nota * porcentaje / 100.
-  const calificadasConPeso = notas.filter(
-    (item) =>
-      item.nota !== null &&
-      Number(item.porcentaje ?? 0) > 0
-  );
-
-  if (calificadasConPeso.length === 0) {
-    return null;
-  }
-
-  const promedioPonderado = calificadasConPeso.reduce(
-    (total, item) =>
-      total +
-      Number(item.nota) *
-        (Number(item.porcentaje ?? 0) / 100),
-    0
-  );
-
-  return Number(promedioPonderado.toFixed(2));
 }
 
 async function validarDocente(

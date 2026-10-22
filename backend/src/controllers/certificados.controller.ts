@@ -1,6 +1,7 @@
 import type {
   Response,
 } from "express";
+import { requisitosCertificacionSql } from "../services/certificacion-eligibilidad.service";
 
 import pool
   from "../config/database";
@@ -107,6 +108,7 @@ export async function listarCertificadosEstudiante(
 
          WHERE
            m.estudiante_id = $1
+           AND (${requisitosCertificacionSql})
 
            AND cert.modulo_id
                IS NULL
@@ -268,6 +270,7 @@ export async function obtenerCertificadoEstudiante(
 
          WHERE
            cert.id = $1
+           AND (${requisitosCertificacionSql})
 
            AND
              m.estudiante_id = $2
@@ -384,6 +387,7 @@ export async function descargarCertificadoEstudiante(
 
          WHERE
            cert.id = $1
+           AND (${requisitosCertificacionSql})
 
            AND
              m.estudiante_id = $2
@@ -465,6 +469,7 @@ export async function descargarCertificadoEstudiante(
 
            WHERE
              cert.id = $1
+             AND (${requisitosCertificacionSql})
 
              AND
                m.estudiante_id =

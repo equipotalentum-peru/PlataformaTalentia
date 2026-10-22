@@ -277,21 +277,21 @@ export async function obtenerDashboardDocente(
          SELECT
            COUNT(*)::INTEGER AS total,
            COUNT(*) FILTER (
-             WHERE COALESCE(promedio, 11) >= 11
+             WHERE COALESCE(promedio, 14) >= 14
                AND progreso >= 80
            )::INTEGER AS al_dia,
            COUNT(*) FILTER (
              WHERE promedio IS NOT NULL
-               AND promedio < 11
+               AND promedio < 14
            )::INTEGER AS bajo_rendimiento,
            COUNT(*) FILTER (
              WHERE NOT (
-               COALESCE(promedio, 11) >= 11
+               COALESCE(promedio, 14) >= 14
                AND progreso >= 80
              )
              AND NOT (
                promedio IS NOT NULL
-               AND promedio < 11
+               AND promedio < 14
              )
            )::INTEGER AS con_pendientes
          FROM clasificacion`,

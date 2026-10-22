@@ -9,7 +9,8 @@ import {
 } from "@/lib/api";
 
 type Props = {
-  certificadoId: number;
+  certificadoId: number | string;
+  rutaDescarga?: string;
   fileName: string;
   className: string;
   label?: string;
@@ -17,6 +18,7 @@ type Props = {
 
 export default function CertificateDownloadButton({
   certificadoId,
+  rutaDescarga,
   fileName,
   className,
   label = "Descargar",
@@ -39,7 +41,7 @@ export default function CertificateDownloadButton({
 
       const response =
         await fetch(
-          `${API_URL}/certificados/${certificadoId}/pdf`,
+          `${API_URL}${rutaDescarga ?? `/certificados/${certificadoId}/pdf`}`,
           {
             credentials:
               "include",

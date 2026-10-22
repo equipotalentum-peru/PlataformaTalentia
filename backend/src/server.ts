@@ -25,6 +25,7 @@ import { sincronizarEstadosClases, } from "./services/clases-estado.service";
 import { configurarChatSocket,} from "./realtime/chat.socket";
 import periodosAdminRoutes from "./routes/periodos-admin.routes";
 import matriculasAdminRoutes from "./routes/matriculas-admin.routes";
+import progresoAlumnosAdminRoutes from "./routes/progreso-alumnos-admin.routes";
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.use("/api/asistencias", asistenciasRoutes);
 app.use("/api/administrador/cursos", cursosAdminRoutes);
 app.use("/api/administrador/periodos", periodosAdminRoutes);
 app.use("/api/administrador/matriculas", matriculasAdminRoutes);
+app.use("/api/administrador/progreso-alumnos", progresoAlumnosAdminRoutes);
 
 void sincronizarEstadosClases();
 

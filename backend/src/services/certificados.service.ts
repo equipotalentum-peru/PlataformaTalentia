@@ -4,6 +4,7 @@ import { PassThrough } from "node:stream";
 import PDFDocument from "pdfkit";
 
 import pool from "../config/database";
+import { requisitosCertificacionSql } from "./certificacion-eligibilidad.service";
 
 import {
   deleteObjectFromR2,
@@ -21,8 +22,6 @@ type DatosCertificado = {
   codigo_curso: string;
   estudiante: string;
   completado_en: string | Date | null;
-  total_contenidos: number;
-  contenidos_completados: number;
 };
 
 type CertificadoDb = {
@@ -332,13 +331,6 @@ async function generarYSubirPdf({
 export async function emitirCertificadoCurso(
   matriculaId: number
 ) {
-  /*
-   * Primero comprobamos el 100%
-   * REAL del curso.
-   *
-   * No basta con confiar solamente
-   * en matricula.estado.
-   */
   const datosResult =
     await pool.query(
       `SELECT
@@ -361,73 +353,7 @@ export async function emitirCertificadoCurso(
            ' ',
            u.nombres,
            u.apellidos
-         ) AS estudiante,
-
-         (
-           SELECT
-             COUNT(cc.id)::INTEGER
-
-           FROM modulos_curso mc
-
-           INNER JOIN
-             contenidos_curso cc
-             ON cc.modulo_id =
-                mc.id
-
-            AND cc.estado =
-                'Publicado'
-
-            AND cc.obligatorio =
-                TRUE
-
-           WHERE mc.curso_id =
-                 c.id
-
-             AND mc.activo =
-                 TRUE
-         )
-           AS total_contenidos,
-
-         (
-           SELECT
-             COUNT(cc.id)::INTEGER
-
-           FROM modulos_curso mc
-
-           INNER JOIN
-             contenidos_curso cc
-             ON cc.modulo_id =
-                mc.id
-
-            AND cc.estado =
-                'Publicado'
-
-            AND cc.obligatorio =
-                TRUE
-
-           INNER JOIN
-             progreso_contenido pc
-
-             ON pc.contenido_id =
-                cc.id
-
-            AND pc.matricula_id =
-                m.id
-
-            AND (
-              pc.estado =
-                'Completado'
-
-              OR pc.progreso >= 100
-            )
-
-           WHERE mc.curso_id =
-                 c.id
-
-             AND mc.activo =
-                 TRUE
-         )
-           AS contenidos_completados
+         ) AS estudiante
 
        FROM matriculas m
 
@@ -445,6 +371,7 @@ export async function emitirCertificadoCurso(
             m.estudiante_id
 
        WHERE m.id = $1
+         AND (${requisitosCertificacionSql})
          AND u.rol =
              'Estudiante'
 
@@ -460,32 +387,7 @@ export async function emitirCertificadoCurso(
     return null;
   }
 
- const datos =
-  datosResult.rows[0] as DatosCertificado;
-
-  const total =
-    Number(
-      datos.total_contenidos ??
-        0
-    );
-
-  const completados =
-    Number(
-      datos
-        .contenidos_completados ??
-        0
-    );
-
-  /*
-   * Si no está en 100%,
-   * NO se emite.
-   */
-  if (
-    total <= 0 ||
-    completados < total
-  ) {
-    return null;
-  }
+  const datos = datosResult.rows[0] as DatosCertificado;
 
   /*
    * Garantizamos matrícula
@@ -644,11 +546,6 @@ export async function emitirCertificadoCurso(
   return certificado;
 }
 
-/*
- * Esto permite recuperar alumnos
- * que ya habían llegado al 100%
- * antes de implementar certificados.
- */
 export async function emitirCertificadosPendientesEstudiante(
   estudianteId: number
 ) {

@@ -98,7 +98,7 @@ function estadoComponente(
     return "Pendiente";
   }
 
-  return Number(nota) >= 11
+  return Number(nota) >= 14
     ? "Aprobado"
     : "Desaprobado";
 }

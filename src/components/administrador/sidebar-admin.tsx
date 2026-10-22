@@ -24,6 +24,7 @@ export default function SidebarAdmin() {
     { name: "Cursos", href: "/administrador/cursos", letter: "C" },
     { name: "Periodos académicos", href: "/administrador/periodos", letter: "P" },
     { name: "Matrículas", href: "/administrador/matriculas", letter: "M" },
+    { name: "Progreso de alumnos", href: "/administrador/progreso-alumnos", letter: "P" },
     { name: "Reportes", href: "/administrador/reportes", letter: "R" },
     {
       name: "Solicitudes Personas",

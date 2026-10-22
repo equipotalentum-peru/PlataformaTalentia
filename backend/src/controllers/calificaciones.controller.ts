@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
+import { calcularPromedio } from "../services/calificaciones.service";
 
 type ComponenteFila = {
   id: number;
@@ -13,32 +14,6 @@ type ComponenteFila = {
   retroalimentacion: string | null;
   calificado_en: string | null;
 };
-
-function calcularPromedio(
-  componentes: ComponenteFila[]
-) {
-  // Cada nota aporta al promedio del curso según el porcentaje configurado
-  // para su componente. No se reescala según los componentes ya calificados.
-  const conNotaYPeso = componentes.filter(
-    (componente) =>
-      componente.nota !== null &&
-      Number(componente.porcentaje ?? 0) > 0
-  );
-
-  if (conNotaYPeso.length === 0) {
-    return null;
-  }
-
-  const promedioPonderado = conNotaYPeso.reduce(
-    (total, componente) =>
-      total +
-      Number(componente.nota) *
-        (Number(componente.porcentaje ?? 0) / 100),
-    0
-  );
-
-  return Number(promedioPonderado.toFixed(2));
-}
 
 export async function obtenerMisCalificaciones(
   req: AuthenticatedRequest,
@@ -228,7 +203,7 @@ export async function obtenerMisCalificaciones(
             promedio !== null
           ) {
             estadoAcademico =
-              promedio >= 11
+              promedio >= 14
                 ? "Aprobado"
                 : "Desaprobado";
           }
