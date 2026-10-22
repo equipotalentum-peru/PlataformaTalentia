@@ -364,9 +364,18 @@ export default function TeacherEvaluationAttemptReview({
                       onChange={(event) => {
                         const numericValue = normalizarPuntaje(event.target.value);
                         if (numericValue === null) return;
+
+                        const maximoPermitido = Math.round(Number(question.puntaje) * 100) / 100;
+                        const valorNumerico = numericValue.trim() === "" || numericValue === "."
+                          ? null
+                          : Number(numericValue);
+                        const valorLimitado = valorNumerico !== null && Number.isFinite(valorNumerico) && valorNumerico > maximoPermitido
+                          ? String(maximoPermitido)
+                          : numericValue;
+
                         setPuntajesBorrador((current) => ({
                           ...current,
-                          [question.id]: numericValue,
+                          [question.id]: valorLimitado,
                         }));
                       }}
                       onKeyDown={(event) => {

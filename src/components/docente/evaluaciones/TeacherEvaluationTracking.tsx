@@ -275,6 +275,22 @@ export default function TeacherEvaluationTracking({
                     <tr><td colSpan={4} className="px-6 py-10 text-center text-sm text-talentia-muted">No hay alumnos matriculados para esta evaluación.</td></tr>
                   ) : students.map((student, index) => {
                     const selected = selectedStudent?.alumnoId === student.alumnoId;
+                    const notaIntentoNoCalificada =
+                      !evaluation.calificada &&
+                      student.ultimoIntento?.estado === "Calificado" &&
+                      evaluation.puntajeTotal !== null &&
+                      evaluation.puntajeTotal > 0
+                        ? Math.max(
+                            0,
+                            Math.min(
+                              20,
+                              Number(
+                                ((student.ultimoIntento.puntosObtenidos / evaluation.puntajeTotal) * 20).toFixed(2)
+                              )
+                            )
+                          )
+                        : null;
+                    const notaMostrar = student.notaCalificacion ?? notaIntentoNoCalificada;
                     return (
                       <tr
                         key={student.alumnoId}
@@ -301,8 +317,8 @@ export default function TeacherEvaluationTracking({
                           )}
                         </td>
                         <td className="px-4 py-3 text-center font-semibold text-talentia-primary">
-                          {student.notaCalificacion !== null && Number.isFinite(student.notaCalificacion)
-                            ? `${student.notaCalificacion.toFixed(2)} / 20.00`
+                          {notaMostrar !== null && Number.isFinite(notaMostrar)
+                            ? `${notaMostrar.toFixed(2)} / 20.00`
                             : "—"}
                         </td>
                       </tr>
