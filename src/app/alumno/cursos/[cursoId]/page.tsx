@@ -22,6 +22,9 @@ export default function CourseDetailPage({
     nombre: string;
     imagen: string | null;
     progreso: number;
+    modalidad: string | null;
+    fechaInicio: string | null;
+    fechaFin: string | null;
   } | null>(null);
 
   const courseId = Number(cursoId);
@@ -61,6 +64,8 @@ export default function CourseDetailPage({
           </section>
 
           <CourseInfo
+  courseId={courseId}
+  course={cursoActual}
   progress={
     Number(
       cursoActual?.progreso ?? 0

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { courses, type Course } from "@/data/courses";
+import type { Course } from "@/data/courses";
 import type { ContentType } from "@/data/courseContents";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
@@ -96,7 +96,7 @@ function DottedMenu({ onEdit, onDelete, onPublish, status, disabled, label = "Ac
 }
 
 type ModuleResponse = {
-  curso: { id: string; nombre: string; codigo: string; imagen: string | null };
+  curso: { id: string; nombre: string; codigo: string; imagen: string | null; alumnos: number; modalidad: string | null; fechaInicio: string | null; fechaFin: string | null };
   modulos: { id: string; numero: number; titulo: string; contenidos: {
     id: string; titulo: string; tipo: string; orden: number; rutaArchivo: string | null;
     urlEnlace: string | null; estado: "Publicado" | "Borrador";
@@ -110,9 +110,9 @@ const contentTypes: Record<string, ContentType> = {
 
 export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailProps) {
   const router = useRouter();
-  const [course, setCourse] = useState<Course>(() => ({
-    ...(courses.find(item => item.id === courseId) ?? { alumnos: 0, actividades: 0, evaluaciones: 0, progreso: 0, accent: "var(--talentia-teal)" }),
-    id: courseId, nombre: "", codigo: "", imagen: "",
+  const [course, setCourse] = useState<Course & { modalidad: string | null; fechaInicio: string | null; fechaFin: string | null }>(() => ({
+    id: courseId, nombre: "", codigo: "", imagen: "", alumnos: 0, actividades: 0, evaluaciones: 0,
+    progreso: 0, accent: "var(--talentia-teal)", modalidad: null, fechaInicio: null, fechaFin: null,
   }));
   const [modules, setModules] = useState<LocalModule[]>([]);
   const [contents, setContents] = useState<LocalContent[]>([]);
@@ -147,7 +147,8 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
         if (controller.signal.aborted) return;
         const result = data as ModuleResponse;
         setCourse(current => ({ ...current, id: Number(result.curso.id), nombre: result.curso.nombre,
-          codigo: result.curso.codigo, imagen: result.curso.imagen ?? "" }));
+          codigo: result.curso.codigo, imagen: result.curso.imagen ?? "", alumnos: Number(result.curso.alumnos ?? 0),
+          modalidad: result.curso.modalidad, fechaInicio: result.curso.fechaInicio, fechaFin: result.curso.fechaFin }));
         setModules(result.modulos.map(module => ({ id: Number(module.id), number: module.numero, title: module.titulo })));
         setContents(result.modulos.flatMap(module => module.contenidos.map(content => ({
           id: Number(content.id), moduleId: Number(module.id), order: content.orden, title: content.titulo,
@@ -554,7 +555,11 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
             </div>
           </section>
 
-          <TeacherCourseInfo course={course} />
+          <TeacherCourseInfo course={{ ...course,
+            actividades: contents.filter(content => content.type === "activity").length,
+            evaluaciones: contents.filter(content => content.type === "quiz").length,
+            progreso: contents.length ? Math.round(contents.filter(content => content.status === "Publicado").length * 100 / contents.length) : 0,
+          }} />
         </div>
       </div>
 

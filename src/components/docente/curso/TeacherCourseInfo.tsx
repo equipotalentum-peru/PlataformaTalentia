@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { Course } from "@/data/courses";
+import { duracionPeriodoMeses, formatearFechaPeriodo } from "@/lib/course-period";
 
 type TeacherCourseInfoProps = {
-  course: Course;
+  course: Course & { modalidad: string | null; fechaInicio: string | null; fechaFin: string | null };
 };
 
 function Icon({ children }: { children: ReactNode }) {
@@ -75,14 +76,14 @@ function InfoRow({
       <Icon>{icon}</Icon>
       <div className="min-w-0">
         <p className="text-[10px] text-talentia-placeholder">{label}</p>
-        <p className="truncate text-[11px] font-medium text-talentia-blue">{value}</p>
+        <p className="break-words text-[11px] font-medium text-talentia-blue">{value}</p>
       </div>
     </div>
   );
 }
 
 export default function TeacherCourseInfo({ course }: TeacherCourseInfoProps) {
-  const published = Math.min(Math.max(course.progreso - 15, 0), 100);
+  const published = course.progreso;
 
   return (
     <aside className="order-first w-full shrink-0 xl:order-last xl:w-[225px]">
@@ -101,13 +102,13 @@ export default function TeacherCourseInfo({ course }: TeacherCourseInfoProps) {
 
         <section className="rounded-xl bg-talentia-surface p-3 shadow-[0_1px_5px_rgba(15,36,61,0.08)]">
           <div className="space-y-4">
-            <InfoRow icon={<UsersIcon />} label="Alumnos" value={`${Math.max(course.alumnos - 2, 0)} alumnos matriculados`} />
-            <InfoRow icon={<ActivityIcon />} label="Actividades" value={`${course.actividades} actividades`} />
-            <InfoRow icon={<GraduationIcon />} label="Evaluaciones" value={`${course.evaluaciones} evaluaciones`} />
-            <InfoRow icon={<CalendarIcon />} label="Fecha de inicio" value="12 de agosto del 2026" />
-            <InfoRow icon={<CalendarIcon />} label="Fecha de fin" value="12 de diciembre del 2026" />
-            <InfoRow icon={<GraduationIcon />} label="Duración" value="4 meses" />
-            <InfoRow icon={<ClockIcon />} label="Modalidad" value="Virtual por Zoom" />
+            <InfoRow icon={<UsersIcon />} label="Alumnos" value={`${course.alumnos} ${course.alumnos === 1 ? "alumno matriculado" : "alumnos matriculados"}`} />
+            <InfoRow icon={<ActivityIcon />} label="Actividades" value={`${course.actividades} ${course.actividades === 1 ? "actividad" : "actividades"}`} />
+            <InfoRow icon={<GraduationIcon />} label="Evaluaciones" value={`${course.evaluaciones} ${course.evaluaciones === 1 ? "evaluación" : "evaluaciones"}`} />
+            <InfoRow icon={<CalendarIcon />} label="Fecha de inicio" value={formatearFechaPeriodo(course.fechaInicio)} />
+            <InfoRow icon={<CalendarIcon />} label="Fecha de fin" value={formatearFechaPeriodo(course.fechaFin)} />
+            <InfoRow icon={<GraduationIcon />} label="Duración" value={duracionPeriodoMeses(course.fechaInicio, course.fechaFin)} />
+            <InfoRow icon={<ClockIcon />} label="Modalidad" value={course.modalidad === "Hibrido" ? "Híbrido" : course.modalidad || "Por definir"} />
           </div>
         </section>
       </div>

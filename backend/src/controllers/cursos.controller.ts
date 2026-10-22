@@ -149,6 +149,7 @@ export async function obtenerModulosCurso(
        c.nombre,
        c.codigo,
        c.imagen_portada AS imagen,
+       c.modalidad,
        u.rol,
 
        CASE
@@ -179,7 +180,13 @@ export async function obtenerModulosCurso(
          )
 
          ELSE NULL
-       END AS matricula_id
+       END AS matricula_id,
+       CASE WHEN u.rol = 'Docente' THEN (
+         SELECT oc_info.id FROM ofertas_curso oc_info
+         WHERE oc_info.curso_id = c.id AND oc_info.docente_id = u.id
+           AND oc_info.estado <> 'Cancelado'
+         ORDER BY oc_info.actualizado_en DESC, oc_info.id DESC LIMIT 1
+       ) ELSE NULL END AS oferta_docente_id
 
      FROM cursos c
 
@@ -239,6 +246,13 @@ export async function obtenerModulosCurso(
 
    SELECT
      contexto.*,
+     periodo_info.fecha_inicio::TEXT AS "fechaInicio",
+     periodo_info.fecha_fin::TEXT AS "fechaFin",
+     CASE WHEN contexto.rol = 'Docente' THEN (
+       SELECT COUNT(*)::INTEGER FROM matriculas alumnos_info
+       WHERE alumnos_info.oferta_curso_id = contexto.oferta_docente_id
+         AND alumnos_info.estado IN ('Activa', 'Completada')
+     ) ELSE 0 END AS alumnos,
 
      CASE
        WHEN contexto.rol = 'Estudiante'
@@ -278,7 +292,10 @@ export async function obtenerModulosCurso(
        ELSE 0
      END AS progreso
 
-   FROM contexto`,
+   FROM contexto
+   LEFT JOIN matriculas matricula_info ON matricula_info.id = contexto.matricula_id
+   LEFT JOIN ofertas_curso oferta_info ON oferta_info.id = COALESCE(contexto.oferta_docente_id, matricula_info.oferta_curso_id)
+   LEFT JOIN periodos_academicos periodo_info ON periodo_info.id = oferta_info.periodo_id`,
   [estudianteId, cursoId]
 );
 

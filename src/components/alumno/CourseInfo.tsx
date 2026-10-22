@@ -1,10 +1,26 @@
+"use client";
+
+import { useState } from "react";
+import { duracionPeriodoMeses, formatearFechaPeriodo } from "@/lib/course-period";
+import StudentAttendanceModal from "./StudentAttendanceModal";
+
 type CourseInfoProps = {
   progress: number;
+  courseId: number;
+  course: {
+    nombre: string;
+    modalidad: string | null;
+    fechaInicio: string | null;
+    fechaFin: string | null;
+  } | null;
 };
 
 export default function CourseInfo({
   progress,
+  courseId,
+  course,
 }: CourseInfoProps) {
+  const [asistenciaAbierta, setAsistenciaAbierta] = useState(false);
   return (
     <aside className="order-first w-full xl:order-last xl:w-[220px] xl:shrink-0">
       <div className="mb-3">
@@ -40,42 +56,45 @@ export default function CourseInfo({
           <InfoItem
             icon="course"
             label="Curso"
-            value="Herramientas TIC"
+            value={course?.nombre || "No disponible"}
           />
 
           <InfoItem
             icon="calendar"
             label="Fecha de inicio"
-            value="12 de agosto del 2026"
+            value={formatearFechaPeriodo(course?.fechaInicio)}
           />
 
           <InfoItem
             icon="calendar"
             label="Fecha de fin"
-            value="12 de diciembre del 2026"
+            value={formatearFechaPeriodo(course?.fechaFin)}
           />
 
           <InfoItem
             icon="clock"
             label="Duración"
-            value="4 meses"
+            value={duracionPeriodoMeses(course?.fechaInicio, course?.fechaFin)}
           />
 
           <InfoItem
             icon="course"
             label="Modalidad"
-            value="Virtual por Zoom"
+            value={course?.modalidad === "Hibrido" ? "Híbrido" : course?.modalidad || "Por definir"}
           />
 
         </div>
       </div>
 
-      <a
-        href="#"
-        className="mt-8 flex h-12 items-center justify-center rounded-lg bg-talentia-action text-[13px] font-semibold text-white transition hover:bg-talentia-primary"
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={() => setAsistenciaAbierta(true)}
+        className="mt-8 flex h-12 w-full items-center justify-center rounded-lg bg-talentia-action text-[13px] font-semibold text-white transition hover:bg-talentia-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 focus-visible:ring-offset-2"
       >
         Ver Asistencia
-      </a>
+      </button>
+      {asistenciaAbierta && <StudentAttendanceModal key={courseId} courseId={courseId} onClose={() => setAsistenciaAbierta(false)} />}
     </aside>
   );
 }
@@ -103,9 +122,9 @@ function InfoItem({
         </svg>
       </div>
 
-      <div>
+      <div className="min-w-0">
         <p className="text-[12px] text-talentia-muted">{label}</p>
-        <p className="text-[13px] font-medium text-talentia-blue">{value}</p>
+        <p className="break-words text-[13px] font-medium text-talentia-blue">{value}</p>
       </div>
     </div>
   );

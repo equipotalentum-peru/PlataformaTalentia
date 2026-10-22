@@ -30,6 +30,9 @@ type CourseModulesProps = {
     nombre: string;
     imagen: string | null;
     progreso: number;
+    modalidad: string | null;
+    fechaInicio: string | null;
+    fechaFin: string | null;
   }) => void;
 };
 

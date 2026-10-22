@@ -5,6 +5,7 @@ import {
 import {
   requireAuth,
 } from "../middleware/auth.middleware";
+import { obtenerAsistenciaAlumno } from "../controllers/asistencias-alumno.controller";
 
 import {
   guardarAsistenciaDocente,
@@ -14,6 +15,8 @@ import {
 
 const router =
   Router();
+
+router.get("/alumno/:cursoId", requireAuth, obtenerAsistenciaAlumno);
 
 
 router.get(
