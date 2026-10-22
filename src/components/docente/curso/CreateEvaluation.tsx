@@ -419,11 +419,16 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
       showNotice("Completa el enunciado de todas las preguntas.");
       return false;
     }
-    if (endDate && startDate && endDate < startDate) {
+    if (!startDate || !endDate) {
+      showNotice(
+        "Debes seleccionar la fecha de inicio y la fecha final de la evaluación."
+      );
+      return false;
+    }
+    if (endDate < startDate) {
       showNotice("La fecha final no puede ser anterior a la fecha de inicio.");
       return false;
     }
-
     if (status === "Publicado") {
       if (totalPoints <= 0) {
         showNotice("El puntaje total debe ser mayor que cero para publicar.");
@@ -760,6 +765,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                 <input
                   id="evaluation-start-date"
                   type="date"
+                  required
                   value={startDate}
                   onChange={(event) => setStartDate(event.target.value)}
                   className="h-9 min-w-0 w-full rounded-md border border-talentia-border bg-talentia-surface px-2 text-[13px] outline-none focus:border-talentia-blue"
@@ -773,6 +779,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                 <input
                   id="evaluation-end-date"
                   type="date"
+                  required
                   min={startDate || undefined}
                   value={endDate}
                   onChange={(event) => setEndDate(event.target.value)}

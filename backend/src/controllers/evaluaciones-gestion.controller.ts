@@ -315,6 +315,12 @@ async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, 
   if (fechaInicio === undefined || fechaFin === undefined) {
     return res.status(400).json({ message: "Las fechas deben ser fechas válidas con zona horaria." });
   }
+  if (fechaInicio === null || fechaFin === null) {
+    return res.status(400).json({ message: "La fecha de inicio y la fecha final son obligatorias." });
+  }
+  if (Date.parse(fechaFin) < Date.parse(fechaInicio)) {
+    return res.status(400).json({ message: "La fecha final no puede ser anterior a la fecha de inicio." });
+  }
   if (fechaInicio && fechaFin && Date.parse(fechaFin) < Date.parse(fechaInicio)) {
     return res.status(400).json({ message: "La fecha final no puede ser anterior a la fecha de inicio." });
   }

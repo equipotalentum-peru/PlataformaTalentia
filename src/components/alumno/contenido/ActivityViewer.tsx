@@ -1,23 +1,11 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type DragEvent,
-} from "react";
-
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent, } from "react";
 import { API_URL } from "@/lib/api";
 import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import { activities, type ActivityDefinition } from "@/data/activities";
 import { markContentViewed } from "@/lib/progress";
-
-import type {
-  RubricInfo,
-} from "@/components/common/curso/RubricDetails";
-
+import type { RubricInfo, } from "@/components/common/curso/RubricDetails";
 
 type Submission = {
   id: number;
@@ -858,6 +846,8 @@ export default function ActivityViewer({
       FALLBACK_MAX_FILE_SIZE_MB
     );
 
+  const [clockNow, setClockNow] = useState(() => Date.now());
+
   const [
     loading,
     setLoading,
@@ -1042,6 +1032,12 @@ export default function ActivityViewer({
     loadSubmission,
   ]);
 
+  // Mantiene actualizado el estado de vencimiento aunque el alumno deje abierta la página.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setClockNow(Date.now()), 15000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
 const latest =
   submissions[
     submissions.length - 1
@@ -1080,6 +1076,14 @@ const due =
     activityInfo?.fecha_limite,
     activity?.dueDate
   );
+
+const deadlineTimestamp = activityInfo?.fecha_limite
+  ? Date.parse(activityInfo.fecha_limite)
+  : null;
+const deadlinePassed =
+  deadlineTimestamp !== null &&
+  Number.isFinite(deadlineTimestamp) &&
+  deadlineTimestamp <= clockNow;
 
 const showDeliveryDetail =
   showSubmitted &&
@@ -1310,6 +1314,11 @@ const isGraded =
 
 
   async function submit() {
+    if (deadlinePassed) {
+      setError("La fecha y hora límite ya venció. No es posible enviar esta actividad.");
+      return;
+    }
+
     if (
       remaining <=
       0
@@ -1562,11 +1571,16 @@ const isGraded =
 
                     <a
                       href={`${API_URL}/actividades/archivo/${displayedSubmission.archivo_id}`}
-                      aria-label={`Descargar ${displayedSubmission.nombre_archivo}`}
-                      title="Descargar archivo"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-talentia-blue transition hover:bg-talentia-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-talentia-blue"
+                      className="activity-link activity-download inline-flex shrink-0 items-center gap-2 rounded-md border border-talentia-blue px-3 py-2 text-[13px]"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+                      <Icon
+                        type="download"
+                        size={
+                          14
+                        }
+                      />
+
+                      Descargar
                     </a>
                   </div>
                 ) : !displayedSubmission.comentario ? (
@@ -1631,8 +1645,14 @@ const isGraded =
               )}
 
 
-              {remaining >
-              0 ? (
+              {deadlinePassed ? (
+                <p
+                  role="alert"
+                  className="rounded-md bg-talentia-warning-bg p-3 text-[14px] text-talentia-warning"
+                >
+                  La fecha y hora límite de entrega venció el {formatDate(activityInfo?.fecha_limite)}. Ya no es posible enviar esta actividad.
+                </p>
+              ) : remaining > 0 ? (
                 <>
                   <label
                     htmlFor="comentario-entrega"
@@ -1897,12 +1917,12 @@ const isGraded =
                   </p>
 
                   <p className="mt-[2px] text-[12px] leading-[1.5]">
-                    Las entregas
-                    realizadas
-                    después de la
-                    fecha límite se
-                    marcarán como
-                    atrasadas.
+                    Una vez vencida
+                    la fecha y hora
+                    límite, ya no
+                    será posible
+                    enviar esta
+                    actividad.
                   </p>
                 </div>
               </div>
@@ -2033,7 +2053,7 @@ displayedSubmission && (
                 })}
               </div>
             )}
-            {showDeliveryDetail && remaining > 0 && (
+            {showDeliveryDetail && remaining > 0 && !deadlinePassed && (
               <button
                 type="button"
                 onClick={() => {
@@ -2063,6 +2083,7 @@ displayedSubmission && (
             }
             disabled={
               sending ||
+              deadlinePassed ||
               remaining <=
                 0
             }
@@ -2070,7 +2091,9 @@ displayedSubmission && (
           >
             {sending
               ? "Enviando..."
-              : "Enviar entrega"}
+              : deadlinePassed
+                ? "Plazo vencido"
+                : "Enviar entrega"}
 
             <Icon
               type="arrow"

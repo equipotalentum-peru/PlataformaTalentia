@@ -102,6 +102,10 @@ type AttemptStatusResponse = {
   puedeIniciarNuevo: boolean;
   intentoEnCurso: AttemptSummary | null;
   intentos: AttemptSummary[];
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
+  ventanaAbierta?: boolean;
+  mensajeDisponibilidad?: string | null;
   message?: string;
 };
 
@@ -192,6 +196,17 @@ function formatTime(seconds: number) {
   return [hours, minutes, secs]
     .map((value) => String(value).padStart(2, "0"))
     .join(":");
+}
+
+function formatAvailabilityDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("es-PE", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "America/Lima",
+  });
 }
 
 export default function QuizViewer({
@@ -671,7 +686,25 @@ export default function QuizViewer({
           <p>3. Después de avanzar a la siguiente pregunta, no podrás volver a la anterior.</p>
           <p>4. Respeta las instrucciones y completa las respuestas que correspondan.</p>
           <p>5. Al terminar, tus respuestas se guardarán y el intento quedará registrado.</p>
+          {databaseContentId &&
+            !preview &&
+            attemptStatus?.fechaInicio &&
+            attemptStatus?.fechaFin && (
+              <p>6. Esta evaluación estará disponible entre el {formatAvailabilityDate(attemptStatus.fechaInicio)} y el {formatAvailabilityDate(attemptStatus.fechaFin)}.</p>
+            )}
         </div>
+
+        {databaseContentId && !preview && attemptStatus && !attemptStatus.ventanaAbierta && !attemptStatus.intentoEnCurso && (
+          <div role="status" className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-semibold">{attemptStatus.mensajeDisponibilidad || "Esta evaluación está fuera de su periodo disponible."}</p>
+            {attemptStatus.fechaInicio && (
+              <p className="mt-1">Disponible desde: {formatAvailabilityDate(attemptStatus.fechaInicio)}.</p>
+            )}
+            {attemptStatus.fechaFin && (
+              <p className="mt-1">Disponible hasta: {formatAvailabilityDate(attemptStatus.fechaFin)}.</p>
+            )}
+          </div>
+        )}
 
         {databaseContentId && !preview && attemptStatus && (
           <div className="mt-5 rounded-lg border border-talentia-border bg-talentia-selected/30 px-4 py-3 text-sm text-talentia-primary">
@@ -718,14 +751,20 @@ export default function QuizViewer({
           <button
             type="button"
             onClick={() => void startQuiz()}
-            disabled={startingAttempt || submittingAttempt}
+            disabled={
+              startingAttempt ||
+              submittingAttempt ||
+              Boolean(databaseContentId && !preview && attemptStatus && !attemptStatus.intentoEnCurso && !attemptStatus.ventanaAbierta)
+            }
             className="rounded-md bg-talentia-action px-10 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-talentia-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             {startingAttempt
               ? "Iniciando..."
               : attemptStatus?.intentoEnCurso
                 ? "Continuar intento"
-                : "Empezar"}
+                : databaseContentId && !preview && attemptStatus && !attemptStatus.ventanaAbierta
+                  ? "Fuera del plazo"
+                  : "Empezar"}
           </button>
         </div>
 

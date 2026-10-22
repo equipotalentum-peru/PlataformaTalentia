@@ -28,6 +28,11 @@ type ContextoEvaluacionAlumno = {
   intentosPermitidos: number;
   tiempoLimiteMinutos: number | null;
   puntajeTotal: number | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  fechaInicioAlcanzada: boolean;
+  fechaFinVigente: boolean;
+  ventanaAbierta: boolean;
 };
 
 function idPositivo(valor: unknown): number | null {
@@ -50,7 +55,11 @@ async function obtenerContextoEvaluacionAlumno(
        oc.id::TEXT AS "ofertaCursoId",
        e.intentos_permitidos AS "intentosPermitidos",
        e.tiempo_limite_minutos AS "tiempoLimiteMinutos",
-       e.puntaje_total AS "puntajeTotal"
+       e.puntaje_total AS "puntajeTotal",
+       e.fecha_inicio AS "fechaInicio",
+       e.fecha_fin AS "fechaFin",
+       (e.fecha_inicio IS NULL OR e.fecha_inicio <= statement_timestamp()) AS "fechaInicioAlcanzada",
+       (e.fecha_fin IS NULL OR e.fecha_fin >= statement_timestamp()) AS "fechaFinVigente"
      FROM contenidos_curso cc
      JOIN modulos_curso mc ON mc.id = cc.modulo_id
      JOIN cursos c ON c.id = mc.curso_id
@@ -95,6 +104,11 @@ async function obtenerContextoEvaluacionAlumno(
     tiempoLimiteMinutos:
       row.tiempoLimiteMinutos == null ? null : Number(row.tiempoLimiteMinutos),
     puntajeTotal: row.puntajeTotal == null ? null : Number(row.puntajeTotal),
+    fechaInicio: row.fechaInicio == null ? null : new Date(row.fechaInicio).toISOString(),
+    fechaFin: row.fechaFin == null ? null : new Date(row.fechaFin).toISOString(),
+    fechaInicioAlcanzada: row.fechaInicioAlcanzada === true,
+    fechaFinVigente: row.fechaFinVigente === true,
+    ventanaAbierta: row.fechaInicioAlcanzada === true && row.fechaFinVigente === true,
   };
 }
 
@@ -341,13 +355,23 @@ async function construirEstadoIntentos(
   const intentosUsados = intentos.length;
   const intentosRestantes = Math.max(0, contexto.intentosPermitidos - intentosUsados);
 
+  const mensajeDisponibilidad = !contexto.fechaInicioAlcanzada
+    ? "La evaluación todavía no está disponible."
+    : !contexto.fechaFinVigente
+      ? "Terminó el plazo para iniciar nuevos intentos de esta evaluación."
+      : null;
+
   return {
     intentosPermitidos: contexto.intentosPermitidos,
     intentosUsados,
     intentosRestantes,
-    puedeIniciarNuevo: intentoEnCurso === null && intentosRestantes > 0,
+    puedeIniciarNuevo: intentoEnCurso === null && intentosRestantes > 0 && contexto.ventanaAbierta,
     intentoEnCurso,
     intentos,
+    fechaInicio: contexto.fechaInicio,
+    fechaFin: contexto.fechaFin,
+    ventanaAbierta: contexto.ventanaAbierta,
+    mensajeDisponibilidad,
   };
 }
 
@@ -420,10 +444,19 @@ export async function iniciarIntentoEvaluacionAlumno(
       });
     }
 
-    await client.query(
-      "SELECT id FROM evaluaciones WHERE id = $1 FOR UPDATE",
+    const evaluacionBloqueada = await client.query(
+      `SELECT
+         id,
+         (fecha_inicio IS NULL OR fecha_inicio <= statement_timestamp()) AS "fechaInicioAlcanzada",
+         (fecha_fin IS NULL OR fecha_fin >= statement_timestamp()) AS "fechaFinVigente"
+       FROM evaluaciones
+       WHERE id = $1
+       FOR UPDATE`,
       [contexto.evaluacionId]
     );
+    const fechaInicioAlcanzada = evaluacionBloqueada.rows[0]?.fechaInicioAlcanzada === true;
+    const fechaFinVigente = evaluacionBloqueada.rows[0]?.fechaFinVigente === true;
+    const ventanaDisponibleAhora = fechaInicioAlcanzada && fechaFinVigente;
 
     await cerrarIntentoVencido(client, contexto);
 
@@ -453,6 +486,17 @@ export async function iniciarIntentoEvaluacionAlumno(
           ),
         },
         reanudado: true,
+      });
+    }
+
+    if (!ventanaDisponibleAhora) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        message: !fechaInicioAlcanzada
+          ? "La evaluación todavía no está disponible."
+          : "Terminó el plazo para iniciar nuevos intentos de esta evaluación.",
+        fechaInicio: contexto.fechaInicio,
+        fechaFin: contexto.fechaFin,
       });
     }
 

@@ -1,23 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import CertificateDownloadButton
-  from "@/components/alumno/certificados/CertificateDownloadButton";
-
-import {
-  API_URL,
-} from "@/lib/api";
-import {
-  resolverImagenPortadaCurso,
-} from "@/lib/curso-imagen";
-
-
+import { useEffect, useMemo, useState, } from "react";
+import CertificateDownloadButton from "@/components/alumno/certificados/CertificateDownloadButton";
+import { API_URL, } from "@/lib/api";
+import { resolverImagenPortadaCurso, } from "@/lib/curso-imagen";
 
 type Certificado = {
   id: number;
@@ -29,8 +16,7 @@ type Certificado = {
   imagen: string;
 };
 
-const IMAGEN_POR_DEFECTO =
-  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
+const IMAGEN_POR_DEFECTO = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
 
 function formatearFecha(
   fecha: string
