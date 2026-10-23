@@ -112,8 +112,11 @@ export async function obtenerDashboardDocente(
            AND c.estado = 'Activo'
            AND NOT EXISTS (
              SELECT 1
-             FROM calificaciones cal
-             WHERE cal.entrega_id = ea.id
+             FROM entregas_actividades ea2
+             INNER JOIN calificaciones cal
+               ON cal.entrega_id = ea2.id
+             WHERE ea2.actividad_id = ea.actividad_id
+               AND ea2.matricula_id = ea.matricula_id
            )
          GROUP BY
            a.id,
@@ -548,3 +551,4 @@ export async function obtenerDashboardDocente(
     });
   }
 }
+

@@ -208,6 +208,147 @@ function obtenerRutaPendiente(item: PendienteRevision) {
   return `/docente/cursos/${item.cursoId}/evaluaciones/${item.contenidoId}/seguimiento`;
 }
 
+function obtenerPartesFecha(fecha: string | null) {
+  if (!fecha) return null;
+
+  const valor = new Date(fecha);
+  if (Number.isNaN(valor.getTime())) return null;
+
+  return {
+    dia: new Intl.DateTimeFormat("es-PE", { day: "2-digit" }).format(valor),
+    mes: new Intl.DateTimeFormat("es-PE", { month: "short" })
+      .format(valor)
+      .replace(".", "")
+      .toUpperCase(),
+    hora: new Intl.DateTimeFormat("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(valor),
+  };
+}
+
+function obtenerEtiquetaPlazo(fecha: string | null) {
+  if (!fecha) return null;
+
+  const valor = new Date(fecha);
+  if (Number.isNaN(valor.getTime())) return null;
+
+  const inicioHoy = new Date();
+  inicioHoy.setHours(0, 0, 0, 0);
+
+  const inicioFecha = new Date(valor);
+  inicioFecha.setHours(0, 0, 0, 0);
+
+  const dias = Math.round(
+    (inicioFecha.getTime() - inicioHoy.getTime()) / 86400000
+  );
+
+  if (dias <= 0) {
+    return { texto: "Hoy", estilo: "bg-talentia-danger-bg text-talentia-danger" };
+  }
+
+  if (dias === 1) {
+    return { texto: "Mañana", estilo: "bg-talentia-warning-bg text-talentia-warning" };
+  }
+
+  if (dias <= 7) {
+    return { texto: `En ${dias} días`, estilo: "bg-talentia-warning-bg text-talentia-warning" };
+  }
+
+  return { texto: `En ${dias} días`, estilo: "bg-talentia-selected text-talentia-blue" };
+}
+
+function obtenerTiempoRelativo(fecha: string) {
+  const valor = new Date(fecha);
+  if (Number.isNaN(valor.getTime())) return "";
+
+  const minutos = Math.floor((Date.now() - valor.getTime()) / 60000);
+
+  if (minutos < 1) return "Justo ahora";
+  if (minutos < 60) return `Hace ${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `Hace ${horas} h`;
+
+  const dias = Math.floor(horas / 24);
+  if (dias < 7) return `Hace ${dias} ${dias === 1 ? "día" : "días"}`;
+
+  return formatearFechaHora(fecha);
+}
+
+const ESTILOS_ACTIVIDAD: Record<
+  string,
+  { fondo: string; texto: string; etiqueta: string }
+> = {
+  calificacion: {
+    fondo: "bg-talentia-success-bg",
+    texto: "text-talentia-success",
+    etiqueta: "Calificación",
+  },
+  matricula: {
+    fondo: "bg-talentia-purple-soft",
+    texto: "text-talentia-purple",
+    etiqueta: "Matrícula",
+  },
+  contenido: {
+    fondo: "bg-talentia-selected",
+    texto: "text-talentia-blue",
+    etiqueta: "Contenido",
+  },
+  evaluacion: {
+    fondo: "bg-talentia-warning-bg",
+    texto: "text-talentia-warning",
+    etiqueta: "Evaluación",
+  },
+};
+
+function ActivityIcon({ tipo }: { tipo: string }) {
+  const props = {
+    viewBox: "0 0 24 24",
+    className: "h-[18px] w-[18px]",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (tipo === "calificacion") {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8 12.5 2.6 2.6L16 9.5" />
+      </svg>
+    );
+  }
+
+  if (tipo === "matricula") {
+    return (
+      <svg {...props}>
+        <circle cx="10" cy="8" r="3.2" />
+        <path d="M4 20c.7-3.6 2.8-5.4 6-5.4" />
+        <path d="M18 14v6M15 17h6" />
+      </svg>
+    );
+  }
+
+  if (tipo === "evaluacion") {
+    return (
+      <svg {...props}>
+        <rect x="5" y="3" width="14" height="18" rx="2" />
+        <path d="M9 8h6M9 12h6M9 16h3" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 const CURSOS_VISIBLES = 5;
 const ITEMS_VISIBLES = 3;
 
@@ -635,67 +776,179 @@ export default function TeacherDashboardPage() {
         </article>
 
         {/* EVALUACIONES */}
-        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
-          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
-            Próximas evaluaciones
-          </h2>
+        <article className="min-w-0 overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-talentia-selected text-talentia-blue">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="3" />
+                  <path d="M8 3v4M16 3v4M3 10h18" />
+                </svg>
+              </span>
 
-          <div className="divide-y divide-talentia-border">
-            {evaluaciones.length === 0 ? (
-              <div className="py-10 text-center text-[13px] text-talentia-muted">
-                No hay evaluaciones próximas.
-              </div>
-            ) : (
-              evaluaciones.slice(0, ITEMS_VISIBLES).map((evaluation) => (
-                <div key={evaluation.id} className="py-4">
-                  <p className="break-words text-[14px] font-semibold text-talentia-primary">
-                    {evaluation.titulo}
-                  </p>
+              <h2 className="text-[18px] font-semibold text-talentia-primary">
+                Próximas evaluaciones
+              </h2>
+            </div>
 
-                  <div className="mt-1 flex flex-wrap justify-between gap-2 text-[12px] text-talentia-muted">
-                    <span className="min-w-0 break-words">{evaluation.curso}</span>
-
-                    <span className="shrink-0">
-                      {formatearFechaCorta(evaluation.fecha)}
-                    </span>
-                  </div>
-                </div>
-              ))
+            {evaluaciones.length > 0 && (
+              <span className="rounded-full bg-talentia-selected px-3 py-1 text-[12px] font-semibold text-talentia-blue">
+                {datos?.resumen.evaluacionesProximas ?? evaluaciones.length}
+              </span>
             )}
           </div>
+
+          {evaluaciones.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-talentia-border bg-talentia-hover/40 px-4 py-10 text-center">
+              <span className="text-3xl">🎉</span>
+              <p className="text-[13px] font-medium text-talentia-primary">
+                No hay evaluaciones próximas
+              </p>
+              <p className="text-[12px] text-talentia-muted">
+                Cuando programes una, aparecerá aquí.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {evaluaciones.slice(0, ITEMS_VISIBLES).map((evaluation) => {
+                const partes = obtenerPartesFecha(evaluation.fecha);
+                const plazo = obtenerEtiquetaPlazo(evaluation.fecha);
+
+                return (
+                  <div
+                    key={evaluation.id}
+                    className="group flex items-center gap-4 rounded-xl border border-talentia-border bg-talentia-surface p-3 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-talentia-blue/40 hover:shadow-md"
+                  >
+                    <div className="flex h-[60px] w-[56px] shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-talentia-blue to-talentia-purple text-white shadow-sm">
+                      <span className="text-[22px] font-bold leading-none tabular-nums">
+                        {partes?.dia ?? "--"}
+                      </span>
+                      <span className="mt-1 text-[10px] font-semibold tracking-wider">
+                        {partes?.mes ?? ""}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-[14px] font-semibold leading-5 text-talentia-primary">
+                        {evaluation.titulo}
+                      </p>
+
+                      <p className="mt-0.5 break-words text-[12px] text-talentia-muted">
+                        {evaluation.curso}
+                      </p>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {plazo && (
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${plazo.estilo}`}
+                          >
+                            {plazo.texto}
+                          </span>
+                        )}
+
+                        {partes && (
+                          <span className="text-[11px] text-talentia-muted">
+                            ⏰ {partes.hora}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </article>
 
         {/* ACTIVIDAD RECIENTE */}
-        <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
-          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
-            Actividad reciente
-          </h2>
+        <article className="min-w-0 overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-talentia-purple-soft text-talentia-purple">
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 12h4l3 8 4-16 3 8h4" />
+              </svg>
+            </span>
 
-          <div className="divide-y divide-talentia-border">
-            {actividadReciente.length === 0 ? (
-              <div className="py-10 text-center text-[13px] text-talentia-muted">
-                No hay actividad reciente registrada.
-              </div>
-            ) : (
-              actividadReciente.slice(0, ITEMS_VISIBLES).map((activity, index) => (
-                <div
-                  key={`${activity.tipo}-${activity.fecha}-${index}`}
-                  className="py-4"
-                >
-                  <p className="break-words text-[13px] text-talentia-primary">
-                    {activity.texto}
-                  </p>
-
-                  <p className="mt-2 text-right text-[12px] text-talentia-muted">
-                    {formatearFechaHora(activity.fecha)}
-                  </p>
-                </div>
-              ))
-            )}
+            <h2 className="text-[18px] font-semibold text-talentia-primary">
+              Actividad reciente
+            </h2>
           </div>
+
+          {actividadReciente.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-talentia-border bg-talentia-hover/40 px-4 py-10 text-center">
+              <span className="text-3xl">🕊️</span>
+              <p className="text-[13px] font-medium text-talentia-primary">
+                Todo tranquilo por aquí
+              </p>
+              <p className="text-[12px] text-talentia-muted">
+                No hay actividad reciente registrada.
+              </p>
+            </div>
+          ) : (
+            <ol className="relative space-y-4">
+              <span
+                aria-hidden="true"
+                className="absolute bottom-3 left-[19px] top-3 w-px bg-talentia-border"
+              />
+
+              {actividadReciente.slice(0, ITEMS_VISIBLES).map((activity, index) => {
+                const estilo =
+                  ESTILOS_ACTIVIDAD[activity.tipo] ?? ESTILOS_ACTIVIDAD.contenido;
+
+                return (
+                  <li
+                    key={`${activity.tipo}-${activity.fecha}-${index}`}
+                    className="relative flex gap-3"
+                  >
+                    <span
+                      className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-4 ring-talentia-surface ${estilo.fondo} ${estilo.texto}`}
+                    >
+                      <ActivityIcon tipo={activity.tipo} />
+                    </span>
+
+                    <div className="min-w-0 flex-1 rounded-xl border border-talentia-border bg-talentia-surface px-3.5 py-2.5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${estilo.fondo} ${estilo.texto}`}
+                        >
+                          {estilo.etiqueta}
+                        </span>
+
+                        <span className="shrink-0 text-[11px] text-talentia-muted">
+                          {obtenerTiempoRelativo(activity.fecha)}
+                        </span>
+                      </div>
+
+                      <p className="mt-1.5 break-words text-[13px] leading-5 text-talentia-primary">
+                        {activity.texto}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </article>
       </section>
     </main>
   );
 }
+
+
 
