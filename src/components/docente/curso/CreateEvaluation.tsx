@@ -544,7 +544,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
         </Link>
 
         <CourseHeader courseId={course.id} nombre={course.nombre} imagen={course.imagen} fetchIfMissing={false} />
-        <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
+        <CourseTabs role="docente" courseId={course.id} active="contenido" />
 
         {loadingEvaluation ? <p role="status" className="py-4 text-[13px] text-talentia-muted">Cargando evaluación...</p> : evaluationError ?
           <p role="alert" className="py-4 text-[13px] text-talentia-danger">{evaluationError}</p> : <>

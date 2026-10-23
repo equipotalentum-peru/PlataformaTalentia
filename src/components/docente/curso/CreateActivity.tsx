@@ -225,7 +225,7 @@ export default function CreateActivity({ course, moduleId, contentId }: CreateAc
 
         <CourseHeader courseId={course.id} nombre={course.nombre} imagen={course.imagen} fetchIfMissing={false} />
 
-        <CourseTabs role="docente" courseId={course.id} active="contenido" interactive={false} />
+        <CourseTabs role="docente" courseId={course.id} active="contenido" />
 
         <h1 className="mb-3 mt-5 text-2xl font-semibold text-talentia-primary">{editing ? "Editar actividad" : "Crear actividad"}</h1>
         {loading && <p role="status" className="mb-3 text-sm text-talentia-primary">Cargando configuración...</p>}
