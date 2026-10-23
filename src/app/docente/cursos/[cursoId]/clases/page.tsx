@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { obtenerClasesDocente, crearClase, editarClase, cancelarClase, } from "@/lib/clases-api";
@@ -10,6 +10,7 @@ import ClassList from "@/components/common/clases/ClassList";
 
 import CreateClassModal from "@/components/docente/clases/CreateClassModal";
 import EditClassModal from "@/components/docente/clases/EditClassModal";
+import ClassDetailsModal from "@/components/docente/clases/ClassDetailsModal";
 
 import CourseHeader from "@/components/common/curso/CourseHeader";
 import CourseTabs from "@/components/common/curso/CourseTabs";
@@ -32,6 +33,8 @@ export default function TeacherClassesPage({
     const [editOpen, setEditOpen] = useState(false);
 
     const [selectedClass, setSelectedClass] =
+        useState<ClassSession | null>(null);
+    const [detailsClass, setDetailsClass] =
         useState<ClassSession | null>(null);
 
     const [notice, setNotice] = useState("");
@@ -116,10 +119,10 @@ export default function TeacherClassesPage({
             "Clase programada correctamente."
             );
         } catch (error) {
-            showNotice(
-            error instanceof Error
-                ? error.message
-                : "No se pudo crear la clase."
+            throw new Error(
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo crear la clase."
             );
         }
     };
@@ -166,10 +169,10 @@ export default function TeacherClassesPage({
             "Clase actualizada correctamente."
             );
         } catch (error) {
-            showNotice(
-            error instanceof Error
-                ? error.message
-                : "No se pudo editar la clase."
+            throw new Error(
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo editar la clase."
             );
         }
     };
@@ -451,11 +454,7 @@ export default function TeacherClassesPage({
                 onCancel={handleCancel}
                 onStart={handleStart}
                 onRecording={handleRecording}
-                onDetails={(item) =>
-                showNotice(
-                    `Detalles de la sesión ${item.numero}.`
-                )
-                }
+                onDetails={(item) => setDetailsClass(item)}
             />
 
             </div>
@@ -476,6 +475,14 @@ export default function TeacherClassesPage({
             setSelectedClass(null);
             }}
             onSave={handleEdit}
+        />
+
+        <ClassDetailsModal
+            classSession={detailsClass}
+            onClose={() => setDetailsClass(null)}
+            onViewRecording={() => {
+                if (detailsClass) void handleRecording(detailsClass);
+            }}
         />
 
         {/* AVISO */}

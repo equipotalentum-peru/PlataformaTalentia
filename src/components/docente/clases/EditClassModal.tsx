@@ -3,17 +3,19 @@
 import { useEffect, useState } from "react";
 import type { ClassSession } from "@/data/classes";
 
+type ClassFormData = {
+  id: number;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+};
+
 type EditClassModalProps = {
   open: boolean;
   classSession: ClassSession | null;
   onClose: () => void;
-  onSave: (data: {
-    id: number;
-    title: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-  }) => void;
+  onSave: (data: ClassFormData) => Promise<void> | void;
 };
 
 export default function EditClassModal({
@@ -26,125 +28,162 @@ export default function EditClassModal({
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("11:30");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!classSession) {
+    if (!open || !classSession) return;
+
+    setTitle(classSession.tema ?? "");
+    setDate(classSession.iniciaEn?.slice(0, 10) ?? "");
+    setStartTime(classSession.iniciaEn?.slice(11, 16) || "10:00");
+    setEndTime(classSession.terminaEn?.slice(11, 16) || "11:30");
+    setError("");
+  }, [open, classSession]);
+
+  if (!open || !classSession) return null;
+
+  const close = () => {
+    if (!saving) onClose();
+  };
+
+  const handleSave = async () => {
+    if (!title.trim() || !date || !startTime || !endTime) {
+      setError("Completa el título, la fecha y las horas de la clase.");
+      return;
+    }
+    if (endTime <= startTime) {
+      setError("La hora de término debe ser posterior a la hora de inicio.");
       return;
     }
 
-    setTitle(classSession.tema);
-
-    if (classSession.iniciaEn) {
-      setDate(
-        classSession.iniciaEn.slice(0, 10)
+    setSaving(true);
+    setError("");
+    try {
+      await onSave({
+        id: classSession.id,
+        title: title.trim(),
+        date,
+        startTime,
+        endTime,
+      });
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "No se pudo actualizar la clase. Inténtalo nuevamente."
       );
-      setStartTime(
-        classSession.iniciaEn.slice(11, 16)
-      );
+    } finally {
+      setSaving(false);
     }
-  }, [classSession]);
-
-  if (!open || !classSession) {
-    return null;
-  }
-
-  const handleSave = () => {
-    if (!title.trim() || !date) {
-      return;
-    }
-
-    onSave({
-      id: classSession.id,
-      title: title.trim(),
-      date,
-      startTime,
-      endTime,
-    });
   };
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-4 py-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
+        if (event.target === event.currentTarget) close();
       }}
     >
-      <div className="w-full max-w-[360px] rounded-lg bg-talentia-surface p-6 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-[19px] font-bold text-talentia-primary">
-            Editar Clase
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-class-title"
+        className="talentia-modal-panel w-full max-w-[520px]"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") close();
+        }}
+      >
+        <header className="talentia-modal-heading">
+          <h2 id="edit-class-title" className="talentia-modal-title">
+            Editar clase
           </h2>
-
           <button
             type="button"
-            onClick={onClose}
-            className="text-[28px] leading-none text-talentia-primary"
+            onClick={close}
+            disabled={saving}
+            className="talentia-modal-close"
             aria-label="Cerrar"
           >
             ×
           </button>
-        </div>
+        </header>
 
-        <div className="space-y-5">
+        <div className="talentia-modal-form-grid">
           <label className="block">
-            <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
-              Título:
-            </span>
-
+            <span className="talentia-modal-label">Título de la clase</span>
             <input
               type="text"
               value={title}
-              onChange={(event) =>
-                setTitle(event.target.value)
-              }
-              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none"
+              maxLength={200}
+              disabled={saving}
+              onChange={(event) => setTitle(event.target.value)}
+              className="talentia-modal-input"
+              placeholder="Tema de la clase"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-[12px] font-semibold text-talentia-primary">
-              Fecha:
-            </span>
-
+            <span className="talentia-modal-label">Fecha</span>
             <input
               type="date"
               value={date}
-              onChange={(event) =>
-                setDate(event.target.value)
-              }
-              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[11px] outline-none"
+              disabled={saving}
+              onChange={(event) => setDate(event.target.value)}
+              className="talentia-modal-input"
             />
           </label>
 
-          <input
-            type="time"
-            value={startTime}
-            onChange={(event) =>
-              setStartTime(event.target.value)
-            }
-          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="talentia-modal-label">Hora de inicio</span>
+              <input
+                type="time"
+                value={startTime}
+                disabled={saving}
+                onChange={(event) => setStartTime(event.target.value)}
+                className="talentia-modal-input"
+              />
+            </label>
+            <label className="block">
+              <span className="talentia-modal-label">Hora de término</span>
+              <input
+                type="time"
+                value={endTime}
+                disabled={saving}
+                onChange={(event) => setEndTime(event.target.value)}
+                className="talentia-modal-input"
+              />
+            </label>
+          </div>
 
-          <input
-            type="time"
-            value={endTime}
-            onChange={(event) =>
-              setEndTime(event.target.value)
-            }
-          />
+          <p className="talentia-modal-help">Zona horaria: Lima (GMT-5).</p>
+          {error && (
+            <p role="alert" className="talentia-modal-error">
+              {error}
+            </p>
+          )}
         </div>
 
-        <div className="mt-7 flex justify-center">
+        <footer className="talentia-modal-actions">
           <button
             type="button"
-            onClick={handleSave}
-            className="rounded-md bg-talentia-action px-9 py-2 text-[14px] font-bold text-white hover:bg-talentia-primary"
+            onClick={close}
+            disabled={saving}
+            className="talentia-modal-button talentia-modal-button--secondary"
           >
-            Guardar
+            Cancelar
           </button>
-        </div>
-      </div>
+          <button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={saving}
+            className="talentia-modal-button talentia-modal-button--primary"
+          >
+            {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+        </footer>
+      </section>
     </div>
   );
 }

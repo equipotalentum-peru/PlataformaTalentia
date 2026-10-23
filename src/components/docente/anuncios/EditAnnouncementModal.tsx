@@ -26,18 +26,13 @@ export default function EditAnnouncementModal({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!announcement) {
-      return;
-    }
-
-    setTitle(announcement.title);
-    setContent(announcement.content);
+    if (!announcement || !open) return;
+    setTitle(announcement.title ?? "");
+    setContent(announcement.content ?? "");
     setError("");
-  }, [announcement]);
+  }, [announcement, open]);
 
-  if (!open || !announcement) {
-    return null;
-  }
+  if (!open || !announcement) return null;
 
   const close = () => {
     if (saving) return;
@@ -50,7 +45,6 @@ export default function EditAnnouncementModal({
       setError("El título y el contenido son obligatorios.");
       return;
     }
-
     if (title.trim().length > 200) {
       setError("El título no puede superar los 200 caracteres.");
       return;
@@ -58,17 +52,16 @@ export default function EditAnnouncementModal({
 
     setSaving(true);
     setError("");
-
     try {
       await onSave({
         id: announcement.id,
         title: title.trim(),
         content: content.trim(),
       });
-    } catch (err) {
+    } catch (saveError) {
       setError(
-        err instanceof Error
-          ? err.message
+        saveError instanceof Error
+          ? saveError.message
           : "No se pudo editar el anuncio."
       );
     } finally {
@@ -78,90 +71,84 @@ export default function EditAnnouncementModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-4 py-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          close();
-        }
+        if (event.target === event.currentTarget) close();
       }}
     >
-      <div className="w-full max-w-[460px] rounded-xl bg-talentia-surface px-6 py-5 shadow-2xl">
-
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[15px] font-bold text-talentia-primary">
-            Editar anuncio:
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-announcement-title"
+        className="talentia-modal-panel w-full max-w-[560px]"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") close();
+        }}
+      >
+        <header className="talentia-modal-heading">
+          <h2 id="edit-announcement-title" className="talentia-modal-title">
+            Editar anuncio
           </h2>
-
           <button
             type="button"
             onClick={close}
-            className="text-[22px] leading-none text-talentia-muted hover:text-talentia-primary"
+            disabled={saving}
+            className="talentia-modal-close"
             aria-label="Cerrar"
           >
             ×
           </button>
-        </div>
+        </header>
 
-        <div className="space-y-3">
+        <div className="talentia-modal-form-grid">
           <label className="block">
-            <span className="mb-1 block text-[13px] font-semibold text-talentia-blue">
-              Título:
-            </span>
-
+            <span className="talentia-modal-label">Título</span>
             <input
+              type="text"
               value={title}
               maxLength={200}
-              onChange={(event) =>
-                setTitle(event.target.value)
-              }
-              className="h-9 w-full rounded-md bg-talentia-surface px-3 text-[13px] outline-none"
+              disabled={saving}
+              onChange={(event) => setTitle(event.target.value)}
+              className="talentia-modal-input"
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-[13px] font-semibold text-talentia-blue">
-              Contenido:
-            </span>
-
+            <span className="talentia-modal-label">Contenido</span>
             <textarea
               value={content}
-              onChange={(event) =>
-                setContent(event.target.value)
-              }
-              className="h-[150px] w-full resize-none rounded-md bg-talentia-surface p-3 text-[13px] outline-none"
+              disabled={saving}
+              onChange={(event) => setContent(event.target.value)}
+              className="talentia-modal-input"
             />
           </label>
 
           {error && (
-            <p
-              role="alert"
-              className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[13px] text-talentia-danger"
-            >
+            <p role="alert" className="talentia-modal-error">
               {error}
             </p>
           )}
         </div>
 
-        <div className="mt-5 flex justify-end gap-3">
+        <footer className="talentia-modal-actions">
           <button
             type="button"
             onClick={close}
             disabled={saving}
-            className="rounded-md bg-talentia-surface px-5 py-2 text-[13px] font-medium text-talentia-primary disabled:opacity-60 border border-talentia-border"
+            className="talentia-modal-button talentia-modal-button--secondary"
           >
             Cancelar
           </button>
-
           <button
             type="button"
             onClick={() => void submit()}
             disabled={saving}
-            className="rounded-md bg-talentia-action px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+            className="talentia-modal-button talentia-modal-button--primary"
           >
-            {saving ? "Guardando..." : "Guardar cambios"}
+            {saving ? "Guardando…" : "Guardar cambios"}
           </button>
-        </div>
-      </div>
+        </footer>
+      </section>
     </div>
   );
 }
