@@ -196,6 +196,21 @@ function KpiIcon({
   );
 }
 
+/*
+ * Actividad  -> pantalla de entregas/calificación de la actividad.
+ * Examen / Evaluación -> pantalla de seguimiento de la evaluación.
+ */
+function obtenerRutaPendiente(item: PendienteRevision) {
+  if (item.tipo === "Actividad") {
+    return `/docente/cursos/${item.cursoId}/actividades/${item.contenidoId}`;
+  }
+
+  return `/docente/cursos/${item.cursoId}/evaluaciones/${item.contenidoId}/seguimiento`;
+}
+
+const CURSOS_VISIBLES = 5;
+const ITEMS_VISIBLES = 3;
+
 export default function TeacherDashboardPage() {
   const router = useRouter();
 
@@ -370,7 +385,7 @@ export default function TeacherDashboardPage() {
         {kpis.map((item) => (
           <article
             key={item.label}
-            className={`flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg px-5 py-5 ${item.box}`}
+            className={`flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg ${item.box}`}
           >
             <div
               className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg ${item.icon}`}
@@ -416,7 +431,7 @@ export default function TeacherDashboardPage() {
               pendientesRevision.map((item) => (
                 <Link
                   key={`${item.tipo}-${item.id}-${item.cursoId}`}
-                  href="/docente/calificaciones"
+                  href={obtenerRutaPendiente(item)}
                   className="block py-4 transition hover:bg-talentia-hover"
                 >
                   <span
@@ -452,21 +467,30 @@ export default function TeacherDashboardPage() {
 
         {/* MIS CURSOS */}
         <article className="min-w-0 rounded-lg border border-talentia-border bg-talentia-surface p-5 sm:p-6">
-          <h2 className="mb-4 text-[18px] font-semibold text-talentia-primary">
-            Mis cursos
-          </h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[18px] font-semibold text-talentia-primary">
+              Mis cursos
+            </h2>
 
-          <div className="divide-y divide-talentia-border">
+            <Link
+              href="/docente/cursos"
+              className="text-[14px] font-medium text-talentia-blue transition hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+
+          <div className="space-y-3">
             {cursos.length === 0 ? (
               <div className="py-10 text-center text-[13px] text-talentia-muted">
                 No tienes cursos asignados actualmente.
               </div>
             ) : (
-              cursos.map((course) => (
+              cursos.slice(0, CURSOS_VISIBLES).map((course) => (
                 <Link
                   key={course.codigo}
                   href={`/docente/cursos/${course.id}`}
-                  className="flex items-center gap-4 py-4 transition hover:bg-talentia-hover"
+                  className="flex items-center gap-4 rounded-[13px] border border-talentia-border bg-talentia-surface p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   
                 <img
@@ -606,7 +630,7 @@ export default function TeacherDashboardPage() {
           </div>
 
           <p className="mt-5 text-[12px] leading-relaxed text-talentia-muted">
-            Se considera &quot;al día&quot; a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. &quot;Bajo rendimiento&quot; se marca cuando el promedio registrado es menor a 11.
+            Se considera &quot;al día&quot; a quien tiene 80 % o más de progreso y no presenta bajo rendimiento. &quot;Bajo rendimiento&quot; se marca cuando el promedio registrado es menor a 14.
           </p>
         </article>
 
@@ -622,7 +646,7 @@ export default function TeacherDashboardPage() {
                 No hay evaluaciones próximas.
               </div>
             ) : (
-              evaluaciones.map((evaluation) => (
+              evaluaciones.slice(0, ITEMS_VISIBLES).map((evaluation) => (
                 <div key={evaluation.id} className="py-4">
                   <p className="break-words text-[14px] font-semibold text-talentia-primary">
                     {evaluation.titulo}
@@ -653,7 +677,7 @@ export default function TeacherDashboardPage() {
                 No hay actividad reciente registrada.
               </div>
             ) : (
-              actividadReciente.map((activity, index) => (
+              actividadReciente.slice(0, ITEMS_VISIBLES).map((activity, index) => (
                 <div
                   key={`${activity.tipo}-${activity.fecha}-${index}`}
                   className="py-4"
@@ -674,3 +698,4 @@ export default function TeacherDashboardPage() {
     </main>
   );
 }
+

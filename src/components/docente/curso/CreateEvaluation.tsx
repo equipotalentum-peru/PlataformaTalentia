@@ -56,6 +56,7 @@ type SavedEvaluation = {
     tiempoLimiteMinutos: number | null; puntajeTotal: number | null;
     fechaInicio: string | null; fechaFin: string | null; calificada: boolean;
     componenteCalificacionId: string | null;
+    tieneIntentos?: boolean;
   };
   preguntas: Array<{
     id: string; tipo: EvaluationDbType; enunciado: string; puntaje: number; permiteArchivos: boolean;
@@ -174,6 +175,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
   const editing = contentId !== undefined;
   const [loadingEvaluation, setLoadingEvaluation] = useState(editing);
   const [evaluationError, setEvaluationError] = useState("");
+  const [hasAttempts, setHasAttempts] = useState(false);
   const [savedStatus, setSavedStatus] = useState<EvaluationStatus>("Borrador");
   const [initialDates, setInitialDates] = useState<{ start: string | null; end: string | null }>({ start: null, end: null });
   const [title, setTitle] = useState("");
@@ -277,6 +279,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
           setEndDate(dateInputValue(saved.evaluacion.fechaFin));
           setInitialDates({ start: saved.evaluacion.fechaInicio, end: saved.evaluacion.fechaFin });
           setGraded(saved.evaluacion.calificada);
+          setHasAttempts(saved.evaluacion.tieneIntentos === true);
           setComponentId(saved.evaluacion.componenteCalificacionId ?? "");
           setUngradedKind(saved.evaluacion.tipo);
           setSavedStatus(saved.contenido.estado === "Publicado" ? "Publicado" : "Borrador");
@@ -563,7 +566,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                 </label>
                 <div className="relative">
                   {graded ? (
-                    <select id="evaluation-component" value={componentId} onChange={(event) => setComponentId(event.target.value)} disabled={loadingComponents || components.length === 0} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue disabled:opacity-60">
+                    <select id="evaluation-component" value={componentId} onChange={(event) => setComponentId(event.target.value)} disabled={hasAttempts || loadingComponents || components.length === 0} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue disabled:opacity-60">
                       <option value="">{loadingComponents ? "Cargando..." : "Selecciona una evaluación"}</option>
                       {components.map((component) => (
                         <option key={component.id} value={component.id}>
@@ -572,7 +575,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                       ))}
                     </select>
                   ) : (
-                    <select id="evaluation-component" value={ungradedKind} onChange={(event) => setUngradedKind(event.target.value as EvaluationKind)} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue">
+                    <select id="evaluation-component" value={ungradedKind} onChange={(event) => setUngradedKind(event.target.value as EvaluationKind)} disabled={hasAttempts} className="h-10 w-full appearance-none rounded-md border border-talentia-border bg-talentia-surface px-3 pr-7 text-[13px] outline-none focus:border-talentia-blue">
                       <option value="Practica">Práctica no calificada</option>
                       <option value="Cuestionario">Cuestionario de repaso</option>
                       <option value="Evaluacion">Autoevaluación</option>
@@ -589,11 +592,18 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
               </div>
             </div>
 
+            {hasAttempts && (
+              <p role="status" className="mt-3 rounded-md bg-talentia-selected px-3 py-2 text-[13px] text-talentia-primary">
+                Esta evaluación ya tiene intentos de alumnos: las preguntas, puntajes y calificación no se pueden modificar para conservar sus respuestas, pero sí puedes cambiar los intentos permitidos, el tiempo límite y las fechas (aunque ya hayan vencido).
+              </p>
+            )}
+
             <div className="mt-3 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-talentia-primary">Preguntas:</h2>
               <span className="text-[12px] text-talentia-muted">{questions.length} preguntas · {totalQuestionPoints} pts</span>
             </div>
 
+            <fieldset disabled={hasAttempts} className="m-0 min-w-0 border-0 p-0">
             <div className="mt-2 space-y-2.5">
               {questions.map((question, questionIndex) => (
                 <div key={question.id} className="rounded-md border border-talentia-border bg-talentia-surface">
@@ -680,6 +690,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
             </div>
 
             <button type="button" onClick={addQuestion} className="mt-2.5 flex h-7 w-full items-center justify-center gap-1 rounded-md bg-talentia-selected text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover"><PlusIcon /> Agregar pregunta</button>
+            </fieldset>
           </section>
 
           <aside className="h-fit rounded-xl border border-talentia-border bg-talentia-surface p-4 shadow-[0_1px_5px_rgba(15,36,61,0.08)] sm:p-5">
@@ -741,6 +752,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                   min={0}
                   max={1000}
                   step="0.25"
+                  disabled={hasAttempts}
                   value={totalPoints}
                   onChange={(event) =>
                     setTotalPoints(Math.max(0, Number(event.target.value) || 0))
@@ -793,6 +805,7 @@ export default function CreateEvaluation({ course, moduleId, contentId }: Create
                 </span>
                 <button
                   type="button"
+                  disabled={hasAttempts}
                   onClick={() => setGraded((value) => !value)}
                   className="flex shrink-0 items-center gap-2 self-start sm:self-auto"
                   aria-pressed={graded}

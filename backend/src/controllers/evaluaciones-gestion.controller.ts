@@ -331,18 +331,27 @@ async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, 
     return res.status(400).json({ message: "Las evaluaciones calificables deben usar el tipo interno Evaluacion." });
   }
 
-  let preguntas: ReturnType<typeof validarPreguntas>;
-  try {
-    preguntas = validarPreguntas(body?.preguntas, estado);
-  } catch (error) {
-    return res.status(400).json({ message: error instanceof Error ? error.message : "Las preguntas no son válidas." });
-  }
-
-  if (estado === "Publicado") {
-    const sumaCentimos = preguntas.reduce((suma, pregunta) => suma + Math.round(pregunta.puntaje * 100), 0);
-    if (puntajeTotal <= 0 || sumaCentimos !== Math.round(puntajeTotal * 100)) {
-      return res.status(400).json({ message: "Para publicar, los puntos de las preguntas deben sumar exactamente el puntaje total." });
+  // La estructura (preguntas, opciones, puntajes) solo se valida cuando se va a
+  // guardar. Si la evaluación ya tiene intentos de alumnos se ignora por completo.
+  let preguntas: ReturnType<typeof validarPreguntas> = [];
+  const validarEstructura = (): string | null => {
+    try {
+      preguntas = validarPreguntas(body?.preguntas, estado);
+    } catch (error) {
+      return error instanceof Error ? error.message : "Las preguntas no son válidas.";
     }
+    if (estado === "Publicado") {
+      const sumaCentimos = preguntas.reduce((suma, pregunta) => suma + Math.round(pregunta.puntaje * 100), 0);
+      if (puntajeTotal <= 0 || sumaCentimos !== Math.round(puntajeTotal * 100)) {
+        return "Para publicar, los puntos de las preguntas deben sumar exactamente el puntaje total.";
+      }
+    }
+    return null;
+  };
+
+  if (!editing) {
+    const errorEstructura = validarEstructura();
+    if (errorEstructura) return res.status(400).json({ message: errorEstructura });
   }
 
   let client: PoolClient | null = null;
@@ -396,8 +405,32 @@ async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, 
         "SELECT id FROM intentos_evaluacion WHERE evaluacion_id = $1 LIMIT 1", [evaluacionId]
       );
       if (intentosGuardados.rowCount) {
+        // Con intentos de alumnos NO se tocan preguntas, opciones, puntajes, tipo,
+        // calificación ni estado (se conservan las respuestas). Sí se permite
+        // cambiar la configuración: intentos, tiempo límite y fechas (aunque ya
+        // hayan vencido), además del título y las instrucciones.
+        await client.query(
+          "UPDATE contenidos_curso SET titulo = $1, descripcion = $2 WHERE id = $3",
+          [titulo, descripcion || null, contenidoId]
+        );
+        await client.query(
+          `UPDATE evaluaciones SET instrucciones = $1, intentos_permitidos = $2,
+           tiempo_limite_minutos = $3, fecha_inicio = $4::TIMESTAMPTZ,
+           fecha_fin = $5::TIMESTAMPTZ WHERE id = $6`,
+          [descripcion || null, intentos, tiempo, fechaInicio, fechaFin, evaluacionId]
+        );
+        await client.query("COMMIT");
+        return res.status(200).json({
+          message: "Se actualizaron los intentos, fechas y tiempo límite. Las preguntas no se modificaron porque ya hay intentos de alumnos.",
+          contenidoId,
+          evaluacionId,
+          soloConfiguracion: true,
+        });
+      }
+      const errorEstructura = validarEstructura();
+      if (errorEstructura) {
         await client.query("ROLLBACK");
-        return res.status(409).json({ message: "Esta evaluación ya tiene intentos de alumnos y no se puede modificar para conservar sus respuestas." });
+        return res.status(400).json({ message: errorEstructura });
       }
       const componentesVinculados = await client.query(
         `SELECT cc.id, oc.docente_id::TEXT AS "docenteId"
@@ -662,6 +695,13 @@ export async function obtenerEvaluacionCurso(
        ORDER BY cc.id LIMIT 1`, [evaluacionId, usuarioId]
     ) : { rows: [] };
 
+    const intentosExistentes = esDocente
+      ? await pool.query(
+          "SELECT 1 FROM intentos_evaluacion WHERE evaluacion_id = $1 LIMIT 1",
+          [evaluacionId]
+        )
+      : { rowCount: 0 };
+
     const preguntasResult = await pool.query(
       `SELECT
          id::TEXT AS id,
@@ -795,6 +835,7 @@ export async function obtenerEvaluacionCurso(
         fechaFin: cabecera.fechaFin,
         calificada: cabecera.calificada === true,
         ...(esDocente ? { componenteCalificacionId: componenteResult.rows[0]?.id ?? null } : {}),
+        ...(esDocente ? { tieneIntentos: Boolean(intentosExistentes.rowCount) } : {}),
         estado: cabecera.estadoEvaluacion,
       },
       preguntas: preguntasRespuesta,

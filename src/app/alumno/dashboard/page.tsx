@@ -20,6 +20,8 @@ type EventoDashboard = {
   curso: string;
   codigo: string;
   fecha: string;
+  curso_id: number;
+  contenido_id: number;
 };
 
 type AnuncioDashboard = {
@@ -317,9 +319,10 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 eventos.map((evento, index) => (
-                  <article
+                  <Link
                     key={`${evento.codigo}-${evento.fecha}-${index}`}
-                    className="grid grid-cols-[1fr_auto] items-center rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-3 shadow-sm"
+                    href={`/alumno/cursos/${evento.curso_id}/contenido/${evento.contenido_id}?material=1`}
+                    className="grid grid-cols-[1fr_auto] items-center rounded-[13px] border border-talentia-border bg-talentia-surface px-4 py-3 shadow-sm transition duration-200 hover:scale-[1.02] hover:border-talentia-blue/40 hover:shadow-lg focus-visible:scale-[1.02] focus-visible:shadow-lg"
                   >
                     <div>
                       <span
@@ -359,7 +362,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                  </article>
+                  </Link>
                 ))
               )}
             </div>

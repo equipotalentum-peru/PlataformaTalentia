@@ -321,6 +321,8 @@ export async function obtenerDashboardEstudiante(
            SELECT
              'Actividad'::TEXT AS tipo,
              cc.titulo,
+             c.id AS curso_id,
+             cc.id AS contenido_id,
              c.nombre AS curso,
              c.codigo,
              a.fecha_limite AS fecha
@@ -361,6 +363,8 @@ export async function obtenerDashboardEstudiante(
            SELECT
              'Evaluación'::TEXT AS tipo,
              cc.titulo,
+             c.id AS curso_id,
+             cc.id AS contenido_id,
              c.nombre AS curso,
              c.codigo,
              e.fecha_fin AS fecha
@@ -497,7 +501,11 @@ export async function obtenerDashboardEstudiante(
         ),
 
       eventos:
-        eventosResult.rows,
+        eventosResult.rows.map((evento) => ({
+          ...evento,
+          curso_id: Number(evento.curso_id),
+          contenido_id: Number(evento.contenido_id),
+        })),
 
       anuncios:
         anunciosResult.rows,
