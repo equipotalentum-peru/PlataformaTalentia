@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 
 type Categoria =
   | "Usuarios"
@@ -40,6 +41,53 @@ interface DatosReporte {
   };
   indicadores: Indicador[];
   reportesRecientes: ReporteReciente[];
+}
+
+interface DatosExportacionReporte {
+  categoria: Categoria;
+  columnas: string[];
+  filas: Record<string, unknown>[];
+  totalRegistros: number;
+  fechaExportacion: string;
+}
+
+type ValorCeldaExcel = string | number | boolean | Date;
+
+function valorParaExcel(valor: unknown, columna: string): ValorCeldaExcel {
+  if (valor === null || valor === undefined) return "";
+  if (typeof valor === "number" || typeof valor === "boolean" || valor instanceof Date) {
+    return valor;
+  }
+  if (typeof valor !== "string") return String(valor);
+
+  const texto = valor.trim();
+  if (!texto) return "";
+
+  // Mantener fechas como fechas reales de Excel para permitir ordenarlas y filtrarlas.
+  const esColumnaFecha = /fecha|registrado el|último acceso|emitido el|calificado en/i.test(columna);
+  if (esColumnaFecha && /^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(texto)) {
+    const fecha = new Date(texto);
+    if (!Number.isNaN(fecha.getTime())) return fecha;
+  }
+
+  // Convertir solamente las columnas que representan cantidades o IDs numéricos.
+  // Los documentos, códigos de curso, usuarios y códigos de verificación siguen como texto.
+  const esColumnaNumerica = /^(?:ID|ID de matrícula|ID de alumno|ID de calificación|Ofertas|Matrículas vigentes|Porcentaje|Nota sobre 20)$/i.test(columna);
+  if (esColumnaNumerica && /^-?\d+(?:\.\d+)?$/.test(texto)) {
+    const numero = Number(texto);
+    if (Number.isFinite(numero)) return numero;
+  }
+
+  return valor;
+}
+
+function nombreArchivoSeguro(valor: string) {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 const CATEGORIAS: Categoria[] = [
@@ -161,12 +209,19 @@ export default function VistaReportes() {
     [itemsGrafico],
   );
 
-  const descargarReporte = useCallback(async (categoria: Categoria) => {
+  const descargarReporte = useCallback(async (
+    categoria: Categoria,
+    registrarEnHistorial: boolean,
+  ) => {
     setDescargando(categoria);
     setError("");
 
     try {
-      const params = new URLSearchParams({ categoria });
+      const params = new URLSearchParams({
+        categoria,
+        formato: "xlsx",
+        registrar: registrarEnHistorial ? "true" : "false",
+      });
       const response = await fetch(
         `${API_URL}/reportes/exportar?${params.toString()}`,
         {
@@ -176,8 +231,8 @@ export default function VistaReportes() {
         },
       );
 
+      const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
         throw new Error(
           typeof body.message === "string"
             ? body.message
@@ -185,26 +240,105 @@ export default function VistaReportes() {
         );
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      const contentDisposition = response.headers.get("content-disposition");
-      const nombreArchivo = contentDisposition?.match(/filename="([^"]+)"/i)?.[1]
-        ?? `reporte-${categoria.toLowerCase()}.csv`;
+      const exportacion = body as DatosExportacionReporte;
+      if (!Array.isArray(exportacion.columnas) || !Array.isArray(exportacion.filas)) {
+        throw new Error("El servidor devolvió un formato de reporte no válido.");
+      }
 
-      enlace.href = url;
-      enlace.download = nombreArchivo;
-      document.body.appendChild(enlace);
-      enlace.click();
-      enlace.remove();
-      window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      const XLSX = await import("xlsx-js-style");
+      const fecha = exportacion.fechaExportacion
+        ? new Date(exportacion.fechaExportacion)
+        : new Date();
+      const fechaTexto = `${fecha.toLocaleDateString("es-PE")} ${fecha.toLocaleTimeString("es-PE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+      const cabeceras = exportacion.columnas;
+      const totalColumnas = Math.max(1, cabeceras.length);
+      const filas = exportacion.filas.map((fila) =>
+        cabeceras.map((columna) => valorParaExcel(fila[columna], columna)),
+      );
 
-      setActualizacion((current) => current + 1);
+      const contenido: (string | number | boolean | Date)[][] = [
+        ["Reporte administrativo"],
+        [`Categoría: ${categoria}`],
+        [`Fecha de exportación: ${fechaTexto}`],
+        [`Registros: ${exportacion.totalRegistros ?? filas.length}`],
+        [],
+        cabeceras,
+        ...filas,
+      ];
+
+      const hoja = XLSX.utils.aoa_to_sheet(contenido);
+      hoja["!merges"] = [0, 1, 2, 3].map((fila) => ({
+        s: { r: fila, c: 0 },
+        e: { r: fila, c: totalColumnas - 1 },
+      }));
+
+      hoja["!cols"] = cabeceras.map((columna, indice) => {
+        let ancho = Math.min(38, Math.max(14, columna.length + 2));
+        for (const fila of filas.slice(0, 100)) {
+          const celda = fila[indice];
+          const longitud = celda instanceof Date
+            ? 20
+            : String(celda ?? "").length;
+          ancho = Math.min(38, Math.max(ancho, longitud + 2));
+        }
+        return { wch: ancho };
+      });
+
+      // La fila 6 contiene los encabezados. El filtro abarca toda la tabla,
+      // no los metadatos situados encima.
+      if (filas.length > 0 && cabeceras.length > 0) {
+        hoja["!autofilter"] = {
+          ref: XLSX.utils.encode_range({
+            s: { r: 5, c: 0 },
+            e: { r: 5 + filas.length, c: cabeceras.length - 1 },
+          }),
+        };
+      }
+
+      // Formato legible para columnas de fecha y cantidades relevantes.
+      cabeceras.forEach((columna, indice) => {
+        const esFecha = /fecha|registrado el|último acceso|emitido el|calificado en/i.test(columna);
+        const esNotaOPorcentaje = /^(?:Porcentaje|Nota sobre 20)$/i.test(columna);
+        if (!esFecha && !esNotaOPorcentaje) return;
+
+        for (let fila = 6; fila < 6 + filas.length; fila += 1) {
+          const celda = hoja[XLSX.utils.encode_cell({ r: fila, c: indice })];
+          if (!celda) continue;
+          if (esFecha && celda.v instanceof Date) celda.z = "dd/mm/yyyy hh:mm";
+          if (esNotaOPorcentaje && typeof celda.v === "number") celda.z = "0.00";
+        }
+      });
+
+      aplicarEstilosExcelTalentia(hoja as unknown as Record<string, unknown>, {
+        totalColumns: totalColumnas,
+        titleRow: 0,
+        metadataRows: [1, 2, 3],
+        headerRow: 5,
+        firstDataRow: 6,
+        lastDataRow: 5 + filas.length,
+      });
+
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, categoria.slice(0, 31));
+      const fechaArchivo = fecha.toISOString().slice(0, 10);
+      XLSX.writeFile(
+        libro,
+        `Reporte_${nombreArchivoSeguro(categoria)}_${fechaArchivo}.xlsx`,
+      );
+
+      // Solo la acción superior "Exportar" registra la operación y refresca
+      // la tabla de reportes recientes. Descargar una fila existente no lo hace.
+      if (registrarEnHistorial) {
+        setActualizacion((current) => current + 1);
+      }
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "No se pudo conectar con el servidor.",
+          : "No se pudo generar el archivo Excel.",
       );
     } finally {
       setDescargando(null);
@@ -245,7 +379,7 @@ export default function VistaReportes() {
         </div>
         <button
           type="button"
-          onClick={() => void descargarReporte(categoriaActiva)}
+          onClick={() => void descargarReporte(categoriaActiva, true)}
           disabled={descargando !== null || cargando}
           className="bg-talentia-action hover:bg-talentia-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-8 py-2.5 rounded-2xl text-sm transition shadow-sm w-full sm:w-auto"
         >
@@ -407,7 +541,7 @@ export default function VistaReportes() {
                   <td className="py-4 px-6 text-center">
                     <button
                       type="button"
-                      onClick={() => void descargarReporte(item.categoria)}
+                      onClick={() => void descargarReporte(item.categoria, false)}
                       disabled={descargando !== null}
                       className="bg-talentia-action hover:bg-talentia-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-2 rounded-xl transition shadow-sm"
                     >

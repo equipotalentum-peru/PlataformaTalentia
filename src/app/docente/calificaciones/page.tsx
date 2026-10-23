@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { API_URL } from "@/lib/api";
+import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 
 type ComponenteCalificacion = {
   id: number;
@@ -854,7 +855,7 @@ export default function TeacherGradesPage() {
     try {
       // Se carga XLSX solo al solicitar la descarga para no aumentar
       // el paquete inicial de la página.
-      const XLSX = await import("xlsx");
+      const XLSX = await import("xlsx-js-style");
       const fecha = new Date();
       const totalColumnas = componentes.length + 2;
       const cabeceras = [
@@ -923,6 +924,16 @@ export default function TeacherGradesPage() {
           }),
         };
       }
+
+      aplicarEstilosExcelTalentia(hoja as unknown as Record<string, unknown>, {
+        totalColumns: totalColumnas,
+        titleRow: 0,
+        metadataRows: [1, 2, 3, 4, 5],
+        headerRow: 7,
+        firstDataRow: 8,
+        lastDataRow: 7 + filasAlumnos.length,
+        highlightColumns: [totalColumnas - 1],
+      });
 
       const libro = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");

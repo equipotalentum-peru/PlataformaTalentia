@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { API_URL } from "@/lib/api";
 import CertificateDownloadButton from "@/components/alumno/certificados/CertificateDownloadButton";
+import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 
 type Opcion = { id: string; nombre: string; codigo?: string };
 
@@ -294,7 +295,7 @@ export default function ProgresoAlumnosPage() {
     setExportando(true);
     setErrorExportacion("");
     try {
-      const XLSX = await import("xlsx");
+      const XLSX = await import("xlsx-js-style");
       const fecha = new Date();
       const claveNota = (nota: RegistroProgreso["notas"][number]) => JSON.stringify([nota.nombre, nota.porcentaje, nota.puntajeMaximo]);
       const evaluaciones = new Map<string, RegistroProgreso["notas"][number]>();
@@ -331,6 +332,14 @@ export default function ProgresoAlumnosPage() {
         { wch: 22 }, { wch: 18 },
       ];
       hoja["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 6, c: 0 }, e: { r: 6 + filas.length, c: cabeceras.length - 1 } }) };
+      aplicarEstilosExcelTalentia(hoja as unknown as Record<string, unknown>, {
+        totalColumns: cabeceras.length,
+        titleRow: 0,
+        metadataRows: [1, 2, 3, 4],
+        headerRow: 6,
+        firstDataRow: 7,
+        lastDataRow: 6 + filas.length,
+      });
       const libro = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
       const codigoSeguro = curso?.codigo?.replace(/[^a-z0-9_-]/gi, "_") || "Todos_los_cursos";

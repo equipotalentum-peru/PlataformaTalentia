@@ -523,6 +523,42 @@ export async function exportarReporte(
 
     const result = await consultarFilasExportacion(categoriaParam);
     const headers = result.fields.map((field) => field.name);
+    const formato = req.query.formato === "xlsx" ? "xlsx" : "csv";
+    const registrarEnHistorial = req.query.registrar !== "false";
+    const totalRegistros = result.rowCount ?? result.rows.length;
+    const fechaExportacion = new Date().toISOString();
+
+    // La exportación superior registra el evento; descargar desde una fila
+    // reciente puede solicitar el mismo reporte sin registrar una operación nueva.
+    if (registrarEnHistorial) {
+      await pool.query(
+        `INSERT INTO historial_administrativo
+           (usuario_id, accion, area, tipo_entidad, entidad_id, resultado, detalles)
+         VALUES ($1, $2, 'Reportes', 'Reporte', $3, 'Completo', $4)`,
+        [
+          adminId,
+          `Exportó reporte de ${categoriaParam}`,
+          categoriaParam,
+          `Se exportó el reporte de ${categoriaParam} en formato ${formato === "xlsx" ? "Excel (.xlsx)" : "CSV"} con ${totalRegistros} registros.`,
+        ],
+      );
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+
+    if (formato === "xlsx") {
+      // El frontend compone el archivo .xlsx usando la misma librería XLSX
+      // que la vista docente. Se envían datos tipados para mantener números y fechas.
+      return res.status(200).json({
+        categoria: categoriaParam,
+        columnas: headers,
+        filas: result.rows,
+        totalRegistros,
+        fechaExportacion,
+      });
+    }
+
+    // Se conserva el endpoint CSV para consumidores anteriores que no indican formato.
     const contenido = [
       headers.map(escaparCSV).join(","),
       ...result.rows.map((row) =>
@@ -530,31 +566,18 @@ export async function exportarReporte(
       ),
     ].join("\r\n");
 
-    await pool.query(
-      `INSERT INTO historial_administrativo
-         (usuario_id, accion, area, tipo_entidad, entidad_id, resultado, detalles)
-       VALUES ($1, $2, 'Reportes', 'Reporte', $3, 'Completo', $4)`,
-      [
-        adminId,
-        `Exportó reporte de ${categoriaParam}`,
-        categoriaParam,
-        `Se exportó el reporte de ${categoriaParam} en formato CSV con ${result.rowCount ?? 0} registros.`,
-      ],
-    );
-
     const nombreArchivo = `reporte-${categoriaParam
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")}-${new Date().toISOString().slice(0, 10)}.csv`;
+      .replace(/^-|-$/g, "")}-${fechaExportacion.slice(0, 10)}.csv`;
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${nombreArchivo}"`,
     );
-    res.setHeader("Cache-Control", "no-store");
 
     // El BOM facilita que Excel detecte correctamente los acentos.
     return res.status(200).send(`\uFEFF${contenido}\r\n`);
