@@ -13,6 +13,7 @@ import {
   streamBodyToResponse,
   uploadFileToR2,
 } from "../services/r2.service";
+import { emitirCertificadoCurso } from "../services/certificados.service";
 
 type RespuestaIntentoEntrada = {
   preguntaId?: unknown;
@@ -859,6 +860,15 @@ export async function enviarIntentoEvaluacionAlumno(
       const calificacion = await actualizarEstadoYNotaIntento(client, intentoId, null);
       await client.query("COMMIT");
 
+      try {
+        await emitirCertificadoCurso(Number(contexto.matriculaId));
+      } catch (error) {
+        console.error(
+          "La evaluación se guardó, pero no se pudo comprobar o emitir el certificado:",
+          error
+        );
+      }
+
       for (const ruta of rutasR2Anteriores) {
         if (ruta.startsWith("r2://")) {
           await deleteObjectFromR2(ruta.slice(5)).catch((error) => {
@@ -1704,6 +1714,26 @@ export async function calificarRespuestaEvaluacionDocente(
 
     const calificacion = await actualizarEstadoYNotaIntento(client, intentoId, usuarioId);
     await client.query("COMMIT");
+
+    try {
+      const matriculaResult = await pool.query(
+        `SELECT matricula_id
+        FROM intentos_evaluacion
+        WHERE id = $1`,
+        [intentoId]
+      );
+
+      if (matriculaResult.rowCount) {
+        await emitirCertificadoCurso(
+          Number(matriculaResult.rows[0].matricula_id)
+        );
+      }
+    } catch (error) {
+      console.error(
+        "La calificación de la pregunta se guardó, pero no se pudo comprobar o emitir el certificado:",
+        error
+      );
+    }
 
     return res.status(200).json({
       message: calificacion.estado === "Calificado"

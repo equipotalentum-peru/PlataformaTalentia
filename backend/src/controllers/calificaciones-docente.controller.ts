@@ -1,8 +1,8 @@
 import type { Response } from "express";
-
 import pool from "../config/database";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware";
 import { calcularPromedio } from "../services/calificaciones.service";
+import { emitirCertificadoCurso } from "../services/certificados.service";
 
 type ComponenteCalificacion = {
   id: number;
@@ -635,19 +635,24 @@ export async function guardarCalificacionDocente(
         docenteId,
       ]
     );
-
+    
     await client.query("COMMIT");
+
+    try {
+      await emitirCertificadoCurso(matriculaIdNumber);
+    } catch (error) {
+      console.error(
+        "La nota se guardó, pero no se pudo comprobar o emitir el certificado:",
+        error
+      );
+    }
 
     return res.status(200).json({
       message: "Nota guardada.",
 
       calificacion: {
-        componenteId:
-          componenteIdNumber,
-
-        matriculaId:
-          matriculaIdNumber,
-
+        componenteId: componenteIdNumber,
+        matriculaId: matriculaIdNumber,
         nota: notaNumber,
       },
     });

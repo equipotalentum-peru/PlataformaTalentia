@@ -1,11 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { PassThrough } from "node:stream";
-
 import PDFDocument from "pdfkit";
-
 import pool from "../config/database";
 import { requisitosCertificacionSql } from "./certificacion-eligibilidad.service";
-
 import {
   deleteObjectFromR2,
   isR2Path,
@@ -484,40 +481,35 @@ export async function emitirCertificadoCurso(
         "0"
       )}`;
 
-    certificadoResult =
-      await pool.query(
+      certificadoResult = await pool.query(
         `INSERT INTO certificados (
-           matricula_id,
-           modulo_id,
-           tipo,
-           numero_certificado,
-           codigo_verificacion,
-           emitido_en,
-           ruta_archivo
-         )
-         VALUES (
-           $1,
-           NULL,
-           'Aprobacion',
-           $2,
-           $3,
-           COALESCE(
-             $4::timestamptz,
-             NOW()
-           ),
-           NULL
-         )
-         RETURNING
-           id,
-           numero_certificado,
-           codigo_verificacion,
-           emitido_en,
-           ruta_archivo`,
+          matricula_id,
+          modulo_id,
+          tipo,
+          numero_certificado,
+          codigo_verificacion,
+          emitido_en,
+          ruta_archivo
+        )
+        VALUES (
+          $1,
+          NULL,
+          'Aprobacion',
+          $2,
+          $3,
+          NOW(),
+          NULL
+        )
+        RETURNING
+          id,
+          numero_certificado,
+          codigo_verificacion,
+          emitido_en,
+          ruta_archivo`,
         [
           matriculaId,
           numeroCertificado,
           randomUUID(),
-          datos.completado_en,
         ]
       );
   }

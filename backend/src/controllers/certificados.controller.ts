@@ -1,20 +1,8 @@
-import type {
-  Response,
-} from "express";
+import type { Response, } from "express";
 import { requisitosCertificacionSql } from "../services/certificacion-eligibilidad.service";
-
-import pool
-  from "../config/database";
-
-import type {
-  AuthenticatedRequest,
-} from "../middleware/auth.middleware";
-
-import {
-  emitirCertificadoCurso,
-  emitirCertificadosPendientesEstudiante,
-} from "../services/certificados.service";
-
+import pool from "../config/database";
+import type { AuthenticatedRequest, } from "../middleware/auth.middleware";
+import { emitirCertificadoCurso, } from "../services/certificados.service";
 import {
   getObjectFromR2,
   isR2NotFoundError,
@@ -55,15 +43,6 @@ export async function listarCertificadosEstudiante(
             "Sesión no válida.",
         });
     }
-
-    /*
-     * Recupera también certificados
-     * pendientes de cursos que ya
-     * estaban al 100%.
-     */
-    await emitirCertificadosPendientesEstudiante(
-      estudianteId
-    );
 
     const result =
       await pool.query(
