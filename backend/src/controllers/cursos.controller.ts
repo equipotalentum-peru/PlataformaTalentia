@@ -40,6 +40,34 @@ export async function obtenerMisCursos(
       });
     }
 
+    const periodoRaw = req.query.periodoId;
+    let periodoId: string | null = null;
+
+    if (periodoRaw !== undefined) {
+      if (
+        typeof periodoRaw !== "string" ||
+        !/^[1-9]\d{0,18}$/.test(periodoRaw)
+      ) {
+        return res.status(400).json({
+          message: "El periodo académico seleccionado no es válido.",
+        });
+      }
+
+      try {
+        if (BigInt(periodoRaw) > BigInt("9223372036854775807")) {
+          return res.status(400).json({
+            message: "El periodo académico seleccionado no es válido.",
+          });
+        }
+      } catch {
+        return res.status(400).json({
+          message: "El periodo académico seleccionado no es válido.",
+        });
+      }
+
+      periodoId = periodoRaw;
+    }
+
   const result = await pool.query(
   `SELECT
     c.id,
@@ -94,6 +122,7 @@ export async function obtenerMisCursos(
      )
      AND oc.publicado = TRUE
      AND c.estado = 'Activo'
+     AND ($2::BIGINT IS NULL OR oc.periodo_id = $2::BIGINT)
 
    GROUP BY
      c.id,
@@ -102,7 +131,7 @@ export async function obtenerMisCursos(
      c.imagen_portada
 
    ORDER BY c.id`,
-  [estudianteId]
+  [estudianteId, periodoId]
 );
 
     return res.status(200).json({
@@ -674,6 +703,69 @@ export async function obtenerPeriodosAcademicosDocente(
     return res.status(200).json({ periodos: result.rows });
   } catch (error) {
     console.error("Error obteniendo periodos académicos para el docente:", error);
+    return res.status(500).json({
+      message: "No se pudieron obtener los periodos académicos.",
+    });
+  }
+}
+
+/**
+ * GET /api/cursos/periodos-academicos
+ * Periodos académicos en los que el estudiante tiene matrículas.
+ */
+export async function obtenerPeriodosAcademicosEstudiante(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const estudianteId = Number(req.userId);
+
+    if (!Number.isInteger(estudianteId) || estudianteId <= 0) {
+      return res.status(401).json({ message: "Sesión no válida." });
+    }
+
+    const usuarioResult = await pool.query(
+      `SELECT rol FROM usuarios WHERE id = $1 AND activo = TRUE LIMIT 1`,
+      [estudianteId]
+    );
+
+    if (!usuarioResult.rowCount) {
+      return res.status(401).json({ message: "Usuario no encontrado o inactivo." });
+    }
+
+    if (usuarioResult.rows[0].rol !== "Estudiante") {
+      return res.status(403).json({
+        message: "Este recurso es exclusivo para estudiantes.",
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT
+         p.id::TEXT AS id,
+         p.nombre,
+         TO_CHAR(p.fecha_inicio, 'YYYY-MM-DD') AS "fechaInicio",
+         TO_CHAR(p.fecha_fin, 'YYYY-MM-DD') AS "fechaFin",
+         p.activo
+       FROM periodos_academicos p
+       WHERE EXISTS (
+         SELECT 1
+         FROM ofertas_curso oc
+         INNER JOIN matriculas m ON m.oferta_curso_id = oc.id
+         INNER JOIN cursos c ON c.id = oc.curso_id
+         WHERE oc.periodo_id = p.id
+           AND m.estudiante_id = $1
+           AND m.estado IN ('Activa', 'Completada')
+           AND oc.estado IN ('Programado', 'En curso', 'Finalizado')
+           AND oc.publicado = TRUE
+           AND c.estado = 'Activo'
+       )
+       ORDER BY p.fecha_inicio DESC, p.id DESC`,
+      [estudianteId]
+    );
+
+    return res.status(200).json({ periodos: result.rows });
+  } catch (error) {
+    console.error("Error obteniendo periodos académicos del estudiante:", error);
     return res.status(500).json({
       message: "No se pudieron obtener los periodos académicos.",
     });

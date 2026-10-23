@@ -13,6 +13,14 @@ type CursoAlumno = {
   progreso: number;
 };
 
+type PeriodoAcademicoAlumno = {
+  id: string;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+};
+
 const IMAGEN_POR_DEFECTO =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80";
 
@@ -22,6 +30,59 @@ export default function MisCursosPage() {
   const [cursos, setCursos] = useState<CursoAlumno[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [periodos, setPeriodos] = useState<PeriodoAcademicoAlumno[]>([]);
+  const [periodo, setPeriodo] = useState("Todos");
+  const [cargandoPeriodos, setCargandoPeriodos] = useState(true);
+  const [errorPeriodos, setErrorPeriodos] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarPeriodos() {
+      try {
+        setCargandoPeriodos(true);
+        setErrorPeriodos("");
+
+        const response = await fetch(
+          `${API_URL}/cursos/periodos-academicos`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data.message === "string"
+              ? data.message
+              : "No se pudieron cargar los periodos académicos."
+          );
+        }
+
+        setPeriodos(Array.isArray(data.periodos) ? data.periodos : []);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setErrorPeriodos(
+          err instanceof Error
+            ? err.message
+            : "No se pudieron cargar los periodos académicos."
+        );
+      } finally {
+        if (!controller.signal.aborted) setCargandoPeriodos(false);
+      }
+    }
+
+    void cargarPeriodos();
+    return () => controller.abort();
+  }, [router]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -31,8 +92,12 @@ export default function MisCursosPage() {
         setCargando(true);
         setError("");
 
+        const query = periodo === "Todos"
+          ? ""
+          : `?periodoId=${encodeURIComponent(periodo)}`;
+
         const response = await fetch(
-          `${API_URL}/cursos/mis-cursos`,
+          `${API_URL}/cursos/mis-cursos${query}`,
           {
             method: "GET",
             credentials: "include",
@@ -77,14 +142,56 @@ export default function MisCursosPage() {
     void cargarCursos();
 
     return () => controller.abort();
-  }, [router]);
+  }, [router, periodo]);
 
   return (
     <div className="min-h-screen px-[52px] py-[33px]">
-      <header className="mb-[31px]">
+      <header className="mb-[31px] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="student-page-title text-[29px] font-semibold tracking-[-0.7px] text-talentia-primary">
           Mis cursos
         </h1>
+
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex h-[38px] items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3">
+            <svg
+              className="mr-2 h-5 w-5 text-talentia-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="4" width="18" height="17" rx="2" />
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <path d="M3 9h18" />
+            </svg>
+
+            <span className="mr-2 text-[12px] font-semibold text-talentia-primary">
+              Periodo
+            </span>
+
+            <select
+              value={periodo}
+              onChange={(event) => setPeriodo(event.target.value)}
+              aria-label="Filtrar mis cursos por periodo académico"
+              disabled={cargandoPeriodos}
+              className="max-w-[190px] bg-transparent text-[11px] font-medium text-talentia-primary outline-none disabled:opacity-60"
+            >
+              <option value="Todos">Todos</option>
+              {periodos.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          {errorPeriodos ? (
+            <p className="max-w-[280px] text-[11px] text-talentia-danger">
+              {errorPeriodos}
+            </p>
+          ) : null}
+        </div>
       </header>
 
       {cargando ? (
@@ -100,7 +207,9 @@ export default function MisCursosPage() {
       ) : cursos.length === 0 ? (
         <section className="flex min-h-[180px] max-w-[980px] items-center justify-center rounded-lg bg-talentia-surface shadow-sm">
           <p className="text-[14px] text-talentia-muted">
-            No tienes cursos matriculados actualmente.
+            {periodo === "Todos"
+              ? "No tienes cursos matriculados actualmente."
+              : "No tienes cursos matriculados en este periodo académico."}
           </p>
         </section>
       ) : (
