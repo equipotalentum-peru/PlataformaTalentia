@@ -304,120 +304,59 @@ export default function CalificacionesPage() {
         </h1>
       </header>
 
-      <section className="mb-[20px] grid w-full grid-cols-1 overflow-hidden rounded-[16px] bg-talentia-surface md:grid-cols-3">
-
-        <div className="flex min-h-[112px] items-center gap-5 px-7 py-5">
-
-          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-talentia-selected text-talentia-blue shadow-sm">
-            <span className="text-[25px] font-bold">
-              ∑
-            </span>
+      <section className="mb-[20px] grid w-full grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <article className="relative min-h-[118px] min-w-0 overflow-hidden rounded-[18px] border border-[#ffe5c2] bg-talentia-surface px-6 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div aria-hidden="true" className="absolute left-0 top-0 h-[5px] w-full bg-talentia-warning" />
+          <div className="flex h-full items-center gap-5">
+            <div aria-hidden="true" className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[18px] bg-talentia-warning-bg text-talentia-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+                <path d="m3 9 9-5 9 5-9 5-9-5Z" />
+                <path d="M7 12v5l5 3 5-3v-5" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="flex h-9 items-baseline gap-1 whitespace-nowrap text-[36px] font-bold leading-none tabular-nums text-talentia-warning">
+                {resumen.promedioGeneral === null ? "--" : <>{resumen.promedioGeneral.toFixed(1)}<span className="text-[14px] font-medium text-talentia-muted">/20</span></>}
+              </p>
+              <p className="mt-2 min-h-10 break-words text-[14px] font-semibold leading-5 text-talentia-primary">Promedio general</p>
+            </div>
           </div>
+        </article>
 
-          <div>
-            <p className="text-[16px] font-medium text-talentia-primary">
-              Promedio general
-            </p>
-
-            <p className="mt-1 text-[27px] font-bold text-talentia-primary">
-              {resumen.promedioGeneral ===
-              null
-                ? "--"
-                : `${resumen.promedioGeneral.toFixed(
-                    1
-                  )}/20`}
-            </p>
+        <article className="relative min-h-[118px] min-w-0 overflow-hidden rounded-[18px] border border-talentia-border bg-talentia-surface px-6 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div aria-hidden="true" className="absolute left-0 top-0 h-[5px] w-full bg-talentia-blue" />
+          <div className="flex h-full items-center gap-5">
+            <div aria-hidden="true" className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[18px] bg-talentia-selected text-talentia-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+                <rect x="5" y="3" width="14" height="18" rx="2" />
+                <path d="M8 7h8M8 11h8M8 15h5" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-blue">{resumen.cursosMatriculados}</p>
+              <p className="mt-2 min-h-10 break-words text-[14px] font-semibold leading-5 text-talentia-primary">Cursos matriculados</p>
+            </div>
           </div>
+        </article>
 
-        </div>
-
-        <div className="flex min-h-[112px] items-center gap-5 border-y border-white/80 px-7 py-5 md:border-x md:border-y-0">
-
-          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[17px] bg-talentia-selected text-talentia-blue shadow-sm">
-            <span className="text-[26px]">
-              ▤
-            </span>
+        <article className="relative min-h-[118px] min-w-0 overflow-hidden rounded-[18px] border border-talentia-border bg-talentia-surface px-6 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div aria-hidden="true" className="absolute left-0 top-0 h-[5px] w-full bg-talentia-success" />
+          <div className="flex h-full items-center gap-5">
+            <div aria-hidden="true" className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[18px] bg-talentia-success/15 text-talentia-success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 3 3 5-6" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-success">{resumen.porcentajeAprobados}%</p>
+              <p className="mt-2 min-h-10 break-words text-[14px] font-semibold leading-5 text-talentia-primary">
+                Progreso global
+                <span className="block text-[12px] font-normal text-talentia-muted">{resumen.cursosAprobados} de {resumen.cursosMatriculados} cursos aprobados</span>
+              </p>
+            </div>
           </div>
-
-          <div>
-            <p className="text-[16px] font-medium text-talentia-primary">
-              Cursos matriculados
-            </p>
-
-            <p className="mt-1 text-[27px] font-bold text-talentia-primary">
-              {
-                resumen.cursosMatriculados
-              }
-            </p>
-          </div>
-
-        </div>
-
-        <div className="flex min-h-[112px] items-center gap-5 px-7 py-5">
-
-          <div className="relative flex h-[66px] w-[66px] items-center justify-center">
-
-            <svg
-              viewBox="0 0 64 64"
-              className="absolute inset-0 h-full w-full -rotate-90"
-            >
-              <circle
-                cx="32"
-                cy="32"
-                r="27"
-                fill="none"
-                stroke="var(--talentia-border)"
-                strokeWidth="6"
-              />
-
-              <circle
-                cx="32"
-                cy="32"
-                r="27"
-                fill="none"
-                stroke="var(--talentia-blue)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray="169.65"
-                strokeDashoffset={
-                  169.65 -
-                  (
-                    169.65 *
-                    resumen.porcentajeAprobados
-                  ) /
-                    100
-                }
-              />
-            </svg>
-
-            <span className="text-[14px] font-bold text-talentia-primary">
-              {
-                resumen.porcentajeAprobados
-              }
-              %
-            </span>
-
-          </div>
-
-          <div>
-            <p className="text-[16px] font-medium text-talentia-primary">
-              Progreso global
-            </p>
-
-            <p className="mt-1 text-[13px] text-talentia-muted">
-              {
-                resumen.cursosAprobados
-              }{" "}
-              de{" "}
-              {
-                resumen.cursosMatriculados
-              }{" "}
-              cursos aprobados
-            </p>
-          </div>
-
-        </div>
-
+        </article>
       </section>
 
       {cursos.length === 0 ? (

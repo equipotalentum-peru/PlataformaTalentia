@@ -303,8 +303,8 @@ export default function DashboardPage() {
         })}
       </section>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.65fr_1fr]">
-        <div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <div className="min-w-0">
           <section>
             <h2 className="mb-3 text-[22px] font-semibold text-talentia-primary">
               Próximos eventos
@@ -415,7 +415,7 @@ export default function DashboardPage() {
           </section>
         </div>
 
-        <aside>
+        <aside className="min-w-0">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-[22px] font-semibold text-talentia-primary">
               Mis cursos
@@ -467,10 +467,10 @@ export default function DashboardPage() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <p className="truncate text-[14px] font-medium text-talentia-primary">
+                        <p className="min-w-0 truncate text-[14px] font-medium text-talentia-primary">
                           {curso.nombre}
                         </p>
-                        <span className="text-[9px] text-talentia-muted">
+                        <span className="shrink-0 whitespace-nowrap text-[12px] font-medium text-talentia-muted">
                           {curso.codigo}
                         </span>
                       </div>
