@@ -9,6 +9,7 @@ import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import TeacherCourseInfo from "./TeacherCourseInfo";
 import CreateModuleModal from "./modals/CreateModuleModal";
+import DeleteCourseItemModal from "./modals/DeleteCourseItemModal";
 import AddContentModal from "./modals/AddContentModal";
 import UploadFileModal from "./modals/UploadFileModal";
 import AddLinkModal from "./modals/AddLinkModal";
@@ -127,6 +128,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
   const [moduleTitle, setModuleTitle] = useState("");
   const [moduleError, setModuleError] = useState("");
   const [deletingModuleId, setDeletingModuleId] = useState<number | null>(null);
+  const [moduleToDelete, setModuleToDelete] = useState<LocalModule | null>(null);
   const [addContentOpen, setAddContentOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -136,6 +138,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
   const [editTitle, setEditTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
+  const [contentToDelete, setContentToDelete] = useState<LocalContent | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -250,13 +253,6 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
 
   const deleteModule = async (module: LocalModule) => {
     if (deletingModuleId !== null) return;
-    if (!window.confirm(
-      `¿Eliminar definitivamente el módulo "${module.title}" y todos sus contenidos?\n\n` +
-      "Se eliminarán sus documentos, videos, actividades y evaluaciones, " +
-      "incluidos los archivos asociados y los datos académicos vinculados que correspondan.\n\n" +
-      "Los componentes de calificación configurados por el administrador se conservarán y quedarán disponibles para reutilizarse.\n\n" +
-      "Esta acción no se puede deshacer."
-)) return;
     setDeletingModuleId(module.id);
     try {
       const response = await fetch(`${API_URL}/cursos/${courseId}/modulos/${module.id}`, {
@@ -281,6 +277,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
       showNotice(error instanceof Error ? error.message : "No se pudo eliminar el módulo.");
     } finally {
       setDeletingModuleId(null);
+      setModuleToDelete(null);
     }
   };
 
@@ -366,12 +363,10 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
   };
 
   const deleteContent = async (content: LocalContent) => {
-    const message = content.type === "quiz"
-      ? `¿Eliminar definitivamente la evaluación "${content.title}"?\n\nSe eliminarán sus preguntas, respuestas, intentos y calificaciones asociadas. El componente de calificación conservará su nombre y porcentaje y quedará disponible para otra evaluación.\n\nEsta acción no se puede deshacer.`
-      : `¿Eliminar "${content.title}" del curso?`;
-    if (!window.confirm(message)) return;
+    if (saving) return;
     try { await updateContent(content.id, {}, true); }
     catch (error) { showNotice(error instanceof Error ? error.message : "No se pudo eliminar."); }
+    finally { setContentToDelete(null); }
   };
 
   const publishContent = async (content: LocalContent) => {
@@ -444,7 +439,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                         editLabel="Editar nombre"
                         disabled={deletingModuleId !== null || savingModule}
                         onEdit={() => { setEditingModule(module); setModuleTitle(module.title); setModuleError(""); }}
-                        onDelete={() => void deleteModule(module)}
+                        onDelete={() => setModuleToDelete(module)}
                       />
                       </div>
 
@@ -536,7 +531,7 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
                                     setEditTitle(content.title);
                                     setEditError("");
                                   }}
-                                  onDelete={() => void deleteContent(content)}
+                                  onDelete={() => setContentToDelete(content)}
                                 />
                               </div>
                             );
@@ -583,6 +578,19 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
         </form>
       </div>}
 
+      {moduleToDelete && <DeleteCourseItemModal
+        itemTitle={moduleToDelete.title}
+        deleting={deletingModuleId !== null}
+        onClose={() => { if (deletingModuleId === null) setModuleToDelete(null); }}
+        onConfirm={() => void deleteModule(moduleToDelete)}
+      />}
+      {contentToDelete && <DeleteCourseItemModal
+        itemTitle={contentToDelete.title}
+        kind={contentToDelete.type === "quiz" ? "quiz" : contentToDelete.type === "activity" ? "activity" : contentToDelete.type === "link" ? "link" : "file"}
+        deleting={saving}
+        onClose={() => { if (!saving) setContentToDelete(null); }}
+        onConfirm={() => void deleteContent(contentToDelete)}
+      />}
       <CreateModuleModal open={createModuleOpen} value={createModuleTitle} saving={savingModule} onChange={setCreateModuleTitle} onClose={() => setCreateModuleOpen(false)} onSave={saveModule} />
       <CreateModuleModal
         open={editingModule !== null}
