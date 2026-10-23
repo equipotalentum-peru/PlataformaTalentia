@@ -13,6 +13,18 @@ type CursoDocenteApi = {
   codigo: string;
   imagen: string | null;
   alumnos: number;
+  actividades: number;
+  evaluaciones: number;
+  periodoId: string | null;
+  periodoNombre: string | null;
+};
+
+type PeriodoAcademicoApi = {
+  id: string;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
 };
 
 const IMAGEN_POR_DEFECTO =
@@ -28,6 +40,51 @@ export default function TeacherCoursesPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState("Todos");
+  const [periods, setPeriods] = useState<PeriodoAcademicoApi[]>([]);
+  const [periodsError, setPeriodsError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function cargarPeriodos() {
+      try {
+        setPeriodsError("");
+        const response = await fetch(
+          `${API_URL}/cursos/docente/periodos-academicos`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(
+            typeof data.message === "string"
+              ? data.message
+              : "No se pudieron cargar los periodos académicos."
+          );
+        }
+
+        setPeriods(Array.isArray(data.periodos) ? data.periodos : []);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setPeriodsError(
+          err instanceof Error
+            ? err.message
+            : "No se pudieron cargar los periodos académicos."
+        );
+      }
+    }
+
+    void cargarPeriodos();
+    return () => controller.abort();
+  }, [router]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,8 +94,11 @@ export default function TeacherCoursesPage() {
         setLoading(true);
         setError("");
 
+        const query = period === "Todos"
+          ? ""
+          : `?periodoId=${encodeURIComponent(period)}`;
         const response = await fetch(
-          `${API_URL}/cursos/docente/mis-cursos`,
+          `${API_URL}/cursos/docente/mis-cursos${query}`,
           {
             method: "GET",
             credentials: "include",
@@ -72,9 +132,8 @@ export default function TeacherCoursesPage() {
             codigo: curso.codigo,
             imagen: curso.imagen || IMAGEN_POR_DEFECTO,
             alumnos: Number(curso.alumnos) || 0,
-            // Aún no existen endpoints para estos datos.
-            actividades: 0,
-            evaluaciones: 0,
+            actividades: Number(curso.actividades) || 0,
+            evaluaciones: Number(curso.evaluaciones) || 0,
             progreso: 0,
             accent: COLORES[index % COLORES.length],
           }))
@@ -95,7 +154,7 @@ export default function TeacherCoursesPage() {
     void cargarCursos();
 
     return () => controller.abort();
-  }, [router]);
+  }, [router, period]);
 
   const filteredCourses = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -171,18 +230,25 @@ export default function TeacherCoursesPage() {
 
               <select
                 value={period}
-                onChange={(event) =>
-                  setPeriod(event.target.value)
-                }
-                className="bg-transparent text-[11px] font-medium text-talentia-primary outline-none"
+                onChange={(event) => setPeriod(event.target.value)}
+                aria-label="Filtrar cursos por periodo académico"
+                className="max-w-[190px] bg-transparent text-[11px] font-medium text-talentia-primary outline-none"
               >
                 <option value="Todos">Todos</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
+                {periods.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre}
+                  </option>
+                ))}
               </select>
             </div>
 
           </div>
+          {periodsError && (
+            <p role="status" className="text-[11px] text-talentia-danger xl:text-right">
+              {periodsError}
+            </p>
+          )}
         </header>
 
         {/* ERROR */}
@@ -214,7 +280,11 @@ export default function TeacherCoursesPage() {
           !error && (
             <div className="rounded-xl bg-talentia-surface px-6 py-12 text-center shadow-sm">
               <p className="text-[13px] text-talentia-muted">
-                No tienes cursos asignados todavía.
+                {period !== "Todos"
+                  ? "No tienes cursos asignados a este periodo académico."
+                  : search.trim()
+                    ? "No se encontraron cursos con esa búsqueda."
+                    : "No tienes cursos asignados todavía."}
               </p>
             </div>
           )

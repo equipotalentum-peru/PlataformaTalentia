@@ -105,22 +105,6 @@ export default function CourseCard({
             </div>
           </div>
 
-          {/* PROGRESO */}
-          <div className="mt-[7px]">
-            <div className="relative h-[12px] overflow-hidden rounded-full bg-talentia-border">
-              <div
-                className="h-full rounded-full bg-talentia-teal"
-                style={{
-                  width: `${course.progreso}%`,
-                }}
-              />
-
-              <span className="absolute inset-y-0 right-[7px] flex items-center text-[8px] font-medium text-talentia-blue">
-                {course.progreso}%
-              </span>
-            </div>
-          </div>
-
           {/* BOTÓN */}
           <div className="flex justify-center pt-[6px]">
             <span className="rounded-full bg-talentia-action px-[18px] py-[6px] text-[11px] font-semibold text-white shadow-sm transition group-hover:bg-talentia-primary">

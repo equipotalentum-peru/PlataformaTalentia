@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   obtenerMisCursos,
   obtenerMisCursosDocente,
+  obtenerPeriodosAcademicosDocente,
   obtenerModulosCurso,
   completarContenidoEstudiante,
 } from "../controllers/cursos.controller";
@@ -52,6 +53,7 @@ router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenid
 router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.post("/:cursoId/modulos/:moduloId/archivo", requireAuth, subirArchivoContenido);
 router.get("/mis-cursos", requireAuth, obtenerMisCursos);
+router.get("/docente/periodos-academicos", requireAuth, obtenerPeriodosAcademicosDocente);
 router.get("/docente/mis-cursos", requireAuth, obtenerMisCursosDocente);
 router.get("/:cursoId/modulos", requireAuth, obtenerModulosCurso);
 router.post("/:cursoId/contenidos/:contenidoId/progreso", requireAuth, completarContenidoEstudiante);
@@ -59,4 +61,6 @@ router.get("/:cursoId/contenidos/:contenidoId/archivo", requireAuth, obtenerArch
 router.get("/:cursoId/portada", requireAuth, obtenerPortadaCurso);
 
 export default router;
+
+
 

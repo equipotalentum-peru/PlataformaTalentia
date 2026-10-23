@@ -636,6 +636,50 @@ export async function completarContenidoEstudiante(
   }
 }
 
+export async function obtenerPeriodosAcademicosDocente(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    const docenteId = Number(req.userId);
+
+    if (!Number.isInteger(docenteId) || docenteId <= 0) {
+      return res.status(401).json({ message: "Sesión no válida." });
+    }
+
+    const usuarioResult = await pool.query(
+      `SELECT rol FROM usuarios WHERE id = $1 AND activo = TRUE LIMIT 1`,
+      [docenteId]
+    );
+
+    if (!usuarioResult.rowCount) {
+      return res.status(401).json({ message: "Usuario no encontrado o inactivo." });
+    }
+
+    if (usuarioResult.rows[0].rol !== "Docente") {
+      return res.status(403).json({ message: "Este recurso es exclusivo para docentes." });
+    }
+
+    const result = await pool.query(
+      `SELECT
+         id::TEXT AS id,
+         nombre,
+         TO_CHAR(fecha_inicio, 'YYYY-MM-DD') AS "fechaInicio",
+         TO_CHAR(fecha_fin, 'YYYY-MM-DD') AS "fechaFin",
+         activo
+       FROM periodos_academicos
+       ORDER BY fecha_inicio DESC, id DESC`
+    );
+
+    return res.status(200).json({ periodos: result.rows });
+  } catch (error) {
+    console.error("Error obteniendo periodos académicos para el docente:", error);
+    return res.status(500).json({
+      message: "No se pudieron obtener los periodos académicos.",
+    });
+  }
+}
+
 export async function obtenerMisCursosDocente(
   req: AuthenticatedRequest,
   res: Response
@@ -669,25 +713,73 @@ export async function obtenerMisCursosDocente(
       });
     }
 
+    const periodoRaw = req.query.periodoId;
+    let periodoId: string | null = null;
+
+    if (periodoRaw !== undefined) {
+      if (
+        typeof periodoRaw !== "string" ||
+        !/^[1-9]\d{0,18}$/.test(periodoRaw)
+      ) {
+        return res.status(400).json({
+          message: "El periodo académico seleccionado no es válido.",
+        });
+      }
+
+      try {
+        if (BigInt(periodoRaw) > BigInt("9223372036854775807")) {
+          return res.status(400).json({
+            message: "El periodo académico seleccionado no es válido.",
+          });
+        }
+      } catch {
+        return res.status(400).json({
+          message: "El periodo académico seleccionado no es válido.",
+        });
+      }
+
+      periodoId = periodoRaw;
+    }
+
     const result = await pool.query(
       `SELECT DISTINCT ON (c.id)
          c.id,
          c.nombre,
          c.codigo,
          c.imagen_portada AS imagen,
+         oc.periodo_id::TEXT AS "periodoId",
+         p.nombre AS "periodoNombre",
          (
            SELECT COUNT(*)::INTEGER
            FROM matriculas m
            WHERE m.oferta_curso_id = oc.id
              AND m.estado IN ('Activa', 'Completada')
-         ) AS alumnos
+         ) AS alumnos,
+         (
+           SELECT COUNT(DISTINCT a.id)::INTEGER
+           FROM modulos_curso mc
+           INNER JOIN contenidos_curso cc ON cc.modulo_id = mc.id
+           INNER JOIN actividades a ON a.contenido_id = cc.id
+           WHERE mc.curso_id = c.id
+             AND mc.activo = TRUE
+         ) AS actividades,
+         (
+           SELECT COUNT(DISTINCT e.id)::INTEGER
+           FROM modulos_curso mc
+           INNER JOIN contenidos_curso cc ON cc.modulo_id = mc.id
+           INNER JOIN evaluaciones e ON e.contenido_id = cc.id
+           WHERE mc.curso_id = c.id
+             AND mc.activo = TRUE
+         ) AS evaluaciones
        FROM ofertas_curso oc
        INNER JOIN cursos c ON c.id = oc.curso_id
+       LEFT JOIN periodos_academicos p ON p.id = oc.periodo_id
        WHERE oc.docente_id = $1
          AND oc.estado <> 'Cancelado'
          AND c.estado = 'Activo'
+         AND ($2::BIGINT IS NULL OR oc.periodo_id = $2::BIGINT)
        ORDER BY c.id, oc.actualizado_en DESC, oc.id DESC`,
-      [docenteId]
+      [docenteId, periodoId]
     );
 
     return res.status(200).json({
