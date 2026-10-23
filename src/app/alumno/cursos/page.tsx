@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 import { resolverImagenPortadaCurso } from "@/lib/curso-imagen";
@@ -32,6 +32,7 @@ export default function MisCursosPage() {
   const [error, setError] = useState("");
   const [periodos, setPeriodos] = useState<PeriodoAcademicoAlumno[]>([]);
   const [periodo, setPeriodo] = useState("Todos");
+  const [busqueda, setBusqueda] = useState("");
   const [cargandoPeriodos, setCargandoPeriodos] = useState(true);
   const [errorPeriodos, setErrorPeriodos] = useState("");
 
@@ -144,48 +145,89 @@ export default function MisCursosPage() {
     return () => controller.abort();
   }, [router, periodo]);
 
+  // La búsqueda se combina con el periodo seleccionado y solo filtra
+  // los cursos que ya devolvió el backend para ese periodo.
+  const cursosFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLocaleLowerCase("es");
+
+    if (!termino) return cursos;
+
+    return cursos.filter((curso) =>
+      curso.nombre.toLocaleLowerCase("es").includes(termino) ||
+      curso.codigo.toLocaleLowerCase("es").includes(termino)
+    );
+  }, [cursos, busqueda]);
+
   return (
     <div className="min-h-screen px-[52px] py-[33px]">
-      <header className="mb-[31px] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="mb-[31px] flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <h1 className="student-page-title text-[29px] font-semibold tracking-[-0.7px] text-talentia-primary">
           Mis cursos
         </h1>
 
-        <div className="flex flex-col items-start gap-1">
-          <div className="flex h-[38px] items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3">
-            <svg
-              className="mr-2 h-5 w-5 text-talentia-primary"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <rect x="3" y="4" width="18" height="17" rx="2" />
-              <path d="M8 2v4" />
-              <path d="M16 2v4" />
-              <path d="M3 9h18" />
-            </svg>
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* BUSCADOR: mismo estilo y comportamiento que en la vista docente */}
+            <div className="flex h-[38px] w-full min-w-[230px] items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3 sm:w-[300px]">
+              <svg
+                className="mr-2 h-5 w-5 text-talentia-muted"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-4-4" />
+              </svg>
 
-            <span className="mr-2 text-[12px] font-semibold text-talentia-primary">
-              Periodo
-            </span>
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(event) => setBusqueda(event.target.value)}
+                placeholder="Buscar Curso..."
+                aria-label="Buscar cursos por nombre o código"
+                className="w-full bg-transparent text-[12px] text-talentia-primary outline-none placeholder:text-talentia-placeholder"
+              />
+            </div>
 
-            <select
-              value={periodo}
-              onChange={(event) => setPeriodo(event.target.value)}
-              aria-label="Filtrar mis cursos por periodo académico"
-              disabled={cargandoPeriodos}
-              className="max-w-[190px] bg-transparent text-[11px] font-medium text-talentia-primary outline-none disabled:opacity-60"
-            >
-              <option value="Todos">Todos</option>
-              {periodos.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nombre}
-                </option>
-              ))}
-            </select>
+            {/* FILTRO DE PERIODO ACADÉMICO */}
+            <div className="flex h-[38px] shrink-0 items-center rounded-full bg-talentia-surface ring-1 ring-talentia-border px-3">
+              <svg
+                className="mr-2 h-5 w-5 text-talentia-primary"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <rect x="3" y="4" width="18" height="17" rx="2" />
+                <path d="M8 2v4" />
+                <path d="M16 2v4" />
+                <path d="M3 9h18" />
+              </svg>
+
+              <span className="mr-2 text-[12px] font-semibold text-talentia-primary">
+                Periodo
+              </span>
+
+              <select
+                value={periodo}
+                onChange={(event) => setPeriodo(event.target.value)}
+                aria-label="Filtrar mis cursos por periodo académico"
+                disabled={cargandoPeriodos}
+                className="max-w-[190px] bg-transparent text-[11px] font-medium text-talentia-primary outline-none disabled:opacity-60"
+              >
+                <option value="Todos">Todos</option>
+                {periodos.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+
           {errorPeriodos ? (
             <p className="max-w-[280px] text-[11px] text-talentia-danger">
               {errorPeriodos}
@@ -212,9 +254,15 @@ export default function MisCursosPage() {
               : "No tienes cursos matriculados en este periodo académico."}
           </p>
         </section>
+      ) : cursosFiltrados.length === 0 ? (
+        <section className="flex min-h-[180px] max-w-[980px] items-center justify-center rounded-lg bg-talentia-surface shadow-sm">
+          <p className="text-[14px] text-talentia-muted">
+            No se encontraron cursos con esa búsqueda.
+          </p>
+        </section>
       ) : (
         <section className="grid w-full grid-cols-1 gap-[18px] md:grid-cols-2">
-          {cursos.map((curso) => {
+          {cursosFiltrados.map((curso) => {
             const imagen = resolverImagenPortadaCurso(curso.imagen, curso.id, IMAGEN_POR_DEFECTO);
 
             const progreso = Math.min(
