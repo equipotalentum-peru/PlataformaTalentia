@@ -67,6 +67,30 @@ type CalificacionesResponse = {
 
 const PAGE_SIZE = 8;
 
+function GradeSummaryIcon({ type }: { type: "students" | "graded" | "pending" | "average" }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {type === "students" && <>
+        <circle cx="9" cy="8" r="3" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M3 20c.8-4 2.8-6 6-6s5.2 2 6 6" />
+        <path d="M14.5 15c2.5.3 4.1 1.9 4.8 5" />
+      </>}
+      {type === "graded" && <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8 12 3 3 5-6" />
+      </>}
+      {type === "pending" && <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>}
+      {type === "average" && <>
+        <path d="M4 19V9M10 19V5M16 19v-7M22 19V3" />
+      </>}
+    </svg>
+  );
+}
+
 function getGradeClasses(
   value: number | null
 ) {
@@ -924,13 +948,13 @@ export default function TeacherGradesPage() {
       null
   ) {
     return (
-      <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
+      <main className="min-h-screen px-[22px] py-[22px] text-[14px] leading-relaxed text-talentia-primary lg:px-[28px]">
         <header className="mb-5">
-          <h1 className="teacher-page-title text-[35px] font-semibold tracking-[-0.8px] text-talentia-primary">
+          <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
            Calificaciones por Curso
           </h1>
 
-          <p className="mt-1 text-[15px] text-talentia-primary">
+          <p className="mt-2 text-[14px] text-talentia-muted">
             Cargando información desde la base de datos...
           </p>
         </header>
@@ -939,20 +963,20 @@ export default function TeacherGradesPage() {
   }
 
   return (
-    <main className="min-h-screen px-[22px] py-[22px] lg:px-[28px]">
+    <main className="min-h-screen px-[22px] py-[22px] text-[14px] leading-relaxed text-talentia-primary lg:px-[28px]">
       {/* CABECERA */}
       <header className="mb-5">
-        <h1 className="teacher-page-title text-[35px] font-semibold tracking-[-0.8px] text-talentia-primary">
+        <h1 className="teacher-page-title text-[34px] font-semibold text-talentia-primary">
          Calificaciones por Curso
         </h1>
 
-        <p className="mt-2 text-[15px] text-talentia-primary">
+        <p className="mt-2 text-[14px] text-talentia-muted">
          Selecciona un curso y registra la nota individual de cada alumno.
         </p>
       </header>
 
       {error && (
-        <div className="mb-4 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[10px] text-talentia-danger">
+        <div className="mb-4 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-[13px] text-talentia-danger">
           {error}
         </div>
       )}
@@ -961,7 +985,7 @@ export default function TeacherGradesPage() {
       <section className="mb-4">
         <label
           htmlFor="curso-calificaciones"
-          className="mb-1 block text-[15px] font-semibold text-talentia-blue"
+          className="mb-2 block text-[13px] font-semibold text-talentia-primary"
         >
           Curso
         </label>
@@ -985,7 +1009,7 @@ export default function TeacherGradesPage() {
               0 ||
             cargando
           }
-          className="h-10 w-[360px] rounded-md border border-talentia-border bg-talentia-surface px-3 text-[14px] text-talentia-blue outline-none disabled:opacity-60"
+          className="h-10 w-[360px] max-w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] text-talentia-primary outline-none focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15 disabled:opacity-60"
         >
           {cursos.length ===
           0 ? (
@@ -1018,70 +1042,68 @@ export default function TeacherGradesPage() {
       </section>
 
       {/* RESUMEN */}
-      <section className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-selected px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-selected text-talentia-blue">
-            <span className="text-xl">
-              👥
-            </span>
+      <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article className="flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg bg-talentia-selected px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-talentia-selected text-talentia-blue">
+            <GradeSummaryIcon type="students" />
           </div>
 
-          <div>
-            <p className="text-[28px] font-bold leading-none text-talentia-primary">
+          <div className="min-w-0">
+            <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-blue">
               {
                 resumen.alumnos
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-talentia-primary">
+            <p className="mt-2 min-h-10 break-words text-[14px] font-medium leading-5 text-talentia-primary">
               Alumnos del curso
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-success-bg px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-success-bg text-talentia-success">
-            ✓
+        <article className="flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg bg-talentia-success-bg px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-talentia-success/15 text-talentia-success">
+            <GradeSummaryIcon type="graded" />
           </div>
 
-          <div>
-            <p className="text-[28px] font-bold leading-none text-talentia-success">
+          <div className="min-w-0">
+            <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-success">
               {
                 resumen.conCalificacion
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-talentia-primary">
+            <p className="mt-2 min-h-10 break-words text-[14px] font-medium leading-5 text-talentia-primary">
               Con calificación
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-warning-bg px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-warning-bg text-talentia-warning">
-            ◷
+        <article className="flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg bg-talentia-warning-bg px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-talentia-warning/15 text-talentia-warning">
+            <GradeSummaryIcon type="pending" />
           </div>
 
-          <div>
-            <p className="text-[28px] font-bold leading-none text-talentia-warning">
+          <div className="min-w-0">
+            <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-warning">
               {
                 resumen.pendientes
               }
             </p>
 
-            <p className="mt-1 text-[15px] text-talentia-primary">
+            <p className="mt-2 min-h-10 break-words text-[14px] font-medium leading-5 text-talentia-primary">
               Pendientes por calificar
             </p>
           </div>
         </article>
 
-        <article className="flex min-h-[68px] items-center gap-3 rounded-xl bg-talentia-purple-soft px-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-talentia-purple-soft text-talentia-purple">
-            ▥
+        <article className="flex min-h-[104px] min-w-0 items-center gap-4 rounded-lg bg-talentia-purple-soft px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-talentia-purple-soft text-talentia-purple">
+            <GradeSummaryIcon type="average" />
           </div>
 
-          <div>
-            <p className="text-[28px] font-bold leading-none text-talentia-purple">
+          <div className="min-w-0">
+            <p className="h-9 text-[36px] font-bold leading-none tabular-nums text-talentia-purple">
               {resumen.promedioMasAlto ===
               null
                 ? "—"
@@ -1090,7 +1112,7 @@ export default function TeacherGradesPage() {
                   )}
             </p>
 
-            <p className="mt-1 text-[15px] text-talentia-primary">
+            <p className="mt-2 min-h-10 break-words text-[14px] font-medium leading-5 text-talentia-primary">
               Promedio más alto del curso
             </p>
           </div>
@@ -1099,8 +1121,8 @@ export default function TeacherGradesPage() {
 
       {/* INFORMACIÓN DEL CURSO */}
       {selectedCourseObject && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-[15px] text-talentia-muted">
-          <span className="rounded-full bg-talentia-selected px-3 py-1 font-semibold text-talentia-blue">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-talentia-primary">
+          <span className="rounded-full bg-talentia-selected px-3 py-1 text-[12px] font-semibold text-talentia-blue">
             {
               selectedCourseObject.codigo
             }
@@ -1126,9 +1148,9 @@ export default function TeacherGradesPage() {
 
       {/* BUSCADOR Y EXPORTACIÓN */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex h-10 w-[280px] items-center rounded-md border border-talentia-border bg-talentia-surface px-3">
+        <div className="flex h-10 w-[280px] max-w-full items-center rounded-md border border-talentia-border bg-talentia-surface px-3 focus-within:border-talentia-blue focus-within:ring-2 focus-within:ring-talentia-blue/15">
           <svg
-            className="mr-2 h-4 w-4 text-talentia-primary"
+            className="mr-2 h-4 w-4 shrink-0 text-talentia-muted"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -1156,7 +1178,8 @@ export default function TeacherGradesPage() {
               setPage(1);
             }}
             placeholder="Buscar alumno por nombre"
-            className="w-full bg-transparent text-[15px] outline-none"
+            aria-label="Buscar alumno por nombre"
+            className="w-full min-w-0 bg-transparent text-[13px] text-talentia-primary outline-none placeholder:text-talentia-placeholder"
           />
         </div>
 
@@ -1164,7 +1187,7 @@ export default function TeacherGradesPage() {
           type="button"
           onClick={() => void exportarExcel()}
           disabled={!selectedCourseObject || cargando || grades.length === 0}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-talentia-action px-4 text-[14px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             className="h-4 w-4"
@@ -1185,12 +1208,12 @@ export default function TeacherGradesPage() {
       </div>
 
       {/* TABLA */}
-      <section className="overflow-hidden rounded-xl border border-talentia-border bg-talentia-surface">
+      <section className="overflow-hidden rounded-lg border border-talentia-border bg-talentia-surface">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse text-[15px]">
+          <table className="w-full min-w-[900px] border-collapse text-[13px] text-talentia-primary">
             <thead>
-              <tr className="bg-talentia-surface">
-                <th className="px-5 py-4 text-left text-[15px] font-semibold">
+              <tr className="bg-talentia-table-header">
+                <th className="px-5 py-4 text-left text-[13px] font-semibold">
                   Alumno
                 </th>
 
@@ -1202,7 +1225,7 @@ export default function TeacherGradesPage() {
                       key={
                         componente.id
                       }
-                      className="min-w-[132px] px-4 py-4 text-center text-[14px] font-semibold"
+                      className="min-w-[132px] px-4 py-4 text-center text-[13px] font-semibold"
                       title={nombreCortoComponente(
                         componente
                       )}
@@ -1226,7 +1249,7 @@ export default function TeacherGradesPage() {
                   )
                 )}
 
-                <th className="min-w-[100px] px-4 py-4 text-center text-[15px] font-semibold">
+                <th className="min-w-[100px] px-4 py-4 text-center text-[13px] font-semibold">
                   Promedio
                 </th>
               </tr>
@@ -1239,11 +1262,11 @@ export default function TeacherGradesPage() {
                     key={
                       row.matriculaId
                     }
-                    className="border-t border-talentia-border"
+                    className="border-t border-talentia-border transition-colors hover:bg-talentia-hover"
                   >
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-talentia-action text-[12px] font-semibold text-white">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-talentia-selected text-[12px] font-semibold text-talentia-blue">
                           {
                             getInitials(
                               row.alumno
@@ -1251,7 +1274,7 @@ export default function TeacherGradesPage() {
                           }
                         </div>
 
-                        <span className="text-[15px] font-medium text-talentia-primary">
+                        <span className="text-[13px] font-semibold text-talentia-primary">
                           {
                             row.alumno
                           }
@@ -1337,7 +1360,7 @@ export default function TeacherGradesPage() {
                                     void saveGrade(row.matriculaId, componente.id, draftValue);
                                   }
                                 }}
-                                className={`w-full min-w-0 flex-1 bg-transparent px-2 text-center text-[15px] font-semibold outline-none disabled:opacity-60 ${getGradeClasses(
+                                className={`w-full min-w-0 flex-1 bg-transparent px-2 text-center text-[13px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-talentia-blue/30 disabled:opacity-60 ${getGradeClasses(
                                   grade
                                 )}`}
                                 aria-label={`${row.alumno} ${componente.nombre}`}
@@ -1350,7 +1373,7 @@ export default function TeacherGradesPage() {
 
                     <td className="px-4 py-2 text-center">
                       <span
-                        className={`inline-flex min-w-[64px] justify-center rounded-md px-3 py-2 text-[15px] font-semibold ${getGradeClasses(
+                        className={`inline-flex min-w-[64px] justify-center rounded-md px-3 py-2 text-[13px] font-semibold tabular-nums ${getGradeClasses(
                           row.promedio
                         )}`}
                       >
@@ -1390,8 +1413,8 @@ export default function TeacherGradesPage() {
       </section>
 
       {/* PAGINACIÓN */}
-      <div className="mt-3 flex items-center justify-between">
-        <p className="text-[14px] text-talentia-primary">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[12px] text-talentia-muted">
           Mostrando{" "}
           {
             visibleRows.length
@@ -1403,7 +1426,7 @@ export default function TeacherGradesPage() {
           alumnos
         </p>
 
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           <button
             type="button"
             onClick={() =>
@@ -1422,7 +1445,8 @@ export default function TeacherGradesPage() {
               page ===
               1
             }
-            className="flex h-7 w-7 items-center justify-center rounded border border-talentia-border bg-talentia-surface disabled:opacity-40"
+            aria-label="Página anterior"
+            className="flex h-8 w-8 items-center justify-center rounded border border-talentia-border bg-talentia-surface text-[14px] text-talentia-primary hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 disabled:cursor-not-allowed disabled:opacity-40"
           >
             ‹
           </button>
@@ -1451,11 +1475,13 @@ export default function TeacherGradesPage() {
                     pageNumber
                   )
                 }
-                className={`h-7 min-w-7 rounded border px-2 text-[13px] ${
+                aria-label={`Página ${pageNumber}`}
+                aria-current={page === pageNumber ? "page" : undefined}
+                className={`h-8 min-w-8 rounded border px-2 text-[12px] font-semibold tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 ${
                   page ===
                   pageNumber
                     ? "border-talentia-blue bg-talentia-action text-white"
-                    : "border-talentia-border bg-talentia-surface text-talentia-primary"
+                    : "border-talentia-border bg-talentia-surface text-talentia-primary hover:bg-talentia-hover"
                 }`}
               >
                 {
@@ -1483,14 +1509,15 @@ export default function TeacherGradesPage() {
               page ===
               totalPages
             }
-            className="flex h-7 w-7 items-center justify-center rounded border border-talentia-border bg-talentia-surface disabled:opacity-40"
+            aria-label="Página siguiente"
+            className="flex h-8 w-8 items-center justify-center rounded border border-talentia-border bg-talentia-surface text-[14px] text-talentia-primary hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 disabled:cursor-not-allowed disabled:opacity-40"
           >
             ›
           </button>
         </div>
       </div>
 
-      <p className="mt-2 text-[13px] text-talentia-muted">
+      <p className="mt-2 text-[12px] text-talentia-muted">
         Curso seleccionado:{" "}
         {
           selectedCourseObject?.nombre ??

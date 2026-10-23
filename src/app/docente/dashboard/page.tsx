@@ -457,7 +457,7 @@ export default function TeacherDashboardPage() {
       value: String(datos?.resumen.alumnos ?? 0),
       type: "students" as const,
       box: "bg-talentia-success-bg",
-      icon: "bg-talentia-success-bg text-talentia-success",
+      icon: "bg-talentia-success/15 text-talentia-success",
       number: "text-talentia-success",
     },
     {
@@ -465,7 +465,7 @@ export default function TeacherDashboardPage() {
       value: String(datos?.resumen.actividadesPorCalificar ?? 0),
       type: "activities" as const,
       box: "bg-talentia-warning-bg",
-      icon: "bg-talentia-warning-bg text-talentia-warning",
+      icon: "bg-talentia-warning/15 text-talentia-warning",
       number: "text-talentia-warning",
     },
     {
@@ -536,12 +536,12 @@ export default function TeacherDashboardPage() {
 
             <div className="min-w-0">
               <p
-                className={`text-[36px] font-bold leading-none tabular-nums ${item.number}`}
+                className={`h-9 text-[36px] font-bold leading-none tabular-nums ${item.number}`}
               >
                 {item.value}
               </p>
 
-              <p className="mt-2 break-words text-[14px] font-medium leading-5 text-talentia-primary">
+              <p className="mt-2 min-h-10 break-words text-[14px] font-medium leading-5 text-talentia-primary">
                 {item.label}
               </p>
             </div>

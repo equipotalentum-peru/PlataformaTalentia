@@ -112,10 +112,17 @@ export default function ChatCourseList({
             Comunícate con tus compañeros y docentes.
           </p>
 
-          <div className="mt-3 flex h-9 w-full items-center sm:w-[250px] rounded-md border border-talentia-border px-3">
-            <span className="mr-2 text-talentia-blue">
+          <div className={basePath === "docente"
+            ? "mt-3 flex h-10 w-[280px] max-w-full items-center rounded-md border border-talentia-border bg-talentia-surface px-3 focus-within:border-talentia-blue focus-within:ring-2 focus-within:ring-talentia-blue/15"
+            : "mt-3 flex h-9 w-full items-center sm:w-[250px] rounded-md border border-talentia-border px-3"}>
+            {basePath === "docente" ? (
+              <svg aria-hidden="true" className="mr-2 h-4 w-4 shrink-0 text-talentia-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-4-4" />
+              </svg>
+            ) : <span className="mr-2 text-talentia-blue">
               ⌕
-            </span>
+            </span>}
 
             <input
               value={search}
@@ -125,7 +132,10 @@ export default function ChatCourseList({
                 )
               }
               placeholder="Buscar cursos"
-              className="w-full bg-transparent text-[13px] outline-none"
+              aria-label="Buscar cursos"
+              className={basePath === "docente"
+                ? "w-full min-w-0 bg-transparent text-[13px] text-talentia-primary outline-none placeholder:text-talentia-placeholder"
+                : "w-full bg-transparent text-[13px] outline-none"}
             />
           </div>
         </div>
