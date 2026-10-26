@@ -32,7 +32,7 @@ export default function CrearCurso({
     nombreCurso: "",
     codigo: "",
     cupos: "80",
-    categoria: "Diseño",
+    categoria: "",
     modalidad: "Virtual",
     descripcion: "",
     periodoId: "",
@@ -522,17 +522,16 @@ export default function CrearCurso({
               <label className="block text-xs font-extrabold text-talentia-primary mb-2">
                 Categoría *
               </label>
-              <select
+              <input
+                type="text"
                 name="categoria"
                 value={formData.categoria}
                 onChange={handleChange}
+                placeholder="Ej: Diseño, Tecnología, Gestión"
+                maxLength={120}
                 required
-                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition cursor-pointer font-medium"
-              >
-                <option value="Diseño">Diseño</option>
-                <option value="Tecnología">Tecnología</option>
-                <option value="Gestión">Gestión</option>
-              </select>
+                className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3.5 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
+              />
             </div>
 
             <div>
