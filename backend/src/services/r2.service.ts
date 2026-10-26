@@ -4,6 +4,7 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -195,6 +196,16 @@ export async function getObjectFromR2(key: string) {
       Key: key,
     })
   );
+}
+
+export async function objectExistsInR2(key: string) {
+  try {
+    await getClient().send(new HeadObjectCommand({ Bucket: getBucketName(), Key: key }));
+    return true;
+  } catch (error) {
+    if (isR2NotFoundError(error)) return false;
+    throw error;
+  }
 }
 
 export async function copyObjectInR2(fromKey: string, toKey: string) {

@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import pool from "../config/database";
 import { calcularPromedio } from "../services/calificaciones.service";
-import { requisitosCertificacionSql } from "../services/certificacion-eligibilidad.service";
-import { getObjectFromR2, isR2NotFoundError, isR2Path, streamBodyToResponse, stripR2Prefix } from "../services/r2.service";
+import { emitirCertificadoCurso } from "../services/certificados.service";
+import { getObjectFromR2, isR2NotFoundError, isR2Path, objectExistsInR2, streamBodyToResponse, stripR2Prefix } from "../services/r2.service";
 
 type NotaProgreso = {
   id: string;
@@ -85,12 +85,14 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
          c.nombre AS curso, c.codigo AS "codigoCurso",
          BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS alumno,
          COALESCE(NULLIF(u.id_persona, ''), u.usuario) AS "codigoAlumno",
-         (SELECT json_build_object('id', cert.id::TEXT, 'numero', cert.numero_certificado)
+         (SELECT json_build_object('id', cert.id::TEXT, 'numero', cert.numero_certificado,
+            'visibleAlumno', cert.visible_alumno,
+            'rutaArchivo', cert.ruta_archivo,
+            'disponible', COALESCE(cert.ruta_archivo LIKE 'r2://%'
+              AND LENGTH(BTRIM(SUBSTRING(cert.ruta_archivo FROM 6))) > 0, FALSE))
           FROM certificados cert
           WHERE cert.matricula_id = m.id AND cert.modulo_id IS NULL
-            AND (${requisitosCertificacionSql})
-            AND cert.tipo = 'Aprobacion' AND cert.ruta_archivo LIKE 'r2://%'
-            AND LENGTH(BTRIM(SUBSTRING(cert.ruta_archivo FROM 6))) > 0
+            AND cert.tipo = 'Aprobacion'
           ORDER BY cert.emitido_en DESC, cert.id DESC LIMIT 1) AS certificado,
          COALESCE(json_agg(json_build_object(
            'id', comp.id::TEXT, 'nombre', comp.nombre,
@@ -112,15 +114,24 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
        ORDER BY p.fecha_inicio DESC NULLS LAST, c.nombre, alumno, m.id`,
       [periodoId, cursoId, alumnoId]
     );
-    const registros = resultado.rows.map((fila) => {
+    const registros = await Promise.all(resultado.rows.map(async (fila) => {
+      let certificado = null;
+      if (fila.certificado) {
+        const { rutaArchivo, ...datosCertificado } = fila.certificado;
+        certificado = {
+          ...datosCertificado,
+          disponible: datosCertificado.disponible && await objectExistsInR2(stripR2Prefix(rutaArchivo)),
+        };
+      }
       const notas = fila.notas as NotaProgreso[];
       const promedio = calcularPromedio(notas);
       const todoCalificado = notas.length > 0 && notas.every((nota) => nota.nota !== null);
       const estado = todoCalificado && promedio !== null
         ? promedio >= 14 ? "Aprobado" : "Desaprobado"
         : "En curso";
-      return { ...fila, promedio, estado };
-    });
+      const puedeGenerarCertificado = promedio !== null && promedio >= 14;
+      return { ...fila, certificado, promedio, estado, puedeGenerarCertificado };
+    }));
     return res.json({ registros });
   } catch (error) {
     console.error("Error consultando el progreso de alumnos:", error);
@@ -141,12 +152,20 @@ export async function descargarCertificadoProgreso(req: Request, res: Response) 
        FROM certificados cert
        JOIN matriculas m ON m.id = cert.matricula_id
        WHERE cert.id = $1 AND m.id = $2
-         AND (${requisitosCertificacionSql})
          AND cert.modulo_id IS NULL AND cert.tipo = 'Aprobacion'
        LIMIT 1`,
       [certificadoId, matriculaId]
     );
-    const certificado = resultado.rows[0];
+    return await enviarPdfCertificado(resultado.rows[0], res);
+  } catch (error) {
+    if (res.headersSent) return;
+    if (isR2NotFoundError(error)) return res.status(404).json({ message: "El PDF del certificado no está disponible en Cloudflare R2." });
+    console.error("Error descargando certificado para administrador:", error);
+    return res.status(500).json({ message: "No se pudo descargar el certificado." });
+  }
+}
+
+async function enviarPdfCertificado(certificado: { ruta_archivo: string | null; numero_certificado: string } | undefined, res: Response) {
     const ruta = String(certificado?.ruta_archivo ?? "").trim();
     if (!certificado || !isR2Path(ruta) || !stripR2Prefix(ruta).trim()) {
       return res.status(404).json({ message: "Sin certificado disponible." });
@@ -162,12 +181,55 @@ export async function descargarCertificadoProgreso(req: Request, res: Response) 
     if (object.ContentLength !== undefined) res.setHeader("Content-Length", String(object.ContentLength));
     res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(`${certificado.numero_certificado}.pdf`)}`);
     streamBodyToResponse(object.Body, res);
+}
+
+export async function generarCertificadoProgreso(req: Request, res: Response) {
+  const matriculaId = leerFiltroId(req.params.matriculaId);
+  if (!matriculaId || !Number.isSafeInteger(Number(matriculaId))) {
+    return res.status(400).json({ message: "La matrícula no es válida." });
+  }
+  try {
+    const certificado = await emitirCertificadoCurso(Number(matriculaId), "administrador");
+    if (!certificado) return res.status(409).json({ message: "Se requiere un promedio mayor o igual a 14." });
+    return await enviarPdfCertificado(certificado, res);
   } catch (error) {
     if (res.headersSent) return;
-    if (isR2NotFoundError(error)) {
-      return res.status(404).json({ message: "El PDF del certificado no está disponible en Cloudflare R2." });
-    }
-    console.error("Error descargando certificado para administrador:", error);
-    return res.status(500).json({ message: "No se pudo descargar el certificado." });
+    console.error("Error generando certificado para administrador:", error);
+    return res.status(500).json({ message: "No se pudo generar y descargar el certificado. Inténtalo nuevamente." });
+  }
+}
+
+export async function desactivarCertificadoProgreso(req: Request, res: Response) {
+  return cambiarVisibilidadCertificado(req, res, false);
+}
+
+export async function activarCertificadoProgreso(req: Request, res: Response) {
+  return cambiarVisibilidadCertificado(req, res, true);
+}
+
+async function cambiarVisibilidadCertificado(req: Request, res: Response, visible: boolean) {
+  const matriculaId = leerFiltroId(req.params.matriculaId);
+  const certificadoId = leerFiltroId(req.params.certificadoId);
+  if (!matriculaId || !certificadoId) return res.status(400).json({ message: "El certificado o la matrícula no son válidos." });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock($1::BIGINT)", [matriculaId]);
+    const resultado = await client.query(
+      `UPDATE certificados SET visible_alumno = $3
+       WHERE id = $1 AND matricula_id = $2 AND modulo_id IS NULL AND tipo = 'Aprobacion'
+       RETURNING id`,
+      [certificadoId, matriculaId, visible]
+    );
+    await client.query("COMMIT");
+    if (!resultado.rowCount) return res.status(404).json({ message: "Certificado no encontrado." });
+    res.setHeader("Cache-Control", "private, no-store");
+    return res.json({ message: visible ? "Certificado activado para el alumno." : "Certificado desactivado para el alumno." });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error cambiando la visibilidad del certificado:", error);
+    return res.status(500).json({ message: visible ? "No se pudo activar el certificado." : "No se pudo desactivar el certificado." });
+  } finally {
+    client.release();
   }
 }

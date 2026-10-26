@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { API_URL } from "@/lib/api";
+import CertificateActions from "@/components/administrador/CertificateActions";
 import CertificateDownloadButton from "@/components/alumno/certificados/CertificateDownloadButton";
 import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 
@@ -16,7 +17,8 @@ type RegistroProgreso = {
   alumno: string;
   codigoAlumno: string;
   promedio: number | null;
-  certificado: { id: string; numero: string } | null;
+  certificado: { id: string; numero: string; disponible: boolean; visibleAlumno: boolean } | null;
+  puedeGenerarCertificado: boolean;
   estado: "Aprobado" | "Desaprobado" | "En curso";
   notas: { id: string; nombre: string; porcentaje: number | null; puntajeMaximo: number | null; nota: number | null }[];
 };
@@ -93,9 +95,9 @@ function NotasModal({ registro, onClose }: { registro: RegistroProgreso; onClose
   );
 }
 
-function useListado<T = Opcion>(ruta: string | null, campo: string, alCargar?: (opciones: T[]) => void) {
-  const [resultado, setResultado] = useState<{ ruta: string | null; opciones: T[]; error: string }>({
-    ruta: "", opciones: [], error: "",
+function useListado<T = Opcion>(ruta: string | null, campo: string, alCargar?: (opciones: T[]) => void, revision = 0) {
+  const [resultado, setResultado] = useState<{ ruta: string | null; opciones: T[]; error: string; revision: number }>({
+    ruta: "", opciones: [], error: "", revision: -1,
   });
 
   useEffect(() => {
@@ -108,17 +110,17 @@ function useListado<T = Opcion>(ruta: string | null, campo: string, alCargar?: (
         if (!Array.isArray(data[campo])) throw new Error("La respuesta no es válida.");
         const opciones = data[campo] as T[];
         if (controller.signal.aborted) return;
-        setResultado({ ruta, opciones, error: "" });
+        setResultado({ ruta, opciones, error: "", revision });
         alCargar?.(opciones);
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setResultado({ ruta, opciones: [], error: error instanceof Error ? error.message : "No se pudieron cargar los datos." });
+        setResultado({ ruta, opciones: [], error: error instanceof Error ? error.message : "No se pudieron cargar los datos.", revision });
       });
     return () => controller.abort();
-  }, [ruta, campo, alCargar]);
+  }, [ruta, campo, alCargar, revision]);
 
-  const cargando = ruta !== null && resultado.ruta !== ruta;
+  const cargando = ruta !== null && (resultado.ruta !== ruta || resultado.revision !== revision);
   return { opciones: ruta === null || cargando ? [] : resultado.opciones, error: ruta === null || cargando ? "" : resultado.error, cargando };
 }
 
@@ -256,6 +258,9 @@ function FiltroBusqueda({ id, label, placeholder, emptyText, todos, valor, opcio
 }
 
 export default function ProgresoAlumnosPage() {
+  const [errorDescarga, setErrorDescarga] = useState<{ id: string; message: string } | null>(null);
+  const [revisionCertificados, setRevisionCertificados] = useState(0);
+  const actualizarCertificados = useCallback(() => setRevisionCertificados((actual) => actual + 1), []);
   const [notasSeleccionadas, setNotasSeleccionadas] = useState<RegistroProgreso | null>(null);
   const [exportando, setExportando] = useState(false);
   const [errorExportacion, setErrorExportacion] = useState("");
@@ -285,7 +290,7 @@ export default function ProgresoAlumnosPage() {
   if (alumno) parametrosRegistros.set("alumnoId", alumno.id);
   const registros = useListado<RegistroProgreso>(
     hayFiltros && !filtrosCargando && !filtrosConError ? `/administrador/progreso-alumnos?${parametrosRegistros}` : null,
-    "registros"
+    "registros", undefined, revisionCertificados
   );
   const cargandoRegistros = hayFiltros && (filtrosCargando || registros.cargando);
   const puedeExportar = !cargandoRegistros && !filtrosConError && !registros.error && registros.opciones.length > 0;
@@ -395,13 +400,14 @@ export default function ProgresoAlumnosPage() {
             <table aria-busy={cargandoRegistros} className="w-full min-w-[1160px] table-fixed border-collapse text-left text-[13px] leading-5">
               <caption className="sr-only">Progreso académico de alumnos</caption>
               <colgroup>
-                <col className="w-[16%]" />
-                <col className="w-[16%]" />
-                <col className="w-[17%]" />
-                <col className="w-[9%]" />
-                <col className="w-[12%]" />
+                <col className="w-[15%]" />
                 <col className="w-[14%]" />
                 <col className="w-[16%]" />
+                <col className="w-[8%]" />
+                <col className="w-[11%]" />
+                <col className="w-[12%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
               </colgroup>
               <thead>
                 <tr className="border-b border-talentia-border bg-talentia-table-header font-bold text-talentia-primary">
@@ -412,15 +418,16 @@ export default function ProgresoAlumnosPage() {
                   <th scope="col" className="px-4 py-4 text-center">Estado</th>
                   <th scope="col" className="px-4 py-4">Notas de evaluaciones</th>
                   <th scope="col" className="px-4 py-4 text-center">Certificado</th>
+                  <th scope="col" className="whitespace-nowrap px-4 py-4 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-talentia-border">
                 {cargandoRegistros ? (
-                  <tr><td colSpan={7} className="h-48 px-6 py-10 text-center text-talentia-muted">Cargando progreso...</td></tr>
+                  <tr><td colSpan={8} className="h-48 px-6 py-10 text-center text-talentia-muted">Cargando progreso...</td></tr>
                 ) : registros.error ? (
-                  <tr><td colSpan={7} role="alert" className="h-48 px-6 py-10 text-center text-talentia-danger">{registros.error}</td></tr>
+                  <tr><td colSpan={8} role="alert" className="h-48 px-6 py-10 text-center text-talentia-danger">{registros.error}</td></tr>
                 ) : registros.opciones.length === 0 ? (
-                  <tr><td colSpan={7} className="h-48 px-6 py-10 text-center text-talentia-muted">No hay registros para mostrar.</td></tr>
+                  <tr><td colSpan={8} className="h-48 px-6 py-10 text-center text-talentia-muted">No hay registros para mostrar.</td></tr>
                 ) : registros.opciones.map((registro) => (
                   <tr key={registro.id} className="align-top text-talentia-primary hover:bg-talentia-hover [&>td]:py-5">
                     <td className="break-words px-6 py-4">{registro.periodo}</td>
@@ -444,17 +451,20 @@ export default function ProgresoAlumnosPage() {
                       ) : <span className="text-talentia-muted">Sin evaluaciones configuradas.</span>}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {registro.certificado ? (
+                      {registro.certificado?.disponible ? (
                         <CertificateDownloadButton
                           certificadoId={registro.certificado.id}
                           rutaDescarga={`/administrador/progreso-alumnos/${registro.id}/certificados/${registro.certificado.id}/pdf`}
                           fileName={`${registro.certificado.numero}.pdf`}
-                          label="Descargar"
-                          className="inline-flex h-10 w-36 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-talentia-blue/30 bg-talentia-surface px-3 text-[13px] font-semibold text-talentia-blue transition-colors hover:border-talentia-blue hover:bg-talentia-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 [&_svg]:shrink-0"
+                          onBusyChange={(busy) => { if (busy) setErrorDescarga(null); }}
+                          onError={(message) => setErrorDescarga({ id: registro.id, message })}
+                          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-talentia-blue/30 px-3 text-[13px] font-semibold text-talentia-blue hover:bg-talentia-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 disabled:opacity-50 [&_svg]:shrink-0"
                         />
-                      ) : (
-                        <span className="inline-flex h-10 w-36 items-center justify-center text-center text-[12px] leading-5 text-talentia-muted">Sin certificado disponible</span>
-                      )}
+                      ) : <span className="inline-flex min-h-10 items-center text-[12px] text-talentia-muted">Sin certificado disponible</span>}
+                      {errorDescarga?.id === registro.id && <p role="alert" className="mt-2 text-[12px] text-talentia-danger">{errorDescarga.message}</p>}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <CertificateActions matriculaId={registro.id} alumno={registro.alumno} codigoCurso={registro.codigoCurso} codigoAlumno={registro.codigoAlumno} certificado={registro.certificado} puedeGenerar={registro.puedeGenerarCertificado} onChanged={actualizarCertificados} />
                     </td>
                   </tr>
                 ))}

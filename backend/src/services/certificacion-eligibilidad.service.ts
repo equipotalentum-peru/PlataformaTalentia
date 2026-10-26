@@ -1,5 +1,6 @@
 
-export const requisitosCertificacionSql = `
+function requisitosNotasCertificadoSql(exigirTodas: boolean) {
+  return `
   EXISTS (
     SELECT 1
     FROM componentes_calificacion requisito_comp
@@ -8,7 +9,7 @@ export const requisitosCertificacionSql = `
       AND requisito_cal.matricula_id = m.id
     WHERE requisito_comp.oferta_curso_id = m.oferta_curso_id
     HAVING COUNT(*) > 0
-      AND BOOL_AND(requisito_cal.nota IS NOT NULL)
+      ${exigirTodas ? "AND BOOL_AND(requisito_cal.nota IS NOT NULL)" : ""}
       AND ROUND(
         SUM(
           CASE
@@ -20,8 +21,14 @@ export const requisitosCertificacionSql = `
         2
       ) >= 14
   )
+`;
+}
 
-  AND
+export const requisitosCalificacionCertificadoSql = requisitosNotasCertificadoSql(true);
+export const requisitosCertificacionAdminSql = requisitosNotasCertificadoSql(false);
+
+export const requisitosCertificacionSql = `
+  (${requisitosCalificacionCertificadoSql}) AND
   EXISTS (
     SELECT 1
     FROM ofertas_curso requisito_oc
@@ -48,5 +55,13 @@ export const requisitosCertificacionSql = `
         WHERE requisito_pc.estado = 'Completado'
            OR requisito_pc.progreso >= 100
       ) = COUNT(requisito_cc.id)
+  )
+`;
+
+export const certificadoVisibleAlumnoSql = `
+  cert.visible_alumno = TRUE
+  AND (
+    (cert.generado_por_admin = TRUE AND (${requisitosCertificacionAdminSql}))
+    OR (${requisitosCertificacionSql})
   )
 `;

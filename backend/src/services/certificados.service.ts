@@ -2,10 +2,12 @@ import { randomUUID } from "node:crypto";
 import { PassThrough } from "node:stream";
 import PDFDocument from "pdfkit";
 import pool from "../config/database";
-import { requisitosCertificacionSql } from "./certificacion-eligibilidad.service";
+import type { PoolClient } from "pg";
+import { requisitosCertificacionAdminSql, requisitosCertificacionSql } from "./certificacion-eligibilidad.service";
 import {
   deleteObjectFromR2,
   isR2Path,
+  objectExistsInR2,
   slugifyFileName,
   stripR2Prefix,
   uploadStreamToR2,
@@ -49,9 +51,11 @@ function formatearFecha(
 async function generarYSubirPdf({
   certificado,
   datos,
+  client,
 }: {
   certificado: CertificadoDb;
   datos: DatosCertificado;
+  client: PoolClient;
 }) {
   const nombreArchivo =
     `${certificado.numero_certificado}.pdf`;
@@ -290,7 +294,7 @@ async function generarYSubirPdf({
    */
 
   try {
-    await pool.query(
+    await client.query(
       `UPDATE certificados
        SET ruta_archivo = $1
        WHERE id = $2`,
@@ -326,10 +330,31 @@ async function generarYSubirPdf({
 }
 
 export async function emitirCertificadoCurso(
-  matriculaId: number
+  matriculaId: number,
+  origen: "alumno" | "administrador" = "alumno"
+) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock($1::BIGINT)", [matriculaId]);
+    const certificado = await emitirCertificadoBloqueado(client, matriculaId, origen);
+    await client.query("COMMIT");
+    return certificado;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function emitirCertificadoBloqueado(
+  client: PoolClient,
+  matriculaId: number,
+  origen: "alumno" | "administrador"
 ) {
   const datosResult =
-    await pool.query(
+    await client.query(
       `SELECT
          m.id
            AS matricula_id,
@@ -368,13 +393,19 @@ export async function emitirCertificadoCurso(
             m.estudiante_id
 
        WHERE m.id = $1
-         AND (${requisitosCertificacionSql})
+         AND (${origen === "administrador" ? requisitosCertificacionAdminSql : requisitosCertificacionSql})
+         AND ($2::BOOLEAN OR NOT EXISTS (
+           SELECT 1 FROM certificados bloqueo
+           WHERE bloqueo.matricula_id = m.id AND bloqueo.modulo_id IS NULL
+             AND bloqueo.tipo = 'Aprobacion' AND bloqueo.visible_alumno = FALSE
+         ))
          AND u.rol =
              'Estudiante'
 
        LIMIT 1`,
       [
         matriculaId,
+        origen === "administrador",
       ]
     );
 
@@ -391,7 +422,7 @@ export async function emitirCertificadoCurso(
    * completada.
    */
   const matriculaResult =
-    await pool.query(
+    await client.query(
       `UPDATE matriculas
 
        SET
@@ -423,7 +454,7 @@ export async function emitirCertificadoCurso(
    * ¿Ya existe certificado?
    */
   let certificadoResult =
-    await pool.query(
+    await client.query(
       `SELECT
          id,
          numero_certificado,
@@ -481,7 +512,7 @@ export async function emitirCertificadoCurso(
         "0"
       )}`;
 
-      certificadoResult = await pool.query(
+      certificadoResult = await client.query(
         `INSERT INTO certificados (
           matricula_id,
           modulo_id,
@@ -489,7 +520,8 @@ export async function emitirCertificadoCurso(
           numero_certificado,
           codigo_verificacion,
           emitido_en,
-          ruta_archivo
+          ruta_archivo,
+          generado_por_admin
         )
         VALUES (
           $1,
@@ -498,7 +530,8 @@ export async function emitirCertificadoCurso(
           $2,
           $3,
           NOW(),
-          NULL
+          NULL,
+          $4
         )
         RETURNING
           id,
@@ -510,6 +543,7 @@ export async function emitirCertificadoCurso(
           matriculaId,
           numeroCertificado,
           randomUUID(),
+          origen === "administrador",
         ]
       );
   }
@@ -526,15 +560,20 @@ export async function emitirCertificadoCurso(
     !isR2Path(
       certificado
         .ruta_archivo
-    )
+    ) ||
+    !stripR2Prefix(certificado.ruta_archivo).trim() ||
+    (origen === "administrador" && !await objectExistsInR2(stripR2Prefix(certificado.ruta_archivo)))
   ) {
     certificado.ruta_archivo =
       await generarYSubirPdf({
         certificado,
         datos,
+        client,
       });
+    if (origen === "administrador") {
+      await client.query("UPDATE certificados SET generado_por_admin = TRUE WHERE id = $1", [certificado.id]);
+    }
   }
-
   return certificado;
 }
 

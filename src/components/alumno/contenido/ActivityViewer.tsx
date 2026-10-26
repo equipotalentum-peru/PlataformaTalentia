@@ -1005,6 +1005,15 @@ export default function ActivityViewer({
                 FALLBACK_MAX_FILE_SIZE_MB
             )
           );
+
+          const fechaLimite = apiActivity.fecha_limite ? Date.parse(apiActivity.fecha_limite) : NaN;
+          if (
+            trackLocalProgress &&
+            Array.isArray(data.entregas) && data.entregas.length === 0 &&
+            Number.isFinite(fechaLimite) && fechaLimite <= Date.now()
+          ) {
+            markContentViewed(courseId, activityId);
+          }
         } catch (e) {
           setError(
             e instanceof Error
@@ -1021,6 +1030,7 @@ export default function ActivityViewer({
         activity,
         activityId,
         courseId,
+        trackLocalProgress,
       ]
     );
 

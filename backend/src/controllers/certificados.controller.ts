@@ -1,5 +1,5 @@
 import type { Response, } from "express";
-import { requisitosCertificacionSql } from "../services/certificacion-eligibilidad.service";
+import { certificadoVisibleAlumnoSql } from "../services/certificacion-eligibilidad.service";
 import pool from "../config/database";
 import type { AuthenticatedRequest, } from "../middleware/auth.middleware";
 import { emitirCertificadoCurso, } from "../services/certificados.service";
@@ -90,7 +90,7 @@ export async function listarCertificadosEstudiante(
 
          WHERE
            m.estudiante_id = $1
-           AND (${requisitosCertificacionSql})
+           AND (${certificadoVisibleAlumnoSql})
 
            AND cert.modulo_id
                IS NULL
@@ -106,6 +106,7 @@ export async function listarCertificadosEstudiante(
         ]
       );
 
+    res.setHeader("Cache-Control", "private, no-store");
     return res
       .status(200)
       .json({
@@ -252,7 +253,7 @@ export async function obtenerCertificadoEstudiante(
 
          WHERE
            cert.id = $1
-           AND (${requisitosCertificacionSql})
+           AND (${certificadoVisibleAlumnoSql})
 
            AND
              m.estudiante_id = $2
@@ -282,6 +283,7 @@ export async function obtenerCertificadoEstudiante(
         });
     }
 
+    res.setHeader("Cache-Control", "private, no-store");
     return res
       .status(200)
       .json({
@@ -369,7 +371,7 @@ export async function descargarCertificadoEstudiante(
 
          WHERE
            cert.id = $1
-           AND (${requisitosCertificacionSql})
+           AND (${certificadoVisibleAlumnoSql})
 
            AND
              m.estudiante_id = $2
@@ -451,7 +453,7 @@ export async function descargarCertificadoEstudiante(
 
            WHERE
              cert.id = $1
-             AND (${requisitosCertificacionSql})
+             AND (${certificadoVisibleAlumnoSql})
 
              AND
                m.estudiante_id =
@@ -470,8 +472,7 @@ export async function descargarCertificadoEstudiante(
 
     const ruta =
       String(
-        certificado
-          .ruta_archivo ??
+        certificado?.ruta_archivo ??
           ""
       ).trim();
 
