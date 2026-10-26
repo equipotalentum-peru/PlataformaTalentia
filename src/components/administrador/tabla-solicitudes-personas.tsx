@@ -5,6 +5,7 @@ import * as XLSX from "xlsx-js-style";
 import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 import {
   collection,
+  deleteField,
   doc,
   getDocs,
   orderBy,
@@ -172,9 +173,11 @@ const [
             data.tipo_alumno === "Alumno convenio"
               ? "Convenio"
               : "Externo",
+          // El nombre vive en datos_empresa.nombreEmpresa;
+          // "empresa" suelto solo existe en registros antiguos.
           empresa:
-            data.empresa ||
             datosEmpresa.nombreEmpresa ||
+            data.empresa ||
             "",
           datosEmpresa: tieneDatosEmpresa
             ? datosEmpresa
@@ -281,11 +284,20 @@ const [
   };
 
 
-  const handleEliminar = (id: string) => {
+  const [solicitudACancelar, setSolicitudACancelar] = useState<SolicitudPersona | null>(null);
+  const [cancelando, setCancelando] = useState(false);
+
+  const handleCancelar = (solicitud: SolicitudPersona) => {
     setMenuAbiertoId(null);
-    if (confirm("¿Estás seguro de que deseas eliminar este registro?")) {
-      setSolicitudes((prev) => prev.filter((item) => item.id !== id));
-    }
+    setSolicitudACancelar(solicitud);
+  };
+
+  const confirmarCancelacion = async () => {
+    if (!solicitudACancelar) return;
+    setCancelando(true);
+    await cambiarEstadoPersona(solicitudACancelar.id, "Cancelado");
+    setCancelando(false);
+    setSolicitudACancelar(null);
   };
 
   const abrirModalEmpresa = (solicitud: SolicitudPersona) => {
@@ -293,9 +305,15 @@ const [
     setPersonaSeleccionada(solicitud);
 
     setFormEmpresa(
-      solicitud.datosEmpresa || {
+      solicitud.datosEmpresa
+        ? {
+            ...solicitud.datosEmpresa,
+            nombreEmpresa:
+              solicitud.datosEmpresa.nombreEmpresa || solicitud.empresa || "",
+          }
+        : {
         ruc: "",
-        nombreEmpresa: "",
+        nombreEmpresa: solicitud.empresa || "",
         nombreContacto: "",
         correoCorporativo: "",
         telefono: "",
@@ -394,7 +412,8 @@ const [
           personaSeleccionada.id
         ),
         {
-          empresa: datosEmpresa.nombreEmpresa,
+          // Se elimina el campo duplicado "empresa" de registros antiguos
+          empresa: deleteField(),
           datos_empresa: datosEmpresa,
           estado: personaSeleccionada.estado,
         }
@@ -454,8 +473,8 @@ const [
         );
       case "Cancelado":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-talentia-surface text-talentia-primary border border-talentia-border text-[13px] font-semibold rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-talentia-border"></span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-talentia-danger-bg text-talentia-danger border border-talentia-danger/80 text-[13px] font-semibold rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-talentia-danger"></span>
             Cancelado
           </span>
         );
@@ -473,9 +492,13 @@ const [
         Correo: item.email,
         Teléfono: item.telefono,
         "Tipo de alumno": "Alumno con Convenio",
-        Empresa: item.empresa || "",
         Interés: item.interes,
         Estado: item.estado,
+        Empresa: item.empresa || "",
+        "RUC empresa": item.datosEmpresa?.ruc || "",
+        "Contacto empresa": item.datosEmpresa?.nombreContacto || "",
+        "Correo corporativo": item.datosEmpresa?.correoCorporativo || "",
+        "Teléfono corporativo": item.datosEmpresa?.telefono || "",
       }));
 
     const alumnosExternos = solicitudes
@@ -546,7 +569,9 @@ const [
 
     const columnasConvenio = [
       "Fecha", "Nombre completo", "DNI", "Correo", "Teléfono",
-      "Tipo de alumno", "Empresa", "Interés", "Estado",
+      "Tipo de alumno", "Interés", "Estado", "Empresa",
+      "RUC empresa", "Contacto empresa", "Correo corporativo",
+      "Teléfono corporativo",
     ];
     const columnasExternos = [
       "Fecha", "Nombre completo", "DNI", "Correo", "Teléfono",
@@ -558,7 +583,7 @@ const [
       "Alumnos con convenio",
       columnasConvenio,
       alumnosConvenio,
-      [15, 32, 15, 34, 16, 22, 28, 55, 16],
+      [15, 32, 15, 34, 16, 22, 55, 16, 28, 16, 28, 34, 20],
     );
     const hojaExternos = crearHojaSolicitudes(
       "Registro de solicitudes de personas",
@@ -730,6 +755,7 @@ const [
                             <span>Ver Detalles</span>
                           </button>
 
+                          {(item.estado === "Pendiente" || item.estado === "Contactado") && (
                           <button
   type="button"
   onClick={() => enviarInvitacion(item)}
@@ -751,6 +777,7 @@ const [
 
   <span>Enviar correo de registro</span>
 </button>
+                          )}
 
                           {item.tipoAlumno === "Convenio" && (
                             <button
@@ -765,18 +792,22 @@ const [
                             </button>
                           )}
 
+                          {item.estado !== "Cancelado" && (
+                          <>
                           <div className="my-1 border-t border-talentia-border" />
 
                           <button
                             type="button"
-                            onClick={() => handleEliminar(item.id)}
+                            onClick={() => handleCancelar(item)}
                             className="w-full text-left px-4 py-2 text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg flex items-center gap-2.5 transition"
                           >
                             <svg className="w-4 h-4 text-talentia-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>Eliminar</span>
+                            <span>Cancelar</span>
                           </button>
+                          </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -846,6 +877,9 @@ const [
               </div>
               <div className="flex items-center justify-between pt-1">
                 <span className="text-talentia-muted font-medium">Estado del Lead:</span>
+                {personaSeleccionada.estado === "Cancelado" ? (
+                  renderBadgeEstado(personaSeleccionada.estado)
+                ) : (
                 <select
                   value={personaSeleccionada.estado}
                   onChange={(e) =>
@@ -861,6 +895,7 @@ const [
                   <option value="Matriculado">Matriculado</option>
                   <option value="Cancelado">Cancelado</option>
                 </select>
+                )}
               </div>
             </div>
 
@@ -919,6 +954,83 @@ const [
             >
               Cerrar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR CANCELACIÓN */}
+      {solicitudACancelar && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-talentia-primary/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => !cancelando && setSolicitudACancelar(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-cancelar-solicitud"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-talentia-surface w-full max-w-md rounded-3xl p-6 md:p-8 shadow-xl border border-talentia-border relative animate-in zoom-in-95 duration-200"
+          >
+            <button
+              type="button"
+              onClick={() => setSolicitudACancelar(null)}
+              disabled={cancelando}
+              aria-label="Cerrar"
+              className="absolute top-5 right-5 text-talentia-muted hover:text-talentia-primary p-1.5 rounded-full hover:bg-talentia-hover transition disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-talentia-danger-bg text-talentia-danger">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+
+              <h3 id="titulo-cancelar-solicitud" className="text-xl font-bold text-talentia-primary">
+                ¿Cancelar solicitud?
+              </h3>
+              <p className="mt-2 text-sm text-talentia-muted">
+                La solicitud pasará al estado <span className="font-bold text-talentia-primary">Cancelado</span> y ya no se podrá enviar el correo de registro.
+              </p>
+            </div>
+
+            <div className="mt-5 space-y-2 rounded-2xl border border-talentia-border bg-talentia-table-header/60 p-4 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-talentia-muted">Postulante:</span>
+                <span className="font-bold text-talentia-primary text-right">{solicitudACancelar.nombre}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-talentia-muted">DNI:</span>
+                <span className="font-medium text-talentia-primary">{solicitudACancelar.dni}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-talentia-muted">Interés:</span>
+                <span className="font-medium text-talentia-primary text-right">{solicitudACancelar.interes}</span>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSolicitudACancelar(null)}
+                disabled={cancelando}
+                className="w-1/2 py-2.5 bg-talentia-surface border border-talentia-border hover:bg-talentia-hover text-talentia-primary font-semibold text-sm rounded-2xl transition cursor-pointer disabled:opacity-50"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmarCancelacion()}
+                disabled={cancelando}
+                className="w-1/2 py-2.5 bg-talentia-danger hover:opacity-90 text-white font-bold text-sm rounded-2xl transition shadow-md active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {cancelando ? "Cancelando..." : "Sí, cancelar"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1047,3 +1159,18 @@ const [
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
