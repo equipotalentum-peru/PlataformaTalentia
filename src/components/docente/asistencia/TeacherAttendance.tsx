@@ -297,7 +297,7 @@ export default function TeacherAttendance({ courseId }: TeacherAttendanceProps) 
                 loading || saving || students.length === 0 || !puedeEditar
                   ? "cursor-not-allowed bg-talentia-border text-talentia-disabled-text"
                   : editing
-                    ? "bg-talentia-action text-talentia-blue hover:bg-talentia-primary"
+                    ? "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200"
                     : "bg-talentia-action text-white hover:bg-talentia-primary"
               }`}
             >

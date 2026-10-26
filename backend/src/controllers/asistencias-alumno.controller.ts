@@ -88,7 +88,6 @@ export async function obtenerAsistenciaAlumno(req: AuthenticatedRequest, res: Re
        FROM calendario
        LEFT JOIN asistencias a
          ON a.matricula_id = $1
-        AND a.sesion_clase_id IS NULL
         AND a.fecha_asistencia = calendario.fecha
        ORDER BY calendario.fecha DESC`,
       [matricula.matricula_id, matricula.oferta_curso_id]

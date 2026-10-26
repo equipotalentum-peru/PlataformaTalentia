@@ -126,14 +126,12 @@ export async function obtenerAsistenciaDocente(req: AuthenticatedRequest, res: R
     if (fechasPasadas.length > 0) {
       await pool.query(
         `INSERT INTO asistencias (
-           sesion_clase_id,
            fecha_asistencia,
            matricula_id,
            estado,
            marcado_en
          )
          SELECT
-           NULL,
            fechas.fecha,
            m.id,
            'Presente',
@@ -145,7 +143,6 @@ export async function obtenerAsistenciaDocente(req: AuthenticatedRequest, res: R
            AND e.rol = 'Estudiante'
            AND e.activo = TRUE
          ON CONFLICT (matricula_id, fecha_asistencia)
-           WHERE sesion_clase_id IS NULL AND fecha_asistencia IS NOT NULL
          DO NOTHING`,
         [ofertaCursoId, fechasPasadas]
       );
@@ -183,7 +180,6 @@ export async function obtenerAsistenciaDocente(req: AuthenticatedRequest, res: R
        INNER JOIN matriculas m ON m.id = a.matricula_id
        WHERE m.oferta_curso_id = $1
          AND m.estado IN ('Activa', 'Completada')
-         AND a.sesion_clase_id IS NULL
          AND a.fecha_asistencia = ANY($2::DATE[])`,
       [ofertaCursoId, fechasISO]
     );
@@ -291,14 +287,12 @@ export async function guardarAsistenciaDocente(req: AuthenticatedRequest, res: R
          )
        )
        INSERT INTO asistencias (
-         sesion_clase_id,
          fecha_asistencia,
          matricula_id,
          estado,
          marcado_en
        )
        SELECT
-         NULL,
          d.fecha_asistencia,
          d.matricula_id,
          d.estado,
@@ -316,7 +310,6 @@ export async function guardarAsistenciaDocente(req: AuthenticatedRequest, res: R
            COALESCE(oc.dias_clase, ARRAY[]::SMALLINT[])
          )
        ON CONFLICT (matricula_id, fecha_asistencia)
-         WHERE sesion_clase_id IS NULL AND fecha_asistencia IS NOT NULL
        DO UPDATE SET
          estado = EXCLUDED.estado,
          marcado_en = CURRENT_TIMESTAMP
