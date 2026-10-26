@@ -18,7 +18,8 @@ import {
   db,
 } from "../../lib/firebase";
 
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
+import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 
 
 type EstadoEmpresa =
@@ -288,91 +289,70 @@ export default function TablaSolicitudesEmpresas() {
 
 
   function exportarExcelEmpresas() {
-    const datos =
-      solicitudes.map(
-        (item) => ({
-          Fecha:
-            item.fecha,
+    const columnas = [
+      "Fecha",
+      "Empresa",
+      "RUC",
+      "Persona de contacto",
+      "Correo corporativo",
+      "Teléfono",
+      "Interés de capacitación",
+      "Estado",
+    ];
+    const datos = solicitudes.map((item) => ({
+      Fecha: item.fecha,
+      Empresa: item.empresa,
+      RUC: item.ruc,
+      "Persona de contacto": item.contacto,
+      "Correo corporativo": item.correo,
+      Teléfono: item.telefono,
+      "Interés de capacitación": item.interes,
+      Estado: item.estado,
+    }));
 
-          Empresa:
-            item.empresa,
-
-          RUC:
-            item.ruc,
-
-          "Persona de contacto":
-            item.contacto,
-
-          "Correo corporativo":
-            item.correo,
-
-          "Teléfono":
-            item.telefono,
-
-          "Interés de capacitación":
-            item.interes,
-
-          Estado:
-            item.estado,
-        })
-      );
-
-
-    const workbook =
-      XLSX.utils.book_new();
-
-
-    const worksheet =
-      XLSX.utils.json_to_sheet(
-        datos
-      );
-
-
-    worksheet["!cols"] = [
-      { wch: 15 },
-      { wch: 32 },
-      { wch: 18 },
-      { wch: 30 },
-      { wch: 34 },
-      { wch: 16 },
-      { wch: 48 },
-      { wch: 16 },
+    const fecha = new Date().toISOString().slice(0, 10);
+    const fechaExportacion = new Date().toLocaleString("es-PE", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+    const contenido: (string | number | boolean | Date)[][] = [
+      ["Registro de solicitudes de empresas"],
+      ["Tipo de registro: Solicitudes de empresas"],
+      [`Fecha de exportación: ${fechaExportacion}`],
+      [`Registros: ${datos.length}`],
+      [],
+      columnas,
+      ...datos.map((fila) => columnas.map((columna) => fila[columna as keyof typeof fila] ?? "")),
     ];
 
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(contenido);
+    worksheet["!merges"] = [0, 1, 2, 3].map((fila) => ({
+      s: { r: fila, c: 0 },
+      e: { r: fila, c: columnas.length - 1 },
+    }));
+    worksheet["!cols"] = [15, 32, 18, 30, 34, 16, 48, 16].map((wch) => ({ wch }));
 
-    if (
-      datos.length >
-      0
-    ) {
-      worksheet[
-        "!autofilter"
-      ] = {
-        ref:
-          worksheet["!ref"]!,
+    if (datos.length > 0) {
+      worksheet["!autofilter"] = {
+        ref: XLSX.utils.encode_range({
+          s: { r: 5, c: 0 },
+          e: { r: 5 + datos.length, c: columnas.length - 1 },
+        }),
       };
     }
 
+    aplicarEstilosExcelTalentia(worksheet as unknown as Record<string, unknown>, {
+      totalColumns: columnas.length,
+      titleRow: 0,
+      metadataRows: [1, 2, 3],
+      headerRow: 5,
+      firstDataRow: 6,
+      lastDataRow: 5 + datos.length,
+    });
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      "Solicitudes Empresas"
-    );
-
-
-    const fecha =
-      new Date()
-        .toISOString()
-        .slice(
-          0,
-          10
-        );
-
-
-    XLSX.writeFile(
-      workbook,
-      `solicitudes-empresas-${fecha}.xlsx`
-    );
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Solicitudes Empresas");
+    XLSX.writeFile(workbook, `solicitudes-empresas-${fecha}.xlsx`);
   }
 
 

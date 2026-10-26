@@ -140,7 +140,7 @@ export function aplicarEstilosExcelTalentia(
     if (/promedio|nota|porcentaje/i.test(heading)) highlightColumns.add(column);
   }
 
-  const lastDataRow = Math.max(options.headerRow, options.lastDataRow);
+  const lastDataRow = options.lastDataRow;
   for (let row = options.firstDataRow; row <= lastDataRow; row += 1) {
     const rowFill = (row - options.firstDataRow) % 2 === 0 ? COLORS.white : COLORS.rowAlternate;
     for (let column = 0; column < columnCount; column += 1) {
@@ -169,7 +169,6 @@ export function aplicarEstilosExcelTalentia(
     }
   }
 
-  // Alturas consistentes para facilitar la lectura al abrir el archivo.
   const rows = (sheet["!rows"] as RowInfo[] | undefined) ?? [];
   rows[options.titleRow] = { ...(rows[options.titleRow] ?? {}), hpt: 30 };
   for (const row of options.metadataRows) {

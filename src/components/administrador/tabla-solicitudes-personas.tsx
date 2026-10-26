@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
+import { aplicarEstilosExcelTalentia } from "@/lib/excel-talentia-format";
 import {
   collection,
   doc,
@@ -463,114 +464,113 @@ const [
 
 
   function exportarExcelPersonas() {
-    const alumnosConvenio =
-      solicitudes
-        .filter(
-          (item) =>
-            item.tipoAlumno === "Convenio"
-        )
-        .map((item) => ({
-          Fecha: item.fecha,
-          "Nombre completo": item.nombre,
-          DNI: item.dni,
-          Correo: item.email,
-          Teléfono: item.telefono,
-          "Tipo de alumno": "Alumno con Convenio",
-          Empresa: item.empresa || "",
-          Interés: item.interes,
-          Estado: item.estado,
-        }));
+    const alumnosConvenio = solicitudes
+      .filter((item) => item.tipoAlumno === "Convenio")
+      .map((item) => ({
+        Fecha: item.fecha,
+        "Nombre completo": item.nombre,
+        DNI: item.dni,
+        Correo: item.email,
+        Teléfono: item.telefono,
+        "Tipo de alumno": "Alumno con Convenio",
+        Empresa: item.empresa || "",
+        Interés: item.interes,
+        Estado: item.estado,
+      }));
 
-    const alumnosExternos =
-      solicitudes
-        .filter(
-          (item) =>
-            item.tipoAlumno === "Externo"
-        )
-        .map((item) => ({
-          Fecha: item.fecha,
-          "Nombre completo": item.nombre,
-          DNI: item.dni,
-          Correo: item.email,
-          Teléfono: item.telefono,
-          "Tipo de alumno": "Alumno Externo",
-          Interés: item.interes,
-          Estado: item.estado,
-        }));
+    const alumnosExternos = solicitudes
+      .filter((item) => item.tipoAlumno === "Externo")
+      .map((item) => ({
+        Fecha: item.fecha,
+        "Nombre completo": item.nombre,
+        DNI: item.dni,
+        Correo: item.email,
+        Teléfono: item.telefono,
+        "Tipo de alumno": "Alumno Externo",
+        Interés: item.interes,
+        Estado: item.estado,
+      }));
 
-    const workbook =
-      XLSX.utils.book_new();
+    const fecha = new Date().toISOString().slice(0, 10);
+    const fechaExportacion = new Date().toLocaleString("es-PE", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+    const workbook = XLSX.utils.book_new();
 
-    const hojaConvenio =
-      XLSX.utils.json_to_sheet(
-        alumnosConvenio
-      );
+    const crearHojaSolicitudes = (
+      titulo: string,
+      tipo: string,
+      columnas: string[],
+      filas: Record<string, string>[],
+      anchos: number[],
+    ) => {
+      const contenido: (string | number | boolean | Date)[][] = [
+        [titulo],
+        [`Tipo de registro: ${tipo}`],
+        [`Fecha de exportación: ${fechaExportacion}`],
+        [`Registros: ${filas.length}`],
+        [],
+        columnas,
+        ...filas.map((fila) => columnas.map((columna) => fila[columna] ?? "")),
+      ];
 
-    const hojaExternos =
-      XLSX.utils.json_to_sheet(
-        alumnosExternos
-      );
+      const hoja = XLSX.utils.aoa_to_sheet(contenido);
+      const totalColumnas = columnas.length;
+      hoja["!merges"] = [0, 1, 2, 3].map((fila) => ({
+        s: { r: fila, c: 0 },
+        e: { r: fila, c: totalColumnas - 1 },
+      }));
+      hoja["!cols"] = anchos.map((wch) => ({ wch }));
 
-    hojaConvenio["!cols"] = [
-      { wch: 15 },
-      { wch: 32 },
-      { wch: 15 },
-      { wch: 34 },
-      { wch: 16 },
-      { wch: 22 },
-      { wch: 28 },
-      { wch: 55 },
-      { wch: 16 },
+      if (filas.length > 0) {
+        hoja["!autofilter"] = {
+          ref: XLSX.utils.encode_range({
+            s: { r: 5, c: 0 },
+            e: { r: 5 + filas.length, c: totalColumnas - 1 },
+          }),
+        };
+      }
+
+      aplicarEstilosExcelTalentia(hoja as unknown as Record<string, unknown>, {
+        totalColumns: totalColumnas,
+        titleRow: 0,
+        metadataRows: [1, 2, 3],
+        headerRow: 5,
+        firstDataRow: 6,
+        lastDataRow: 5 + filas.length,
+      });
+
+      return hoja;
+    };
+
+    const columnasConvenio = [
+      "Fecha", "Nombre completo", "DNI", "Correo", "Teléfono",
+      "Tipo de alumno", "Empresa", "Interés", "Estado",
+    ];
+    const columnasExternos = [
+      "Fecha", "Nombre completo", "DNI", "Correo", "Teléfono",
+      "Tipo de alumno", "Interés", "Estado",
     ];
 
-    hojaExternos["!cols"] = [
-      { wch: 15 },
-      { wch: 32 },
-      { wch: 15 },
-      { wch: 34 },
-      { wch: 16 },
-      { wch: 22 },
-      { wch: 55 },
-      { wch: 16 },
-    ];
-
-    if (
-      alumnosConvenio.length > 0
-    ) {
-      hojaConvenio["!autofilter"] = {
-        ref: hojaConvenio["!ref"]!,
-      };
-    }
-
-    if (
-      alumnosExternos.length > 0
-    ) {
-      hojaExternos["!autofilter"] = {
-        ref: hojaExternos["!ref"]!,
-      };
-    }
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      hojaConvenio,
-      "Alumnos Convenio"
+    const hojaConvenio = crearHojaSolicitudes(
+      "Registro de solicitudes de personas",
+      "Alumnos con convenio",
+      columnasConvenio,
+      alumnosConvenio,
+      [15, 32, 15, 34, 16, 22, 28, 55, 16],
+    );
+    const hojaExternos = crearHojaSolicitudes(
+      "Registro de solicitudes de personas",
+      "Alumnos externos",
+      columnasExternos,
+      alumnosExternos,
+      [15, 32, 15, 34, 16, 22, 55, 16],
     );
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      hojaExternos,
-      "Alumnos Externos"
-    );
-
-    const fecha =
-      new Date()
-        .toISOString()
-        .slice(0, 10);
-
-    XLSX.writeFile(
-      workbook,
-      `solicitudes-personas-${fecha}.xlsx`
-    );
+    XLSX.utils.book_append_sheet(workbook, hojaConvenio, "Alumnos Convenio");
+    XLSX.utils.book_append_sheet(workbook, hojaExternos, "Alumnos Externos");
+    XLSX.writeFile(workbook, `solicitudes-personas-${fecha}.xlsx`);
   }
 
   const solicitudesFiltradas = solicitudes.filter(
