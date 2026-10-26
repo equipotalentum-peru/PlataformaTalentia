@@ -129,7 +129,7 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
       const estado = todoCalificado && promedio !== null
         ? promedio >= 14 ? "Aprobado" : "Desaprobado"
         : "En curso";
-      const puedeGenerarCertificado = promedio !== null && promedio >= 14;
+      const puedeGenerarCertificado = promedio !== null && promedio >= 14 && !certificado?.disponible;
       return { ...fila, certificado, promedio, estado, puedeGenerarCertificado };
     }));
     return res.json({ registros });
