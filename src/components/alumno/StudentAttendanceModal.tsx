@@ -8,11 +8,12 @@ import { useSidebarAccount } from "@/components/common/layout/useSidebarAccount"
 type AsistenciaAlumno = {
   alumno: { nombre: string; correo: string };
   curso: { nombre: string };
-  resumen: { asistidas: number; faltas: number; registradas: number; porcentaje: number | null };
-  historial: { id: string; numero: number; tema: string; iniciaEn: string; estado: "Presente" | "Falta" | null }[];
+  resumen: { asistidas: number; faltas: number; registradas: number; totalProgramadas: number; porcentaje: number | null };
+  historial: { id: string; fecha: string; numero: number; diaSemana: string; estado: "Presente" | "Falta" | null }[];
 };
 
-const formatoFecha = new Intl.DateTimeFormat("es-PE", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Lima" });
+const formatoFecha = new Intl.DateTimeFormat("es-PE", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
+const fechaUtc = (fecha: string) => new Date(`${fecha}T00:00:00Z`);
 
 export default function StudentAttendanceModal({ courseId, onClose }: { courseId: number; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -102,7 +103,7 @@ export default function StudentAttendanceModal({ courseId, onClose }: { courseId
                 </div>
               </dl>
               <div className="mb-3 mt-5 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-[15px] font-semibold">Historial de clases</h3>
+                <h3 className="text-[15px] font-semibold">Historial de asistencia</h3>
                 <span className="text-[12px] text-talentia-muted">{datos.resumen.registradas} {datos.resumen.registradas === 1 ? "asistencia registrada" : "asistencias registradas"}</span>
               </div>
               <div className="overflow-hidden rounded-lg border border-talentia-border">
@@ -111,11 +112,11 @@ export default function StudentAttendanceModal({ courseId, onClose }: { courseId
                   <colgroup><col className="w-[65%]" /><col className="w-[35%]" /></colgroup>
                   <thead className="bg-talentia-table-header"><tr><th scope="col" className="px-3 py-3 font-semibold sm:px-4">Fecha y clase</th><th scope="col" className="px-2 py-3 text-center font-semibold sm:px-3">Estado</th></tr></thead>
                   <tbody id="alumno-asistencia-historial" className="divide-y divide-talentia-border border-t border-talentia-border">
-                    {datos.historial.length === 0 ? <tr><td colSpan={2} className="px-4 py-8 text-center text-talentia-muted">Aún no hay clases realizadas para mostrar.</td></tr> : clasesPagina.map((sesion) => (
+                    {datos.historial.length === 0 ? <tr><td colSpan={2} className="px-4 py-8 text-center text-talentia-muted">Aún no hay fechas de asistencia pasadas para mostrar en este periodo.</td></tr> : clasesPagina.map((sesion) => (
                       <tr key={sesion.id}>
                         <td className="px-3 py-3 sm:px-4">
-                          <time dateTime={sesion.iniciaEn} className="font-medium">{formatoFecha.format(new Date(sesion.iniciaEn))}</time>
-                          <p className="mt-0.5 break-words text-[12px] text-talentia-muted">Clase {sesion.numero}: {sesion.tema}</p>
+                          <time dateTime={sesion.fecha} className="font-medium">{formatoFecha.format(fechaUtc(sesion.fecha))}</time>
+                          <p className="mt-0.5 break-words text-[12px] text-talentia-muted">Día programado: {sesion.diaSemana}</p>
                         </td>
                         <td className="px-2 py-3 text-center sm:px-3">
                           <span className={`inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-1 text-[12px] font-semibold ${sesion.estado === "Presente" ? "bg-talentia-success-bg text-talentia-success" : sesion.estado === "Falta" ? "bg-talentia-danger-bg text-talentia-danger" : "bg-talentia-warning-bg text-talentia-warning"}`}>

@@ -32,6 +32,7 @@ type DatosCrearCurso = {
   descripcion?: unknown;
   cupos?: unknown;
   periodoId?: unknown;
+  diasClase?: unknown;
   docenteId?: unknown;
   componentes?: unknown;
   publicar?: unknown;
@@ -53,6 +54,26 @@ function errorHttp(mensaje: string, statusCode: number): ErrorHttp {
   const error = new Error(mensaje) as ErrorHttp;
   error.statusCode = statusCode;
   return error;
+}
+
+function leerDiasClase(value: unknown): number[] {
+  if (value == null) return [];
+
+  if (!Array.isArray(value)) {
+    throw errorHttp("Selecciona los días de asistencia usando los días de la semana.", 400);
+  }
+
+  const dias = value.map((item) => {
+    const dia = typeof item === "string" && item.trim() !== "" ? Number(item) : item;
+
+    if (typeof dia !== "number" || !Number.isInteger(dia) || dia < 1 || dia > 7) {
+      throw errorHttp("Hay un día de asistencia no válido. Usa valores del 1 al 7.", 400);
+    }
+
+    return dia;
+  });
+
+  return [...new Set(dias)].sort((a, b) => a - b);
 }
 
 function esAdministradorActivo(rol: unknown, activo: unknown) {
@@ -398,6 +419,19 @@ export async function crearCursoAdministrador(
     const publicar = datos.publicar === true;
     const docenteId = datos.docenteId == null || datos.docenteId === "" ? null : Number(datos.docenteId);
     const periodoId = datos.periodoId == null || datos.periodoId === "" ? null : Number(datos.periodoId);
+    const diasClase = leerDiasClase(datos.diasClase);
+
+    if (periodoId === null && diasClase.length > 0) {
+      return res.status(400).json({
+        message: "Selecciona un periodo académico antes de configurar los días de asistencia.",
+      });
+    }
+
+    if (publicar && diasClase.length === 0) {
+      return res.status(400).json({
+        message: "Selecciona al menos un día de clase para configurar la asistencia del curso.",
+      });
+    }
 
     if (periodoId !== null && (!Number.isSafeInteger(periodoId) || periodoId <= 0)) {
       return res.status(400).json({
@@ -528,13 +562,14 @@ export async function crearCursoAdministrador(
       `INSERT INTO ofertas_curso (
         curso_id,
         periodo_id,
+        dias_clase,
         cupo_maximo,
         docente_id,
         estado,
         publicado
-      ) VALUES ($1, $2, $3, $4, 'Programado', $5)
+      ) VALUES ($1, $2, $3::SMALLINT[], $4, $5, 'Programado', $6)
       RETURNING id::TEXT AS id`,
-      [curso.id, periodoId, cupos, docenteId, publicar]
+      [curso.id, periodoId, diasClase, cupos, docenteId, publicar]
     );
 
     const ofertaCursoId = ofertaResult.rows[0].id;
@@ -701,6 +736,7 @@ export async function obtenerCursoAdministrador(
          c.estado,
          oc.id::TEXT AS oferta_id,
          oc.periodo_id::TEXT AS periodo_id,
+         COALESCE(oc.dias_clase, ARRAY[]::SMALLINT[]) AS dias_clase,
          p.nombre AS periodo_nombre,
          p.activo AS periodo_activo,
          COALESCE(oc.cupo_maximo, 0)::INTEGER AS cupos,
@@ -777,6 +813,7 @@ export async function obtenerCursoAdministrador(
         estado: fila.estado,
         imagenPortada: fila.imagen_portada,
         periodoId: fila.periodo_id ? String(fila.periodo_id) : "",
+        diasClase: Array.isArray(fila.dias_clase) ? fila.dias_clase.map(Number) : [],
         periodoNombre: fila.periodo_nombre ?? null,
         periodoActivo: fila.periodo_activo ?? false,
       },
@@ -836,6 +873,13 @@ export async function actualizarCursoAdministrador(
     const publicar = datos.publicar === true;
     const docenteId = datos.docenteId == null || datos.docenteId === "" ? null : Number(datos.docenteId);
     const periodoId = datos.periodoId == null || datos.periodoId === "" ? null : Number(datos.periodoId);
+    const diasClase = leerDiasClase(datos.diasClase);
+
+    if (periodoId === null && diasClase.length > 0) {
+      return res.status(400).json({
+        message: "Selecciona un periodo académico antes de configurar los días de asistencia.",
+      });
+    }
 
     if (
       periodoId !== null &&
@@ -1003,6 +1047,13 @@ export async function actualizarCursoAdministrador(
       );
     }
 
+    if (publicarEfectivamente && diasClase.length === 0) {
+      throw errorHttp(
+        "Selecciona al menos un día de clase para configurar la asistencia del curso.",
+        400
+      );
+    }
+
     if (periodoId !== null && (cambiaPeriodo || publicarEfectivamente)) {
       const periodoResult = await client.query(
         `SELECT id
@@ -1090,12 +1141,13 @@ export async function actualizarCursoAdministrador(
     await client.query(
       `UPDATE ofertas_curso
       SET periodo_id = $2,
-          cupo_maximo = $3,
-          docente_id = $4,
-          publicado = $5,
+          dias_clase = $3::SMALLINT[],
+          cupo_maximo = $4,
+          docente_id = $5,
+          publicado = $6,
           actualizado_en = CURRENT_TIMESTAMP
       WHERE id = $1`,
-      [ofertaId, periodoId, cupos, docenteId, publicacionFinal]
+      [ofertaId, periodoId, diasClase, cupos, docenteId, publicacionFinal]
     );
 
     const existentesResult = await client.query(
@@ -1292,7 +1344,7 @@ export async function cambiarEstadoCursoAdministrador(
     }
 
     const ofertaResult = await client.query(
-      `SELECT id, docente_id, periodo_id
+      `SELECT id, docente_id, periodo_id, dias_clase
        FROM ofertas_curso
        WHERE curso_id = $1
        ORDER BY actualizado_en DESC, id DESC
@@ -1311,6 +1363,13 @@ export async function cambiarEstadoCursoAdministrador(
       if (!oferta.periodo_id) {
         throw errorHttp(
           "No puedes publicar el curso sin asignar un periodo académico.",
+          400
+        );
+      }
+
+      if (!Array.isArray(oferta.dias_clase) || oferta.dias_clase.length === 0) {
+        throw errorHttp(
+          "Selecciona al menos un día de clase en la edición del curso antes de publicarlo.",
           400
         );
       }

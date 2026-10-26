@@ -19,6 +19,28 @@ type PeriodoAcademicoOption = {
   activo: boolean;
 };
 
+const DIAS_SEMANA = [
+  { valor: 1, etiqueta: "L", nombre: "Lunes" },
+  { valor: 2, etiqueta: "M", nombre: "Martes" },
+  { valor: 3, etiqueta: "MI", nombre: "Miércoles" },
+  { valor: 4, etiqueta: "J", nombre: "Jueves" },
+  { valor: 5, etiqueta: "V", nombre: "Viernes" },
+  { valor: 6, etiqueta: "S", nombre: "Sábado" },
+  { valor: 7, etiqueta: "D", nombre: "Domingo" },
+] as const;
+
+function formatearFechaPeriodo(fecha: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha;
+  const fechaUtc = new Date(`${fecha}T00:00:00Z`);
+  if (Number.isNaN(fechaUtc.getTime())) return fecha;
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(fechaUtc);
+}
+
 export default function CrearCurso({
   cursoId,
 }: {
@@ -52,8 +74,10 @@ export default function CrearCurso({
   const [errorCargaCurso, setErrorCargaCurso] = useState("");
   const [imagenExistente, setImagenExistente] = useState<string | null>(null);
   const [periodos, setPeriodos] = useState<PeriodoAcademicoOption[]>([]);
+  const [diasClase, setDiasClase] = useState<number[]>([]);
   const [cargandoPeriodos, setCargandoPeriodos] = useState(true);
   const [errorPeriodos, setErrorPeriodos] = useState("");
+  const periodoSeleccionado = periodos.find((periodo) => periodo.id === formData.periodoId) ?? null;
 
   useEffect(() => {
     return () => {
@@ -204,6 +228,13 @@ export default function CrearCurso({
           descripcion: curso.descripcion ?? "",
           periodoId: String(curso.periodoId ?? ""),
         });
+        setDiasClase(
+          Array.isArray(curso.diasClase)
+            ? curso.diasClase
+                .map(Number)
+                .filter((dia: number) => Number.isInteger(dia) && dia >= 1 && dia <= 7)
+            : []
+        );
 
         const portada: string | null = curso.imagenPortada ?? null;
 
@@ -261,6 +292,10 @@ export default function CrearCurso({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "periodoId" && value === "") {
+      setDiasClase([]);
+    }
   };
 
   const handleGuardarCurso = async (publicar: boolean) => {
@@ -279,6 +314,13 @@ export default function CrearCurso({
     if (publicar && !formData.periodoId) {
       setErrorGuardar(
         "Selecciona un periodo académico activo antes de publicar el curso."
+      );
+      return;
+    }
+
+    if (publicar && diasClase.length === 0) {
+      setErrorGuardar(
+        "Selecciona al menos un día de clase para generar el calendario de asistencia."
       );
       return;
     }
@@ -327,6 +369,7 @@ export default function CrearCurso({
       descripcion: formData.descripcion.trim(),
       cupos: Number(formData.cupos),
       periodoId: formData.periodoId || null,
+      diasClase,
       docenteId: docenteSeleccionado?.id ?? null,
       componentes,
       publicar,
@@ -597,6 +640,62 @@ export default function CrearCurso({
             {errorPeriodos && (
               <p role="alert" className="mt-2 text-sm text-talentia-danger">
                 {errorPeriodos}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-extrabold text-talentia-primary">
+              Días de clase y asistencia
+            </label>
+            <p className="mb-3 text-xs leading-5 text-talentia-muted">
+              Selecciona los días de la semana en los que corresponde registrar asistencia. Esto es independiente de las clases virtuales que programe el docente por Zoom.
+            </p>
+
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Días de clase y asistencia">
+              {DIAS_SEMANA.map((dia) => {
+                const seleccionado = diasClase.includes(dia.valor);
+
+                return (
+                  <button
+                    key={dia.valor}
+                    type="button"
+                    title={dia.nombre}
+                    aria-label={dia.nombre}
+                    aria-pressed={seleccionado}
+                    disabled={!formData.periodoId || cargandoPeriodos}
+                    onClick={() => {
+                      setDiasClase((actuales) =>
+                        actuales.includes(dia.valor)
+                          ? actuales.filter((valor) => valor !== dia.valor)
+                          : [...actuales, dia.valor].sort((a, b) => a - b)
+                      );
+                    }}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-talentia-blue/30 disabled:cursor-not-allowed disabled:opacity-40 ${
+                      seleccionado
+                        ? "border-talentia-teal bg-talentia-teal text-white"
+                        : "border-talentia-border bg-talentia-surface text-talentia-primary hover:border-talentia-teal hover:bg-talentia-selected"
+                    }`}
+                  >
+                    {dia.etiqueta}
+                  </button>
+                );
+              })}
+            </div>
+
+            {periodoSeleccionado ? (
+              <p className="mt-3 text-xs text-talentia-muted">
+                Periodo seleccionado: del {formatearFechaPeriodo(periodoSeleccionado.fechaInicio)} al {formatearFechaPeriodo(periodoSeleccionado.fechaFin)}.
+              </p>
+            ) : (
+              <p className="mt-3 text-xs text-talentia-muted">
+                Selecciona primero un periodo académico para habilitar los días de asistencia.
+              </p>
+            )}
+
+            {formData.periodoId && diasClase.length === 0 && (
+              <p className="mt-2 text-xs text-talentia-warning">
+                Selecciona al menos un día. Es obligatorio para publicar el curso.
               </p>
             )}
           </div>
