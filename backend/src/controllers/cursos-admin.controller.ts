@@ -80,7 +80,7 @@ function esAdministradorActivo(rol: unknown, activo: unknown) {
   return rol === "Administrador" && activo === true;
 }
 
-async function comprobarAdministrador(
+export async function comprobarAdministrador(
   req: AuthenticatedRequest,
   res: Response
 ): Promise<number | null> {

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-labelledby="title desc">
+  <title id="title">Portada de curso Talentia</title>
+  <desc id="desc">Imagen de respaldo para cursos que todavía no tienen una portada propia.</desc>
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7f8f8"/>
+      <stop offset="1" stop-color="#f4f6ff"/>
+    </linearGradient>
+    <linearGradient id="marca" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a8795"/>
+      <stop offset="1" stop-color="#1851a4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" rx="28" fill="url(#fondo)"/>
+  <circle cx="400" cy="178" r="82" fill="#ffffff" opacity=".86"/>
+  <path d="M355 132c18-7 34-2 45 8c11-10 27-15 45-8v75c-18-7-34-2-45 8c-11-10-27-15-45-8z" fill="none" stroke="url(#marca)" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M400 140v75" stroke="url(#marca)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M369 151c9-3 17-2 24 2M369 166c9-3 17-2 24 2M431 153c-9-3-17-2-24 2M431 168c-9-3-17-2-24 2" fill="none" stroke="#8bbec6" stroke-width="4" stroke-linecap="round"/>
+  <text x="400" y="302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="800" letter-spacing="2" fill="#101a4c">TALENTIA</text>
+  <text x="400" y="337" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" letter-spacing="1.8" fill="#42617e">ESCUELA DE ESPECIALIZACIÓN PROFESIONAL</text>
+  <path d="M330 365h140" stroke="#0a8795" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+</svg>

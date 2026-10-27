@@ -23,6 +23,13 @@ interface Curso {
   estado: "Borrador" | "Activo" | "Inactivo";
 }
 
+type ResumenPublicacionTalentia = {
+  existePublicacion: boolean;
+  estado: "publicado" | "oculto" | null;
+  tieneBorrador: boolean;
+  documentId: string | null;
+};
+
 export default function TablaCursos() {
   
   const router = useRouter();
@@ -31,8 +38,11 @@ export default function TablaCursos() {
   const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
   const [cursoEnAccion, setCursoEnAccion] = useState<string | null>(null);
   const [cursos, setCursos] = useState<Curso[]>([]);
+  const [estadosPublicacion, setEstadosPublicacion] = useState<Record<string, ResumenPublicacionTalentia>>({});
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [errorEstadoPublicacion, setErrorEstadoPublicacion] = useState("");
+  const [mensajePublicacion, setMensajePublicacion] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,6 +92,36 @@ export default function TablaCursos() {
             estado: curso.estado === "Activo" ? "Activo" : curso.estado === "Inactivo" ? "Inactivo" : "Borrador",
           }))
         );
+
+        try {
+          const estadosResponse = await fetch(
+            `${API_URL}/administrador/cursos/publicaciones-talentia/estados`,
+            { method: "GET", credentials: "include", signal: controller.signal }
+          );
+          const estadosData = await estadosResponse.json().catch(() => ({}));
+          if (estadosResponse.status === 401) {
+            router.push("/login");
+            return;
+          }
+          if (!estadosResponse.ok) {
+            throw new Error(
+              estadosData.message ?? "No se pudieron consultar las publicaciones de Talentia."
+            );
+          }
+          setEstadosPublicacion(
+            estadosData.estados && typeof estadosData.estados === "object"
+              ? estadosData.estados as Record<string, ResumenPublicacionTalentia>
+              : {}
+          );
+          setErrorEstadoPublicacion("");
+        } catch (statusError) {
+          if (controller.signal.aborted) return;
+          setErrorEstadoPublicacion(
+            statusError instanceof Error
+              ? statusError.message
+              : "No se pudieron consultar las publicaciones de Talentia."
+          );
+        }
       } catch (err) {
         if (controller.signal.aborted) return;
 
@@ -177,6 +217,85 @@ export default function TablaCursos() {
     }
   };
 
+  const gestionarPublicacionTalentia = async (
+    curso: Curso,
+    accion: "ocultar" | "mostrar" | "eliminar"
+  ) => {
+    const mensajeConfirmacion = accion === "ocultar"
+      ? `¿Deseas ocultar «${curso.nombre}» de la página pública de Talentia? La ficha se conservará en Firebase.`
+      : accion === "mostrar"
+        ? `¿Deseas volver a mostrar «${curso.nombre}» en la página pública de Talentia?`
+        : `¿Deseas eliminar permanentemente la publicación de «${curso.nombre}»? Se borrará el documento de Firebase y cualquier borrador asociado. Esta acción no se puede deshacer.`;
+
+    if (!window.confirm(mensajeConfirmacion)) return;
+
+    setCursoEnAccion(curso.id);
+    setErrorEstadoPublicacion("");
+    setMensajePublicacion("");
+
+    try {
+      const esEliminar = accion === "eliminar";
+      const response = await fetch(
+        `${API_URL}/administrador/cursos/${encodeURIComponent(curso.id)}/publicacion-talentia${esEliminar ? "" : "/estado"}`,
+        {
+          method: esEliminar ? "DELETE" : "PATCH",
+          credentials: "include",
+          headers: esEliminar ? undefined : { "Content-Type": "application/json" },
+          body: esEliminar
+            ? undefined
+            : JSON.stringify({ estado: accion === "ocultar" ? "oculto" : "publicado" }),
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(
+          data.message ?? "No se pudo actualizar la publicación de Talentia."
+        );
+      }
+
+      if (accion === "eliminar") {
+        setEstadosPublicacion((actuales) => {
+          const siguientes = { ...actuales };
+          delete siguientes[curso.id];
+          return siguientes;
+        });
+      } else {
+        setEstadosPublicacion((actuales) => ({
+          ...actuales,
+          [curso.id]: {
+            existePublicacion: true,
+            estado: accion === "ocultar" ? "oculto" : "publicado",
+            tieneBorrador: actuales[curso.id]?.tieneBorrador ?? false,
+            documentId: actuales[curso.id]?.documentId ?? null,
+          },
+        }));
+      }
+
+      setMensajePublicacion(
+        data.message ??
+          (accion === "ocultar"
+            ? "Publicación ocultada."
+            : accion === "mostrar"
+              ? "Publicación visible."
+              : "Publicación eliminada.")
+      );
+      setMenuAbierto(null);
+    } catch (actionError) {
+      setErrorEstadoPublicacion(
+        actionError instanceof Error
+          ? actionError.message
+          : "No se pudo actualizar la publicación de Talentia."
+      );
+    } finally {
+      setCursoEnAccion(null);
+    }
+  };
+
   // Filtrado por búsqueda y categoría
   const cursosFiltrados = cursos.filter((curso) => {
     const termino = searchTerm.trim().toLowerCase();
@@ -219,6 +338,17 @@ export default function TablaCursos() {
           Crear curso
         </button>
       </div>
+
+      {errorEstadoPublicacion && (
+        <p role="alert" className="rounded-xl border border-talentia-danger/20 bg-talentia-danger-bg px-4 py-3 text-sm font-semibold text-talentia-danger">
+          {errorEstadoPublicacion}
+        </p>
+      )}
+      {mensajePublicacion && (
+        <p role="status" className="rounded-xl border border-talentia-success/20 bg-talentia-success-bg px-4 py-3 text-sm font-semibold text-talentia-success">
+          {mensajePublicacion}
+        </p>
+      )}
 
       {/* Barra de Filtros y Búsqueda */}
       <div className="flex flex-col lg:flex-row lg:items-end gap-3">
@@ -363,7 +493,7 @@ export default function TablaCursos() {
                         </button>
 
                         {menuAbierto === curso.id && (
-                          <div className="absolute right-6 top-14 z-30 min-w-40 rounded-xl border border-talentia-border bg-talentia-surface p-1 text-left shadow-xl">
+                          <div className="absolute right-6 top-14 z-30 min-w-60 rounded-xl border border-talentia-border bg-talentia-surface p-1 text-left shadow-xl">
                             <button
                               type="button"
                               onClick={() => {
@@ -376,6 +506,60 @@ export default function TablaCursos() {
                             >
                               Editar
                             </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuAbierto(null);
+                                router.push(
+                                  `/administrador/cursos/publicar?id=${encodeURIComponent(curso.id)}`
+                                );
+                              }}
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-blue hover:bg-talentia-hover"
+                            >
+                              {estadosPublicacion[curso.id]?.existePublicacion
+                                ? "Editar publicación en Talentia"
+                                : estadosPublicacion[curso.id]?.tieneBorrador
+                                  ? "Publicar el borrador en Talentia"
+                                  : errorEstadoPublicacion
+                                    ? "Gestionar publicación en Talentia"
+                                    : "Publicar en página Talentia"}
+                            </button>
+
+                            {estadosPublicacion[curso.id]?.existePublicacion &&
+                              estadosPublicacion[curso.id]?.estado === "publicado" && (
+                                <button
+                                  type="button"
+                                  disabled={cursoEnAccion === curso.id}
+                                  onClick={() => void gestionarPublicacionTalentia(curso, "ocultar")}
+                                  className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-muted hover:bg-talentia-hover disabled:opacity-50"
+                                >
+                                  {cursoEnAccion === curso.id ? "Procesando…" : "Ocultar publicación en Talentia"}
+                                </button>
+                              )}
+
+                            {estadosPublicacion[curso.id]?.existePublicacion &&
+                              estadosPublicacion[curso.id]?.estado !== "publicado" && (
+                                <button
+                                  type="button"
+                                  disabled={cursoEnAccion === curso.id}
+                                  onClick={() => void gestionarPublicacionTalentia(curso, "mostrar")}
+                                  className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
+                                >
+                                  {cursoEnAccion === curso.id ? "Procesando…" : "Mostrar publicación en Talentia"}
+                                </button>
+                              )}
+
+                            {estadosPublicacion[curso.id]?.existePublicacion && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() => void gestionarPublicacionTalentia(curso, "eliminar")}
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
+                              >
+                                {cursoEnAccion === curso.id ? "Procesando…" : "Eliminar publicación en Talentia"}
+                              </button>
+                            )}
 
                             {curso.estado === "Borrador" && (
                               <button
