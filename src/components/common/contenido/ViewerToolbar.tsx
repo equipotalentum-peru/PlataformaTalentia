@@ -3,8 +3,9 @@ import ContentTypeIcon from "./ContentTypeIcon";
 
 type ViewerToolbarProps = {
   title: string;
-  type: Extract<ContentType, "pdf" | "video" | "ppt" | "word">;
+  type: Extract<ContentType, "pdf" | "video" | "ppt" | "word" | "excel">;
   file: string;
+  downloadName?: string | null;
 
   currentPage?: number;
   totalPages?: number;
@@ -21,10 +22,15 @@ type ViewerToolbarProps = {
 
 function obtenerNombreDescarga(
   title: string,
-  type: "pdf" | "video" | "ppt" | "word"
+  type: "pdf" | "video" | "ppt" | "word" | "excel",
+  downloadName?: string | null
 ) {
+  if (downloadName?.trim()) {
+    return downloadName.trim().replace(/[\\/:*?"<>|]/g, "-");
+  }
+
   const nombre = title
-    .replace(/\.(pdf|pptx|docx|mp4|webm|mov)$/i, "")
+    .replace(/\.(pdf|pptx|docx|xls|xlsx|mp4|webm|mov)$/i, "")
     .replace(/[\\/:*?"<>|]/g, "-")
     .trim();
 
@@ -33,6 +39,7 @@ function obtenerNombreDescarga(
     video: "mp4",
     ppt: "pptx",
     word: "docx",
+    excel: "xlsx",
   }[type];
 
   return `${nombre || "contenido"}.${extension}`;
@@ -42,6 +49,7 @@ export default function ViewerToolbar({
   title,
   type,
   file,
+  downloadName,
   currentPage,
   totalPages,
   zoom = 1,
@@ -198,7 +206,7 @@ export default function ViewerToolbar({
       <div className="group relative justify-self-end">
         <a
           href={file}
-          download={obtenerNombreDescarga(title, type)}
+          download={obtenerNombreDescarga(title, type, downloadName)}
           aria-label="Descargar archivo"
           title="Descargar archivo"
           className="

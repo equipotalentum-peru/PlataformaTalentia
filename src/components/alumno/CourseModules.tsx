@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, } from "react";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
+import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import type { ContentType, } from "@/data/courseContents";
 
 
@@ -14,8 +15,12 @@ const tiposIcono: Record<
   ContentType
 > = {
   pdf: "pdf",
+  doc: "word",
   docx: "word",
+  ppt: "ppt",
   pptx: "ppt",
+  xls: "excel",
+  xlsx: "excel",
   video: "video",
   enlace: "link",
   actividad: "activity",
@@ -408,7 +413,7 @@ const visto =
                       );
 
                     const puedeAbrirse =
-                      ["pdf", "pptx", "docx", "video"].includes(contenido.tipo) ||
+                      ["pdf", "ppt", "pptx", "doc", "docx", "xls", "xlsx", "video"].includes(contenido.tipo) ||
                       esActividad ||
                       esEvaluacion ||
                       tieneArchivo ||
@@ -441,15 +446,22 @@ const visto =
                           title={contenido.tipo.toUpperCase()}
                           aria-label={`Tipo: ${contenido.tipo}`}
                         >
-                          <CourseContentIcon
-                            type={
-                              tiposIcono[
-                                contenido.tipo
-                              ] ??
-                              "pdf"
-                            }
-                            className="h-5 w-5"
-                          />
+                          {tieneArchivo && contenido.tipo !== "actividad" && contenido.tipo !== "evaluacion" && contenido.tipo !== "enlace" ? (
+                            <FileTypeIcon
+                              filename={contenido.rutaArchivo}
+                              className="h-6 w-6"
+                            />
+                          ) : (
+                            <CourseContentIcon
+                              type={
+                                tiposIcono[
+                                  contenido.tipo
+                                ] ??
+                                "pdf"
+                              }
+                              className="h-5 w-5"
+                            />
+                          )}
                         </span>
 
                         {/* TITULO */}

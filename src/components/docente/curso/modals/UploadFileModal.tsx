@@ -8,7 +8,7 @@ type UploadFileModalProps = {
   onSubmit: (file: File) => Promise<void>;
 };
 
-const allowedExtensions = ["pdf", "docx", "pptx", "mp4"];
+const allowedExtensions = ["pdf", "docx", "pptx", "xls", "xlsx", "mp4"];
 
 function isAllowed(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -81,7 +81,7 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
             </div>
             <div>
               <h2 id="upload-file-title" className="text-[15px] font-bold text-talentia-primary">Insertar archivo</h2>
-              <p className="text-[13px] text-talentia-muted">Sube un documento, presentación o video.</p>
+              <p className="text-[13px] text-talentia-muted">Sube un documento, presentación, hoja de cálculo o video.</p>
             </div>
           </div>
           <button type="button" onClick={close} className="rounded-full p-1 text-[24px] leading-none text-talentia-primary hover:bg-talentia-hover" aria-label="Cerrar">×</button>
@@ -106,14 +106,14 @@ export default function UploadFileModal({ open, onClose, onSubmit }: UploadFileM
           </button>
           {selectedFile && <p className="mt-2 truncate text-[13px] font-semibold text-talentia-blue">{selectedFile.name}</p>}
           <p className="mt-2 text-[12px] text-talentia-muted">Tamaño máximo: 200 MB</p>
-          <p className="mt-1 text-[12px] text-talentia-muted">Formatos permitidos: PDF, DOCX, PPTX, MP4</p>
+          <p className="mt-1 text-[12px] text-talentia-muted">Formatos permitidos: PDF, DOCX, PPTX, XLS, XLSX, MP4</p>
         </div>
 
         <input
           ref={inputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.docx,.pptx,.mp4"
+          accept=".pdf,.docx,.pptx,.xls,.xlsx,.mp4"
           disabled={uploading}
           onChange={(event) => pickFile(event.target.files?.[0])}
         />

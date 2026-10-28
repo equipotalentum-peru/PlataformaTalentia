@@ -12,7 +12,7 @@ import {
 } from "../services/r2.service";
 
 const MAX_FILE_BYTES = 200 * 1024 * 1024;
-const FORMAT_MESSAGE = "Formato no permitido. Usa PDF, DOCX, PPTX o MP4.";
+const FORMAT_MESSAGE = "Formato no permitido. Usa PDF, DOCX, PPTX, XLS, XLSX o MP4.";
 const MISMATCH_MESSAGE = "El archivo no corresponde al formato seleccionado.";
 
 const formats: Record<string, { tipo: string; mime: string }> = {
@@ -25,6 +25,11 @@ const formats: Record<string, { tipo: string; mime: string }> = {
   ".pptx": {
     tipo: "pptx",
     mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  },
+  ".xls": { tipo: "xls", mime: "application/vnd.ms-excel" },
+  ".xlsx": {
+    tipo: "xlsx",
+    mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   },
 };
 
@@ -48,7 +53,14 @@ function hasValidSignature(extension: string, header: Buffer) {
     return header.toString("ascii", 0, 5) === "%PDF-";
   }
 
-  // .docx y .pptx son archivos ZIP
+  if (extension === ".xls") {
+    // XLS clásico utiliza el contenedor binario Compound File (OLE).
+    return header.length >= 8 && header.subarray(0, 8).equals(
+      Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])
+    );
+  }
+
+  // .docx, .pptx y .xlsx son paquetes ZIP.
   return (
     header.length >= 4 &&
     header.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]))
@@ -315,7 +327,7 @@ export async function subirArchivoContenido(
 
     if (error instanceof multer.MulterError) {
       return res.status(400).json({
-        message: "Sube un solo archivo PDF, DOCX, PPTX o MP4 de hasta 200 MB.",
+        message: "Sube un solo archivo PDF, DOCX, PPTX, XLS, XLSX o MP4 de hasta 200 MB.",
       });
     }
 
@@ -326,8 +338,6 @@ export async function subirArchivoContenido(
         "No se pudo guardar el archivo en Cloudflare R2. Inténtalo nuevamente.",
     });
   } finally {
-    // Si el archivo llegó a R2 pero no se pudo registrar en PostgreSQL,
-    // se elimina para no dejar archivos huérfanos.
     if (r2Key && !saved) {
       await deleteObjectFromR2(r2Key).catch((cleanupError) => {
         console.error(

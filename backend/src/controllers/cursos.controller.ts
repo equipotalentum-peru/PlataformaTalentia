@@ -359,6 +359,7 @@ const modulosResult = await pool.query(
              'id', cc.id,
              'titulo', cc.titulo,
              'tipo', cc.tipo,
+             'nombreArchivo', cc.nombre_archivo,
              'descripcion', cc.descripcion,
              'orden', cc.orden,
              'rutaArchivo', cc.ruta_archivo,

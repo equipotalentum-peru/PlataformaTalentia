@@ -44,12 +44,14 @@ type ContentViewerProps = {
   title: string;
   type: ContentType;
   file?: string;
+  downloadName?: string | null;
 };
 
 export default function ContentViewer({
   title,
   type,
   file,
+  downloadName,
 }: ContentViewerProps) {
   if (!file) {
     return (
@@ -87,6 +89,26 @@ export default function ContentViewer({
   }
 
   
+  if (type === "excel") {
+    return (
+      <div className="w-full">
+        <ViewerToolbar title={title} type="excel" file={file} downloadName={downloadName} />
+        <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 bg-talentia-border px-6 py-10 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#e1f5e8]">
+            <svg viewBox="0 0 48 48" className="h-10 w-10" aria-hidden="true">
+              <path d="M21 4h17l7 7v32H21z" fill="#e8f5e9" stroke="#107c41" strokeWidth="1.5" />
+              <path d="M38 4v7h7" fill="#c8e6c9" stroke="#107c41" strokeWidth="1.5" />
+              <path d="M4 13h24v26H4z" fill="#107c41" />
+              <path d="M9 19h4l3 5 3-5h4l-5 7 5 7h-4l-3-5-3 5H9l5-7z" fill="#fff" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-talentia-primary">Hoja de cálculo lista para descargar</p>
+          <p className="max-w-md text-sm text-talentia-muted">Descarga el archivo para abrirlo con Excel u otra aplicación compatible. La plataforma no muestra una vista previa de hojas de cálculo.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (type === "video") {
     return (
       <div className="w-full">

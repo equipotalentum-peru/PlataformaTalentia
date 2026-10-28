@@ -43,7 +43,7 @@ export async function obtenerArchivoContenido(
           AND c.id = $2
           AND mc.activo = TRUE
           AND c.estado = 'Activo'
-          AND cc.tipo IN ('pdf', 'pptx', 'docx', 'video')
+          AND cc.tipo IN ('pdf', 'pptx', 'docx', 'xls', 'xlsx', 'video')
           AND EXISTS (
             SELECT 1
             FROM ofertas_curso oc

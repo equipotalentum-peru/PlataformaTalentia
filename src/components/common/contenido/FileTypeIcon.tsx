@@ -33,3 +33,4 @@ export default function FileTypeIcon({
 
   return <ContentTypeIcon type={type} className={className} />;
 }
+

@@ -52,6 +52,27 @@ export default function CourseContentIcon({
     );
   }
 
+  // EXCEL / HOJA DE CÁLCULO
+  if (type === "excel") {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="56"
+        height="56"
+        viewBox="0 0 56 56"
+        className={`${className} text-talentia-muted`}
+        aria-hidden="true"
+      >
+        <path d="M0 0h56v56H0z" fill="none" />
+        <path d="M21 4h19l9 9v35a4 4 0 0 1-4 4H21z" fill="#e8f5e9" stroke="#107c41" strokeWidth="1.5" />
+        <path d="M40 4v9h9" fill="#c8e6c9" stroke="#107c41" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M7 15h27v29H7z" fill="#107c41" />
+        <path d="M13 22h5l3 6 3-6h5l-5.5 8.5L29 39h-5l-3-6-3 6h-5l5.5-8.5z" fill="#fff" />
+        <path d="M38 22h6M38 29h6M38 36h6" stroke="#21a366" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   // VIDEO
   if (type === "video") {
     return (

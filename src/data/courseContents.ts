@@ -3,6 +3,7 @@ export type ContentType =
   | "video"
   | "ppt"
   | "word"
+  | "excel"
   | "activity"
   | "quiz"
   | "link"

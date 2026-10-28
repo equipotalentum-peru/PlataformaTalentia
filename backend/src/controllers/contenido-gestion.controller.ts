@@ -87,7 +87,7 @@ export async function gestionarContenido(req: AuthenticatedRequest, res: Respons
           });
         }
 
-        if (["pdf", "pptx", "docx", "video"].includes(content.tipo)) {
+        if (["pdf", "pptx", "docx", "xls", "xlsx", "video"].includes(content.tipo)) {
           if (content.compartido || content.vinculado) {
             return await abort(409, "Este archivo tiene otros registros vinculados. No se eliminará.");
           }

@@ -15,6 +15,7 @@ type Contenido = {
   titulo: string;
   tipo: string;
   rutaArchivo: string | null;
+  nombreArchivo: string | null;
   descripcion: string | null;
 };
 
@@ -27,9 +28,10 @@ type Props = {
 export default function MaterialViewer({ courseId, contentId, backLink }: Props) {
   const [material, setMaterial] = useState<{
     titulo: string;
-    tipo: "pdf" | "ppt" | "word" | "video" | "activity" | "evaluation";
+    tipo: "pdf" | "ppt" | "word" | "excel" | "video" | "activity" | "evaluation";
 
     archivo: string;
+    nombreArchivo?: string | null;
     previousHref?: string;
     nextHref?: string;
     actividad?: ActivityDefinition;
@@ -73,6 +75,8 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
                   "pdf",
                   "docx",
                   "pptx",
+                  "xls",
+                  "xlsx",
                   "video",
                 ].includes(
                   item.tipo
@@ -156,8 +160,9 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
           if (controller.signal.aborted) return;
           setMaterial({
             titulo: contenido.titulo,
-            tipo: contenido.tipo === "docx" ? "word" : contenido.tipo === "video" ? "video" : contenido.tipo === "pdf" ? "pdf" : "ppt",
+            tipo: contenido.tipo === "docx" ? "word" : contenido.tipo === "video" ? "video" : contenido.tipo === "pdf" ? "pdf" : ["xls", "xlsx"].includes(contenido.tipo) ? "excel" : "ppt",
             archivo: "",
+            nombreArchivo: contenido.nombreArchivo,
             ...navegacion,
           });
           return;
@@ -177,14 +182,16 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
               ? "word"
               : contenido.tipo === "video"
                 ? "video"
-                : "ppt";
+                : ["xls", "xlsx"].includes(contenido.tipo)
+                  ? "excel"
+                  : "ppt";
 
         setMaterial({
           titulo:
             contenido.titulo,
           tipo: tipoMaterial,
-
           archivo,
+          nombreArchivo: contenido.nombreArchivo,
           ...navegacion,
         });
       } catch (err) {
@@ -229,6 +236,7 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
           title={material.titulo}
           type={material.tipo}
           file={material.archivo}
+          downloadName={material.nombreArchivo}
         />
       )}
       {material.tipo !== "evaluation" && (

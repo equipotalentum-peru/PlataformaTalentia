@@ -13,7 +13,7 @@ const cards = [
     type: "file" as const,
     title: "Subir archivo",
     description: "Sube un documento, presentación, hoja de cálculo u otros.",
-    formats: "PDF, DOC, PPT, XLS",
+    formats: "PDF, DOC, PPT, XLS, MP4",
     className: "bg-talentia-purple-soft",
     iconType: "pdf" as const,
   },
