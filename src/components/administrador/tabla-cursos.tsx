@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
 
@@ -43,6 +43,30 @@ export default function TablaCursos() {
   const [error, setError] = useState("");
   const [errorEstadoPublicacion, setErrorEstadoPublicacion] = useState("");
   const [mensajePublicacion, setMensajePublicacion] = useState("");
+  const referenciasMenus = useRef<Map<string, HTMLTableCellElement>>(new Map());
+
+  // Cierra el menú al hacer clic fuera o pulsar Escape, como en otros paneles administrativos.
+  useEffect(() => {
+    if (!menuAbierto) return;
+
+    const celdaActiva = referenciasMenus.current.get(menuAbierto);
+    const cerrarAlHacerClicFuera = (event: PointerEvent) => {
+      const destino = event.target;
+      if (celdaActiva && destino instanceof Node && !celdaActiva.contains(destino)) {
+        setMenuAbierto(null);
+      }
+    };
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuAbierto(null);
+    };
+
+    document.addEventListener("pointerdown", cerrarAlHacerClicFuera, true);
+    document.addEventListener("keydown", cerrarConEscape);
+    return () => {
+      document.removeEventListener("pointerdown", cerrarAlHacerClicFuera, true);
+      document.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [menuAbierto]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -476,7 +500,13 @@ export default function TablaCursos() {
                           {curso.estado}
                         </span>
                       </td>
-                      <td className="relative py-4 px-4 text-center">
+                      <td
+                        ref={(element) => {
+                          if (element) referenciasMenus.current.set(curso.id, element);
+                          else referenciasMenus.current.delete(curso.id);
+                        }}
+                        className="relative py-4 px-4 text-center"
+                      >
                         <button
                           type="button"
                           aria-label={`Acciones de ${curso.nombre}`}
@@ -504,26 +534,66 @@ export default function TablaCursos() {
                               }}
                               className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-primary hover:bg-talentia-hover"
                             >
-                              Editar
+                              Editar en la Plataforma Talentia
+                            </button>
+
+                             {curso.estado === "Activo" && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() =>
+                                  void cambiarEstadoCurso(curso, "Inactivo")
+                                }
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-muted hover:bg-talentia-hover disabled:opacity-50"
+                              >
+                                Desactivar en la Plataforma Talentia
+                              </button>
+                            )}
+
+                            {curso.estado === "Inactivo" && (
+                              <button
+                                type="button"
+                                disabled={cursoEnAccion === curso.id}
+                                onClick={() =>
+                                  void cambiarEstadoCurso(curso, "Activo")
+                                }
+                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
+                              >
+                                Activar en la Plataforma Talentia
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              disabled={cursoEnAccion === curso.id}
+                              onClick={() =>
+                                void cambiarEstadoCurso(curso, "Archivado")
+                              }
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
+                            >
+                              Retirar en la Plataforma Talentia
                             </button>
 
                             <button
                               type="button"
+                              disabled={Boolean(errorEstadoPublicacion && !estadosPublicacion[curso.id])}
                               onClick={() => {
+                                if (errorEstadoPublicacion && !estadosPublicacion[curso.id]) return;
                                 setMenuAbierto(null);
                                 router.push(
                                   `/administrador/cursos/publicar?id=${encodeURIComponent(curso.id)}`
                                 );
                               }}
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-blue hover:bg-talentia-hover"
+                              title={errorEstadoPublicacion && !estadosPublicacion[curso.id] ? "No se pudo consultar el estado de la publicación. Actualiza la página después de corregir la conexión con Firebase." : undefined}
+                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-blue hover:bg-talentia-hover disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              {estadosPublicacion[curso.id]?.existePublicacion
-                                ? "Editar publicación en Talentia"
-                                : estadosPublicacion[curso.id]?.tieneBorrador
-                                  ? "Publicar el borrador en Talentia"
-                                  : errorEstadoPublicacion
-                                    ? "Gestionar publicación en Talentia"
-                                    : "Publicar en página Talentia"}
+                              {errorEstadoPublicacion && !estadosPublicacion[curso.id]
+                                ? "Estado de publicación no disponible"
+                                : estadosPublicacion[curso.id]?.existePublicacion
+                                  ? "Editar publicación en la Página Talentia"
+                                  : estadosPublicacion[curso.id]?.tieneBorrador
+                                    ? "Publicar el borrador en la Página Talentia"
+                                    : "Publicar en la Página Talentia"}
                             </button>
 
                             {estadosPublicacion[curso.id]?.existePublicacion &&
@@ -534,7 +604,7 @@ export default function TablaCursos() {
                                   onClick={() => void gestionarPublicacionTalentia(curso, "ocultar")}
                                   className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-muted hover:bg-talentia-hover disabled:opacity-50"
                                 >
-                                  {cursoEnAccion === curso.id ? "Procesando…" : "Ocultar publicación en Talentia"}
+                                  {cursoEnAccion === curso.id ? "Procesando…" : "Ocultar publicación en la Página Talentia"}
                                 </button>
                               )}
 
@@ -546,7 +616,7 @@ export default function TablaCursos() {
                                   onClick={() => void gestionarPublicacionTalentia(curso, "mostrar")}
                                   className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
                                 >
-                                  {cursoEnAccion === curso.id ? "Procesando…" : "Mostrar publicación en Talentia"}
+                                  {cursoEnAccion === curso.id ? "Procesando…" : "Mostrar publicación en la Página Talentia"}
                                 </button>
                               )}
 
@@ -557,7 +627,7 @@ export default function TablaCursos() {
                                 onClick={() => void gestionarPublicacionTalentia(curso, "eliminar")}
                                 className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
                               >
-                                {cursoEnAccion === curso.id ? "Procesando…" : "Eliminar publicación en Talentia"}
+                                {cursoEnAccion === curso.id ? "Procesando…" : "Eliminar publicación en la Página Talentia"}
                               </button>
                             )}
 
@@ -571,43 +641,6 @@ export default function TablaCursos() {
                                 {cursoEnAccion === curso.id ? "Publicando..." : "Publicar"}
                               </button>
                             )}
-
-                            {curso.estado === "Activo" && (
-                              <button
-                                type="button"
-                                disabled={cursoEnAccion === curso.id}
-                                onClick={() =>
-                                  void cambiarEstadoCurso(curso, "Inactivo")
-                                }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-muted hover:bg-talentia-hover disabled:opacity-50"
-                              >
-                                Desactivar
-                              </button>
-                            )}
-
-                            {curso.estado === "Inactivo" && (
-                              <button
-                                type="button"
-                                disabled={cursoEnAccion === curso.id}
-                                onClick={() =>
-                                  void cambiarEstadoCurso(curso, "Activo")
-                                }
-                                className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-success hover:bg-talentia-success-bg disabled:opacity-50"
-                              >
-                                Activar
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              disabled={cursoEnAccion === curso.id}
-                              onClick={() =>
-                                void cambiarEstadoCurso(curso, "Archivado")
-                              }
-                              className="block w-full rounded-lg px-4 py-2.5 text-left text-[13px] font-semibold text-talentia-danger hover:bg-talentia-danger-bg disabled:opacity-50"
-                            >
-                              Retirar
-                            </button>
                           </div>
                         )}
                       </td>
