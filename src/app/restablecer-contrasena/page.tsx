@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function RestablecerContrasenaPage() {
   const router = useRouter();
@@ -72,233 +73,182 @@ export default function RestablecerContrasenaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#e8edf4] flex items-center justify-center px-6 py-10">
+    <AuthLayout>
+      <div className="w-full text-[13px] text-talentia-primary">
 
-      <div className="grid w-full max-w-[1450px] grid-cols-1 items-center gap-12 lg:grid-cols-2">
+        {/* VOLVER */}
 
-        {/* =========================
-            LADO IZQUIERDO
-           ========================= */}
+        <button
+          type="button"
+          onClick={() => router.push("/login")}
+          className="text-[12px] font-medium text-talentia-blue hover:underline"
+        >
+          ← Volver
+        </button>
 
-        <div className="hidden items-center justify-center lg:flex">
+        {/* TÍTULO */}
 
-          <img
-            src="/images/Talentia_grande_sin_fondo.png"
-            alt="Talentia"
-            className="w-full max-w-[600px] object-contain"
-          />
+        <div className="mb-8 text-center">
+
+          <h1 className="mt-5 text-[15px] font-semibold leading-5 text-talentia-primary">
+            Restablecer contraseña
+          </h1>
+
+          <p className="mt-8 text-left text-[13px] text-talentia-primary">
+            Ingresa tu correo electrónico y te enviaremos un código para
+            restablecer tu contraseña.
+          </p>
 
         </div>
 
-        {/* =========================
-            TARJETA
-           ========================= */}
+        {/* FORMULARIO */}
 
-        <div className="flex justify-center">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
 
-          <div className="w-full max-w-[520px] rounded-[28px] bg-white px-10 py-12 shadow-sm md:px-14">
+          <div>
 
-            {/* LOGO SOLO EN MÓVIL */}
-
-            <div className="mb-8 flex justify-center lg:hidden">
-              <img
-                src="/images/Talentia_grande_sin_fondo.png"
-                alt="Talentia"
-                className="w-full max-w-[260px] object-contain"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => router.push("/login")}
-              className="mb-10 text-[14px] font-medium text-[#2d97e8] hover:underline"
+            <label
+              htmlFor="email"
+              className="mb-2 block text-[13px] font-medium text-talentia-blue"
             >
-              ← Volver
-            </button>
+              Correo electrónico
+            </label>
 
-            <h1 className="text-[34px] font-bold tracking-[-0.8px] text-[#102963]">
-              Restablecer contraseña
-            </h1>
+            <div className="relative">
 
-            <p className="mt-4 text-[16px] leading-6 text-gray-500">
-              Ingresa tu correo electrónico y te enviaremos un código para
-              restablecer tu contraseña.
-            </p>
-
-            <form
-              onSubmit={handleSubmit}
-              className="mt-10"
-            >
-
-              <label
-                htmlFor="email"
-                className="mb-2 block text-[13px] font-semibold text-[#183665]"
-              >
-                Correo electrónico
-              </label>
-
-              <div className="relative">
-
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) =>
-                    setEmail(event.target.value)
-                  }
-                  placeholder="tu.correo@ejemplo.com"
-                  autoComplete="email"
-                  disabled={isLoading}
-                  className="
-                    h-[56px]
-                    w-full
-                    rounded-[10px]
-                    border
-                    border-[#d7dce5]
-                    bg-white
-                    px-4
-                    pr-12
-                    text-[14px]
-                    text-gray-800
-                    outline-none
-                    transition
-                    placeholder:text-gray-400
-                    focus:border-[#2d97e8]
-                    focus:ring-2
-                    focus:ring-[#2d97e8]/15
-                    disabled:cursor-not-allowed
-                    disabled:bg-gray-100
-                  "
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    right-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-[#6f83a5]
-                  "
-                >
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="14"
-                      rx="2"
-                    />
-
-                    <path d="m4 7 8 6 8-6" />
-                  </svg>
-                </div>
-
-              </div>
-
-              {error && (
-                <div
-                  className="
-                    mt-4
-                    rounded-md
-                    border
-                    border-red-200
-                    bg-red-50
-                    px-3
-                    py-2
-                    text-[12px]
-                    text-red-600
-                  "
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) =>
+                  setEmail(event.target.value)
+                }
+                placeholder="tu.correo@ejemplo.com"
+                autoComplete="email"
                 disabled={isLoading}
                 className="
-                  mt-7
-                  h-[56px]
+                  h-[40px]
                   w-full
-                  rounded-[10px]
-                  bg-[#2d97e8]
-                  text-[14px]
-                  font-bold
-                  text-white
-                  shadow-sm
+                  rounded-[7px]
+                  border
+                  border-talentia-border
+                  bg-talentia-surface
+                  px-3
+                  pr-11
+                  text-[13px]
+                  text-talentia-primary
+                  outline-none
                   transition
-                  hover:bg-[#2088d8]
+                  placeholder:text-talentia-placeholder
+                  focus:border-talentia-blue
+                  focus:ring-2
+                  focus:ring-talentia-blue/15
                   disabled:cursor-not-allowed
                   disabled:opacity-70
                 "
-              >
-                {isLoading
-                  ? "ENVIANDO..."
-                  : "ENVIAR CÓDIGO"}
-              </button>
+              />
 
-            </form>
-
-            <div className="mt-7 flex items-start gap-3 text-[12px] leading-5 text-gray-500">
-
-              <div className="mt-0.5 rounded-full bg-blue-50 p-2 text-[#2d97e8]">
-
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-talentia-blue">
                 <svg
-                  className="h-4 w-4"
+                  className="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.8"
                 >
                   <rect
-                    x="6"
-                    y="10"
-                    width="12"
-                    height="10"
+                    x="3"
+                    y="5"
+                    width="18"
+                    height="14"
                     rx="2"
                   />
 
-                  <path d="M8.5 10V7a3.5 3.5 0 0 1 7 0v3" />
+                  <path d="m4 7 8 6 8-6" />
                 </svg>
-
               </div>
-
-              <p>
-                Tu información está segura. Solo enviaremos un código de
-                recuperación a tu correo electrónico.
-              </p>
 
             </div>
 
-            <button
-              type="button"
-              onClick={() => router.push("/login")}
-              className="
-                mx-auto
-                mt-9
-                block
-                text-[14px]
-                font-semibold
-                text-[#2d97e8]
-                hover:underline
-              "
-            >
-              Volver al inicio de sesión
-            </button>
-
           </div>
+
+          {/* ERROR */}
+
+          {error && (
+            <div className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[13px] text-talentia-danger">
+              {error}
+            </div>
+          )}
+
+          {/* ENVIAR CÓDIGO */}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="
+              mt-5
+              h-[45px]
+              w-full
+              rounded-[8px]
+              bg-talentia-action
+              text-[13px]
+              font-bold
+              text-white
+              shadow-sm
+              transition
+              hover:bg-talentia-primary
+              disabled:cursor-not-allowed
+              disabled:opacity-70
+            "
+          >
+            {isLoading
+              ? "ENVIANDO..."
+              : "ENVIAR CÓDIGO"}
+          </button>
+
+        </form>
+
+        {/* AVISO */}
+
+        <div className="mt-5 flex items-start gap-2 text-[12px] leading-5 text-talentia-muted">
+
+          <svg
+            className="mt-0.5 h-4 w-4 shrink-0 text-talentia-blue"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <rect
+              x="6"
+              y="10"
+              width="12"
+              height="10"
+              rx="2"
+            />
+
+            <path d="M8.5 10V7a3.5 3.5 0 0 1 7 0v3" />
+          </svg>
+
+          <p>
+            Tu información está segura. Solo enviaremos un código de
+            recuperación a tu correo electrónico.
+          </p>
 
         </div>
 
-      </div>
+        <button
+          type="button"
+          onClick={() => router.push("/login")}
+          className="mx-auto mt-5 block text-[12px] font-medium text-talentia-blue hover:underline"
+        >
+          Volver al inicio de sesión
+        </button>
 
-    </main>
+      </div>
+    </AuthLayout>
   );
 }

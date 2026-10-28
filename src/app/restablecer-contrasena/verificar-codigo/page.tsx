@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function VerificarCodigoPage() {
   const router = useRouter();
@@ -227,372 +228,208 @@ export default function VerificarCodigoPage() {
   };
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-[#e8edf4]
-        flex
-        items-center
-        justify-center
-        px-4
-        py-6
-        sm:px-6
-        sm:py-10
-      "
-    >
-      <div
-        className="
-          grid
-          w-full
-          max-w-[1450px]
-          grid-cols-1
-          items-center
-          gap-12
-          lg:grid-cols-2
-        "
-      >
-        {/* LADO IZQUIERDO */}
+    <AuthLayout>
+      <div className="w-full text-[13px] text-talentia-primary">
 
-        <div
-          className="
-            hidden
-            items-center
-            justify-center
-            lg:flex
-          "
+        {/* VOLVER */}
+
+        <button
+          type="button"
+          onClick={() =>
+            router.push(
+              "/restablecer-contrasena"
+            )
+          }
+          className="text-[12px] font-medium text-talentia-blue hover:underline"
         >
-          <img
-            src="/images/Talentia_grande_sin_fondo.png"
-            alt="Talentia"
-            className="
-              w-full
-              max-w-[600px]
-              object-contain
-            "
-          />
+          ← Volver
+        </button>
+
+        {/* TÍTULO */}
+
+        <div className="mb-8 text-center">
+
+          <h1 className="mt-5 text-[15px] font-semibold leading-5 text-talentia-primary">
+            Verifica tu código
+          </h1>
+
+          <p className="mt-8 text-left text-[13px] text-talentia-primary">
+            Hemos enviado un código de 6 dígitos a tu correo electrónico.
+          </p>
+
+          {/* CORREO */}
+
+          <div className="mt-3 flex items-center gap-2 text-left">
+
+            <svg
+              className="h-5 w-5 shrink-0 text-talentia-blue"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <rect
+                x="3"
+                y="5"
+                width="18"
+                height="14"
+                rx="2"
+              />
+
+              <path d="m4 7 8 6 8-6" />
+            </svg>
+
+            <span className="break-all text-[13px] font-medium text-talentia-primary">
+              {correo ||
+                "Correo no disponible"}
+            </span>
+
+          </div>
+
         </div>
 
-        {/* TARJETA */}
+        {/* FORMULARIO */}
 
-        <div className="flex justify-center">
-          <div
-            className="
-              w-full
-              max-w-[520px]
-              rounded-[20px]
-              bg-white
-              px-5
-              py-8
-              shadow-sm
-              sm:rounded-[28px]
-              sm:px-10
-              sm:py-12
-              md:px-14
-            "
-          >
-            {/* LOGO SOLO EN MÓVIL */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
 
-            <div className="mb-8 flex justify-center lg:hidden">
-              <img
-                src="/images/Talentia_grande_sin_fondo.png"
-                alt="Talentia"
-                className="
-                  w-full
-                  max-w-[250px]
-                  object-contain
-                "
-              />
+          <div>
+
+            <label className="mb-2 block text-[13px] font-medium text-talentia-blue">
+              Código de verificación
+            </label>
+
+            {/* 6 CASILLAS */}
+
+            <div className="flex justify-between gap-1.5 min-[380px]:gap-2">
+              {codigo.map(
+                (valor, index) => (
+                  <input
+                    key={index}
+                    ref={(element) => {
+                      inputsRef.current[
+                        index
+                      ] = element;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={valor}
+                    disabled={
+                      isLoading ||
+                      isResending
+                    }
+                    onChange={(event) =>
+                      handleChange(
+                        index,
+                        event.target.value
+                      )
+                    }
+                    onKeyDown={(event) =>
+                      handleKeyDown(
+                        index,
+                        event
+                      )
+                    }
+                    className="
+                      h-[44px]
+                      w-full
+                      max-w-[48px]
+                      rounded-[7px]
+                      border
+                      border-talentia-border
+                      bg-talentia-surface
+                      text-center
+                      text-[16px]
+                      font-semibold
+                      text-talentia-primary
+                      outline-none
+                      transition
+                      focus:border-talentia-blue
+                      focus:ring-2
+                      focus:ring-talentia-blue/15
+                      disabled:cursor-not-allowed
+                      disabled:opacity-70
+                    "
+                  />
+                )
+              )}
             </div>
 
-            {/* VOLVER */}
+          </div>
+
+          {/* ERROR */}
+
+          {error && (
+            <div className="rounded-md border border-talentia-danger/20 bg-talentia-danger-bg px-3 py-2 text-[13px] text-talentia-danger">
+              {error}
+            </div>
+          )}
+
+          {/* MENSAJE OK */}
+
+          {mensaje && (
+            <div className="rounded-md border border-talentia-success/20 bg-talentia-success-bg px-3 py-2 text-[13px] text-talentia-success">
+              {mensaje}
+            </div>
+          )}
+
+          {/* REENVIAR */}
+
+          <div className="text-center text-[12px] text-talentia-muted">
+            ¿No recibiste el código?{" "}
 
             <button
               type="button"
-              onClick={() =>
-                router.push(
-                  "/restablecer-contrasena"
-                )
+              onClick={
+                handleReenviarCodigo
               }
-              className="
-                mb-10
-                text-[14px]
-                font-medium
-                text-[#2d97e8]
-                hover:underline
-              "
+              disabled={
+                isLoading ||
+                isResending
+              }
+              className="font-medium text-talentia-blue hover:underline disabled:cursor-not-allowed disabled:opacity-60"
             >
-              ← Volver
+              {isResending
+                ? "Reenviando..."
+                : "Reenviar código"}
             </button>
-
-            {/* TÍTULO */}
-
-            <h1
-              className="
-                text-[30px]
-                font-bold
-                tracking-[-0.8px]
-                text-[#102963]
-                sm:text-[34px]
-              "
-            >
-              Verifica tu código
-            </h1>
-
-            <p
-              className="
-                mt-4
-                text-[15px]
-                leading-6
-                text-gray-500
-                sm:text-[16px]
-              "
-            >
-              Hemos enviado un código de
-              6 dígitos a tu correo
-              electrónico.
-            </p>
-
-            {/* CORREO */}
-
-            <div
-              className="
-                mt-7
-                flex
-                items-center
-                gap-3
-              "
-            >
-              <div
-                className="
-                  rounded-full
-                  bg-blue-50
-                  p-3
-                  text-[#2d97e8]
-                "
-              >
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                >
-                  <rect
-                    x="3"
-                    y="5"
-                    width="18"
-                    height="14"
-                    rx="2"
-                  />
-
-                  <path d="m4 7 8 6 8-6" />
-                </svg>
-              </div>
-
-              <span
-                className="
-                  break-all
-                  text-[14px]
-                  font-medium
-                  text-gray-700
-                "
-              >
-                {correo ||
-                  "Correo no disponible"}
-              </span>
-            </div>
-
-            {/* FORMULARIO */}
-
-            <form
-              onSubmit={handleSubmit}
-              className="mt-9"
-            >
-              <label
-                className="
-                  mb-4
-                  block
-                  text-[13px]
-                  font-semibold
-                  text-[#183665]
-                "
-              >
-                Ingresa el código de
-                verificación
-              </label>
-
-              {/* 6 CASILLAS */}
-
-              <div
-                className="
-                  flex
-                  justify-between
-                  gap-1.5
-                  sm:gap-2
-                "
-              >
-                {codigo.map(
-                  (valor, index) => (
-                    <input
-                      key={index}
-                      ref={(element) => {
-                        inputsRef.current[
-                          index
-                        ] = element;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={valor}
-                      disabled={
-                        isLoading ||
-                        isResending
-                      }
-                      onChange={(event) =>
-                        handleChange(
-                          index,
-                          event.target.value
-                        )
-                      }
-                      onKeyDown={(event) =>
-                        handleKeyDown(
-                          index,
-                          event
-                        )
-                      }
-                      className="
-                        h-[52px]
-                        w-full
-                        max-w-[55px]
-                        rounded-[10px]
-                        border
-                        border-[#d7dce5]
-                        bg-white
-                        text-center
-                        text-[22px]
-                        font-semibold
-                        text-[#102963]
-                        outline-none
-                        transition
-                        focus:border-[#2d97e8]
-                        focus:ring-2
-                        focus:ring-[#2d97e8]/15
-                        disabled:cursor-not-allowed
-                        disabled:bg-gray-100
-                        sm:h-[60px]
-                      "
-                    />
-                  )
-                )}
-              </div>
-
-              {/* ERROR */}
-
-              {error && (
-                <div
-                  className="
-                    mt-4
-                    rounded-md
-                    border
-                    border-red-200
-                    bg-red-50
-                    px-3
-                    py-2
-                    text-[12px]
-                    text-red-600
-                  "
-                >
-                  {error}
-                </div>
-              )}
-
-              {/* MENSAJE OK */}
-
-              {mensaje && (
-                <div
-                  className="
-                    mt-4
-                    rounded-md
-                    border
-                    border-green-200
-                    bg-green-50
-                    px-3
-                    py-2
-                    text-[12px]
-                    text-green-700
-                  "
-                >
-                  {mensaje}
-                </div>
-              )}
-
-              {/* REENVIAR */}
-
-              <div
-                className="
-                  mt-7
-                  text-center
-                  text-[13px]
-                  text-gray-500
-                "
-              >
-                ¿No recibiste el código?{" "}
-
-                <button
-                  type="button"
-                  onClick={
-                    handleReenviarCodigo
-                  }
-                  disabled={
-                    isLoading ||
-                    isResending
-                  }
-                  className="
-                    font-medium
-                    text-[#2d97e8]
-                    hover:underline
-                    disabled:cursor-not-allowed
-                    disabled:opacity-60
-                  "
-                >
-                  {isResending
-                    ? "Reenviando..."
-                    : "Reenviar código"}
-                </button>
-              </div>
-
-              {/* BOTÓN */}
-
-              <button
-                type="submit"
-                disabled={
-                  isLoading ||
-                  isResending
-                }
-                className="
-                  mt-8
-                  h-[56px]
-                  w-full
-                  rounded-[10px]
-                  bg-[#2d97e8]
-                  text-[14px]
-                  font-bold
-                  text-white
-                  shadow-sm
-                  transition
-                  hover:bg-[#2088d8]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-70
-                "
-              >
-                {isLoading
-                  ? "VERIFICANDO..."
-                  : "VERIFICAR CÓDIGO"}
-              </button>
-            </form>
           </div>
-        </div>
+
+          {/* BOTÓN */}
+
+          <button
+            type="submit"
+            disabled={
+              isLoading ||
+              isResending
+            }
+            className="
+              mt-5
+              h-[45px]
+              w-full
+              rounded-[8px]
+              bg-talentia-action
+              text-[13px]
+              font-bold
+              text-white
+              shadow-sm
+              transition
+              hover:bg-talentia-primary
+              disabled:cursor-not-allowed
+              disabled:opacity-70
+            "
+          >
+            {isLoading
+              ? "VERIFICANDO..."
+              : "VERIFICAR CÓDIGO"}
+          </button>
+
+        </form>
+
       </div>
-    </main>
+    </AuthLayout>
   );
 }
