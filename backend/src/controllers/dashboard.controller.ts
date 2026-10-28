@@ -358,6 +358,23 @@ export async function obtenerDashboardEstudiante(
              AND a.fecha_limite IS NOT NULL
              AND a.fecha_limite >= NOW()
 
+             -- Si el alumno ya entregó al menos un intento,
+             -- la actividad deja de ser un "próximo evento".
+             AND NOT EXISTS (
+               SELECT 1
+
+               FROM entregas_actividades ea
+
+               WHERE ea.actividad_id = a.id
+                 AND ea.matricula_id = m.id
+
+                 AND ea.estado IN (
+                   'Entregada',
+                   'Calificada',
+                   'Devuelta'
+                 )
+             )
+
            UNION ALL
 
            SELECT
@@ -399,6 +416,23 @@ export async function obtenerDashboardEstudiante(
 
              AND e.fecha_fin IS NOT NULL
              AND e.fecha_fin >= NOW()
+
+             -- Si el alumno ya envió al menos un intento,
+             -- la evaluación deja de ser un "próximo evento".
+             -- (Un intento 'En curso' sin enviar sigue apareciendo.)
+             AND NOT EXISTS (
+               SELECT 1
+
+               FROM intentos_evaluacion ie
+
+               WHERE ie.evaluacion_id = e.id
+                 AND ie.matricula_id = m.id
+
+                 AND ie.estado IN (
+                   'Enviado',
+                   'Calificado'
+                 )
+             )
 
          ) eventos
 
