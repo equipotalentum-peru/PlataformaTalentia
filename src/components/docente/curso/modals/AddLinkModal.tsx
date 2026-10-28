@@ -5,24 +5,27 @@ import { useState } from "react";
 type AddLinkModalProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (title: string, url: string) => void;
+  onSubmit: (title: string, url: string) => Promise<void>;
 };
 
 export default function AddLinkModal({ open, onClose, onSubmit }: AddLinkModalProps) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   if (!open) return null;
 
   const close = () => {
+    if (saving) return;
     setTitle("");
     setUrl("");
     setError("");
     onClose();
   };
 
-  const submit = () => {
+  const submit = async () => {
+    if (saving) return;
     if (!title.trim() || !url.trim()) {
       setError("Completa ambos campos.");
       return;
@@ -41,8 +44,19 @@ export default function AddLinkModal({ open, onClose, onSubmit }: AddLinkModalPr
       return;
     }
 
-    onSubmit(title.trim(), parsed.toString());
-    close();
+    setSaving(true);
+    setError("");
+    try {
+      await onSubmit(title.trim(), parsed.toString());
+      setTitle("");
+      setUrl("");
+      setError("");
+      onClose();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "No se pudo guardar el enlace.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -61,11 +75,11 @@ export default function AddLinkModal({ open, onClose, onSubmit }: AddLinkModalPr
               <p className="text-[13px] text-talentia-muted">Añade un recurso externo a un recurso web.</p>
             </div>
           </div>
-          <button type="button" onClick={close} className="rounded-full p-1 text-[24px] leading-none text-talentia-primary hover:bg-talentia-hover" aria-label="Cerrar">×</button>
+          <button type="button" onClick={close} disabled={saving} className="rounded-full p-1 text-[24px] leading-none text-talentia-primary hover:bg-talentia-hover disabled:opacity-50" aria-label="Cerrar">×</button>
         </div>
 
         <label className="mt-5 block text-[13px] font-semibold text-talentia-primary" htmlFor="link-title">Título del Enlace:</label>
-        <input id="link-title" value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] outline-none focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15" />
+        <input id="link-title" value={title} disabled={saving} onChange={(event) => setTitle(event.target.value)} className="mt-1 h-9 w-full rounded-md border border-talentia-border bg-talentia-surface px-3 text-[13px] outline-none focus:border-talentia-blue focus:ring-2 focus:ring-talentia-blue/15" />
 
         <label className="mt-3 block text-[13px] font-semibold text-talentia-primary" htmlFor="link-url">URL del Enlace:</label>
         <div className="mt-1 flex h-9 items-center rounded-md border border-talentia-border bg-talentia-surface">
@@ -75,14 +89,14 @@ export default function AddLinkModal({ open, onClose, onSubmit }: AddLinkModalPr
               <path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.14-1.14" />
             </svg>
           </div>
-          <input id="link-url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="http://..." className="min-w-0 flex-1 bg-transparent px-2 text-[13px] outline-none placeholder:text-talentia-placeholder" />
+          <input id="link-url" value={url} disabled={saving} onChange={(event) => setUrl(event.target.value)} placeholder="http://..." className="min-w-0 flex-1 bg-transparent px-2 text-[13px] outline-none placeholder:text-talentia-placeholder" />
         </div>
 
         {error && <p className="mt-2 text-center text-[13px] font-medium text-talentia-danger">{error}</p>}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={close} className="h-8 rounded-md bg-talentia-surface px-4 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-border">Cancelar</button>
-          <button type="button" onClick={submit} className="h-8 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white hover:bg-talentia-primary">Subir Enlace</button>
+          <button type="button" onClick={close} disabled={saving} className="h-8 rounded-md bg-talentia-surface px-4 text-[13px] font-semibold text-talentia-primary hover:bg-talentia-border disabled:opacity-50">Cancelar</button>
+          <button type="button" onClick={() => void submit()} disabled={saving} className="h-8 rounded-md bg-talentia-action px-4 text-[13px] font-semibold text-white hover:bg-talentia-primary disabled:opacity-50">{saving ? "Guardando..." : "Subir Enlace"}</button>
         </div>
       </div>
     </div>

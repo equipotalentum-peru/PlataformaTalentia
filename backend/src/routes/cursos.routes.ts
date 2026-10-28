@@ -11,6 +11,7 @@ import { requireAuth } from "../middleware/auth.middleware";
 import { obtenerArchivoContenido } from "../controllers/contenido-archivo.controller";
 import { subirArchivoContenido } from "../controllers/contenido-subida.controller";
 import { gestionarContenido } from "../controllers/contenido-gestion.controller";
+import { crearEnlaceContenido } from "../controllers/contenido-enlace.controller";
 import { crearModulo, editarModulo, eliminarModulo } from "../controllers/modulos.controller";
 import { obtenerPortadaCurso } from "../controllers/cursos-admin.controller";
 import {
@@ -53,6 +54,7 @@ router.get("/:cursoId/modulos/:moduloId/evaluaciones/componentes-calificacion", 
 router.patch("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.delete("/:cursoId/contenidos/:contenidoId", requireAuth, gestionarContenido);
 router.post("/:cursoId/modulos/:moduloId/archivo", requireAuth, subirArchivoContenido);
+router.post("/:cursoId/modulos/:moduloId/enlace", requireAuth, crearEnlaceContenido);
 router.get("/mis-cursos", requireAuth, obtenerMisCursos);
 router.get("/periodos-academicos", requireAuth, obtenerPeriodosAcademicosEstudiante);
 router.get("/docente/periodos-academicos", requireAuth, obtenerPeriodosAcademicosDocente);

@@ -307,29 +307,6 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
     router.push(`/docente/cursos/${course.id}/crear-evaluacion${query}`);
   };
 
-  const addLocalContent = (type: ContentType, title: string, file?: string) => {
-    const moduleId = selectedModuleId ?? modules[0]?.id;
-    if (!moduleId) return;
-    const currentModuleContents = contents.filter((content) => content.moduleId === moduleId);
-    const maxOrder = Math.max(0, ...currentModuleContents.map((content) => content.order));
-    const nextId = Math.max(0, ...contents.map((content) => content.id)) + 1;
-
-    setContents((current) => [
-      ...current,
-      {
-        id: nextId,
-        moduleId,
-        order: maxOrder + 1,
-        title,
-        type,
-        file,
-        status: "Borrador",
-      },
-    ]);
-    setOpenModules((current) => current.includes(moduleId) ? current : [...current, moduleId]);
-    showNotice("Contenido agregado como borrador.");
-  };
-
   const handleFileSubmit = async (file: File) => {
     const moduleId = selectedModuleId;
     if (!moduleId) throw new Error("Selecciona un módulo para subir el archivo.");
@@ -345,9 +322,29 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
     showNotice("Archivo guardado como borrador.");
   };
 
-  const handleLinkSubmit = (title: string, url: string) => {
-    addLocalContent("link", title, url);
-    setLinkOpen(false);
+  // Guarda el enlace en PostgreSQL; no lo agregues solo al estado local,
+  // porque desaparecería al recargar la página.
+  const handleLinkSubmit = async (title: string, url: string): Promise<void> => {
+    const moduleId = selectedModuleId ?? modules[0]?.id;
+    if (!moduleId) {
+      throw new Error("Selecciona un módulo para agregar el enlace.");
+    }
+
+    const response = await fetch(`${API_URL}/cursos/${courseId}/modulos/${moduleId}/enlace`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ titulo: title, url }),
+    });
+
+    const data: { message?: string } = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message ?? "No se pudo guardar el enlace.");
+    }
+
+    // Vuelve a consultar los contenidos desde PostgreSQL para usar el ID real.
+    setRevision(value => value + 1);
+    showNotice("Enlace guardado en el módulo como borrador.");
   };
 
   const updateContent = async (contentId: number, changes: { titulo?: string; estado?: string }, deleting = false) => {
