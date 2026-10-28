@@ -799,6 +799,15 @@ export default function ActivityViewer({
       Submission[]
     >([]);
 
+  // 0 automático por no entregar a tiempo (no es un intento)
+  const [
+    autoZero,
+    setAutoZero,
+  ] =
+    useState<
+      { nota: number | string | null } | null
+    >(null);
+
   const [
     comment,
     setComment,
@@ -961,6 +970,10 @@ export default function ActivityViewer({
               data.entregas ??
               []
             ) as Submission[]
+          );
+
+          setAutoZero(
+            data.notaAutomatica ?? null
           );
 
 
@@ -2031,7 +2044,17 @@ displayedSubmission && (
             <h2 className="activity-card-title">
               {showDeliveryDetail ? "Historial de intentos" : "Entregas realizadas"}
             </h2>
-            {submissions.length === 0 ? (
+            {submissions.length === 0 && autoZero ? (
+              <div className="mt-3 rounded-md border border-talentia-danger/20 bg-talentia-danger-bg p-3 text-[13px] leading-[1.5]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-talentia-danger">No entregaste dentro del plazo</span>
+                  <span className="rounded bg-talentia-surface px-2 py-1 text-[12px] font-medium text-talentia-danger">
+                    {Number(autoZero.nota ?? 0)}/{maxGrade}
+                  </span>
+                </div>
+                <p className="mt-1 text-talentia-muted">Se asignó la nota automáticamente al vencer la fecha límite.</p>
+              </div>
+            ) : submissions.length === 0 ? (
               <p className="mt-3 text-[14px] text-talentia-muted">Todavía no has realizado entregas.</p>
             ) : (
               <div className="mt-[10px] space-y-[7px]">
@@ -2147,4 +2170,3 @@ displayedSubmission && (
     </div>
   );
 }
-

@@ -139,6 +139,7 @@ export async function obtenerDashboardDocente(
              WHERE ex.actividad_id = a.id
                AND mx.oferta_curso_id = oc.id
                AND ex.estado <> 'Borrador'
+               AND ex.numero_intento > 0
            )
          GROUP BY
            a.id,

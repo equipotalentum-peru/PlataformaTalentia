@@ -180,7 +180,7 @@ async function guardarActividad(req: AuthenticatedRequest, res: Response, editin
         const history = await client.query(
           `SELECT COALESCE(MAX(numero_intento), 0) AS intentos, MAX(nota) AS nota,
              COALESCE(BOOL_OR(nota IS NOT NULL OR estado = 'Calificada'), FALSE) AS calificada
-           FROM entregas_actividades WHERE actividad_id = $1`, [activity.id]
+           FROM entregas_actividades WHERE actividad_id = $1 AND numero_intento > 0`, [activity.id]
         );
         if (b.intentos_permitidos < Number(history.rows[0].intentos)) throw new ActivityInputError("No puedes reducir los intentos por debajo de los ya utilizados.");
         if (history.rows[0].calificada && (!b.calificada || b.puntaje_maximo < Number(history.rows[0].nota ?? 0))) {

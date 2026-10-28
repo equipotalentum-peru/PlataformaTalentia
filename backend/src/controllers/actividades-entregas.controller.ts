@@ -148,10 +148,24 @@ export async function obtenerMiEntrega(req: AuthenticatedRequest, res: Response)
            ORDER BY subido_en DESC LIMIT 1
          ) f ON TRUE
         WHERE e.actividad_id=$1 AND e.matricula_id=$2
+          AND e.numero_intento > 0 -- el intento 0 es el 0 automático, no un intento
         ORDER BY e.numero_intento ASC, e.id ASC`,
       [ctx.rows[0].actividad_id, ctx.rows[0].matricula_id]
     );
-    return res.json({ actividad: ctx.rows[0], entregas: result.rows, rubrica: await obtenerRubrica(ctx.rows[0].actividad_id) });
+    // 0 automático por no entregar a tiempo (se muestra aparte, no como intento)
+    const ceroAutomatico = await pool.query(
+      `SELECT nota, retroalimentacion, calificado_en
+         FROM entregas_actividades
+        WHERE actividad_id=$1 AND matricula_id=$2 AND numero_intento = 0
+        LIMIT 1`,
+      [ctx.rows[0].actividad_id, ctx.rows[0].matricula_id]
+    );
+    return res.json({
+      actividad: ctx.rows[0],
+      entregas: result.rows,
+      notaAutomatica: ceroAutomatico.rows[0] ?? null,
+      rubrica: await obtenerRubrica(ctx.rows[0].actividad_id),
+    });
   } catch (error) {
     console.error("obtenerMiEntrega:", error);
     return res.status(500).json({ message: "No se pudo consultar la entrega." });
@@ -287,7 +301,8 @@ export async function listarEntregasDocente(req: AuthenticatedRequest, res: Resp
           (SELECT COUNT(*)::int
              FROM entregas_actividades et
             WHERE et.actividad_id = a.id
-              AND et.matricula_id = m.id) AS intentos_realizados
+              AND et.matricula_id = m.id
+              AND et.numero_intento > 0) AS intentos_realizados
        FROM modulos_curso mc
        JOIN contenidos_curso cc ON cc.modulo_id = mc.id
        JOIN cursos c ON c.id = mc.curso_id
@@ -391,6 +406,7 @@ export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res
        LEFT JOIN entregas_actividades e
          ON e.actividad_id = a.id
         AND e.matricula_id = m.id
+        AND e.numero_intento > 0
        LEFT JOIN LATERAL (
          SELECT ar.*
            FROM archivos_entrega_actividad ar
