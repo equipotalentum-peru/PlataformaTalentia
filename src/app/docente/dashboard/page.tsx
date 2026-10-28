@@ -43,7 +43,6 @@ type ActividadReciente = {
 type DashboardData = {
   docente: {
     nombres: string;
-    apellidos: string;
   };
   resumen: {
     cursosAsignados: number;

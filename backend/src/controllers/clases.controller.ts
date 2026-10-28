@@ -76,7 +76,7 @@ function formatearClase(row: any) {
     ),
 
     docente: row.docente_nombres
-      ? `Prof. ${row.docente_nombres} ${row.docente_apellidos ?? ""}`.trim()
+      ? `Prof. ${row.docente_nombres}`.trim()
       : "Docente",
 
     zoomUrl: row.url_zoom ?? null,
@@ -88,10 +88,6 @@ function formatearClase(row: any) {
 
     terminaEn: row.termina_en,
 
-    moduloId:
-      row.modulo_id !== null
-        ? Number(row.modulo_id)
-        : null,
 
     ofertaCursoId:
       Number(row.oferta_curso_id),
@@ -211,7 +207,6 @@ export async function obtenerClasesAlumno(
       SELECT
         sc.id,
         sc.oferta_curso_id,
-        sc.modulo_id,
         sc.numero_sesion,
         sc.tema,
         sc.inicia_en,
@@ -220,8 +215,7 @@ export async function obtenerClasesAlumno(
         sc.url_zoom,
         sc.ruta_grabacion,
 
-        u.nombres AS docente_nombres,
-        u.apellidos AS docente_apellidos
+        u.nombres AS docente_nombres
 
       FROM sesiones_clase sc
 
@@ -293,7 +287,6 @@ export async function obtenerClasesDocente(
       SELECT
         sc.id,
         sc.oferta_curso_id,
-        sc.modulo_id,
         sc.numero_sesion,
         sc.tema,
         sc.inicia_en,
@@ -302,8 +295,7 @@ export async function obtenerClasesDocente(
         sc.url_zoom,
         sc.ruta_grabacion,
 
-        u.nombres AS docente_nombres,
-        u.apellidos AS docente_apellidos
+        u.nombres AS docente_nombres
 
       FROM sesiones_clase sc
 
@@ -357,7 +349,6 @@ export async function crearClase(
     }
 
     const {
-      moduloId,
       numeroSesion,
       tema,
       iniciaEn,
@@ -446,7 +437,6 @@ export async function crearClase(
         `
         INSERT INTO sesiones_clase (
           oferta_curso_id,
-          modulo_id,
           docente_id,
           numero_sesion,
           tema,
@@ -462,17 +452,13 @@ export async function crearClase(
           $4,
           $5,
           $6,
-          $7,
           'Programada',
-          $8
+          $7
         )
         RETURNING *
         `,
         [
           acceso.oferta_curso_id,
-          moduloId
-            ? Number(moduloId)
-            : null,
           docenteId,
           numero,
           tema.trim(),
@@ -555,7 +541,6 @@ export async function editarClase(
       tema,
       iniciaEn,
       terminaEn,
-      moduloId,
     } = req.body;
 
     /*
@@ -646,20 +631,16 @@ export async function editarClase(
           tema = $1,
           inicia_en = $2,
           termina_en = $3,
-          modulo_id = $4,
           actualizado_en = CURRENT_TIMESTAMP
-        WHERE id = $5
-          AND oferta_curso_id = $6
-          AND docente_id = $7
+        WHERE id = $4
+          AND oferta_curso_id = $5
+          AND docente_id = $6
         RETURNING *
         `,
         [
           nuevoTema,
           nuevoInicio,
           nuevoFin,
-          moduloId
-            ? Number(moduloId)
-            : clase.modulo_id,
           claseId,
           acceso.oferta_curso_id,
           docenteId,

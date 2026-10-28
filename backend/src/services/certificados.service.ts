@@ -371,11 +371,7 @@ async function emitirCertificadoBloqueado(
          c.codigo
            AS codigo_curso,
 
-         CONCAT_WS(
-           ' ',
-           u.nombres,
-           u.apellidos
-         ) AS estudiante
+         u.nombres AS estudiante
 
        FROM matriculas m
 
@@ -396,8 +392,7 @@ async function emitirCertificadoBloqueado(
          AND (${origen === "administrador" ? requisitosCertificacionAdminSql : requisitosCertificacionSql})
          AND ($2::BOOLEAN OR NOT EXISTS (
            SELECT 1 FROM certificados bloqueo
-           WHERE bloqueo.matricula_id = m.id AND bloqueo.modulo_id IS NULL
-             AND bloqueo.tipo = 'Aprobacion' AND bloqueo.visible_alumno = FALSE
+           WHERE bloqueo.matricula_id = m.id AND bloqueo.tipo = 'Aprobacion' AND bloqueo.visible_alumno = FALSE
          ))
          AND u.rol =
              'Estudiante'
@@ -466,9 +461,6 @@ async function emitirCertificadoBloqueado(
 
        WHERE matricula_id = $1
 
-         AND modulo_id
-             IS NULL
-
          AND tipo =
              'Aprobacion'
 
@@ -515,7 +507,6 @@ async function emitirCertificadoBloqueado(
       certificadoResult = await client.query(
         `INSERT INTO certificados (
           matricula_id,
-          modulo_id,
           tipo,
           numero_certificado,
           codigo_verificacion,
@@ -525,7 +516,6 @@ async function emitirCertificadoBloqueado(
         )
         VALUES (
           $1,
-          NULL,
           'Aprobacion',
           $2,
           $3,

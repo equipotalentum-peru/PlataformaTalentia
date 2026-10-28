@@ -319,11 +319,7 @@ export async function obtenerDashboardAdministrador(
              u.id
                AS estudiante_id,
 
-             CONCAT_WS(
-               ' ',
-               u.nombres,
-               u.apellidos
-             ) AS nombre,
+             u.nombres AS nombre,
 
              ROUND(
                AVG(pm.promedio),
@@ -349,8 +345,7 @@ export async function obtenerDashboardAdministrador(
 
            GROUP BY
              u.id,
-             u.nombres,
-             u.apellidos
+             u.nombres
 
            ORDER BY
              promedio DESC,

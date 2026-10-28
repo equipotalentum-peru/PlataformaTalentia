@@ -26,9 +26,6 @@ import pool from "../config/database";
 export const MENSAJE_CERO_ACTIVIDAD =
   "Calificación automática: no se entregó dentro del plazo.";
 
-export const MENSAJE_CERO_EVALUACION =
-  "Calificación automática: no se envió ningún intento dentro del plazo.";
-
 let sincronizando = false;
 
 export async function asignarCerosAutomaticos() {
@@ -156,13 +153,12 @@ export async function asignarCerosAutomaticos() {
           AND e.id = comp.evaluacion_id
           AND cal.intento_evaluacion_id IS NULL
           AND cal.calificado_por IS NULL
-          AND cal.retroalimentacion = $1
+          AND cal.nota = 0
           AND (
             e.fecha_fin IS NULL
             OR e.fecha_fin > CURRENT_TIMESTAMP
             OR e.calificada = FALSE
-          )`,
-      [MENSAJE_CERO_EVALUACION]
+          )`
     );
 
     // 2) Se crea el 0 automático a quien no envió ningún intento.
@@ -171,14 +167,12 @@ export async function asignarCerosAutomaticos() {
          componente_id,
          matricula_id,
          nota,
-         retroalimentacion,
          calificado_en
        )
        SELECT
          comp.id,
          m.id,
          0,
-         $1,
          CURRENT_TIMESTAMP
        FROM evaluaciones e
        INNER JOIN contenidos_curso cc
@@ -211,8 +205,7 @@ export async function asignarCerosAutomaticos() {
          )
        -- Si ya tiene nota en ese componente, no se toca
        ON CONFLICT (componente_id, matricula_id)
-       DO NOTHING`,
-      [MENSAJE_CERO_EVALUACION]
+       DO NOTHING`
     );
   } catch (error) {
     console.error(

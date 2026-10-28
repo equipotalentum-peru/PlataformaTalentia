@@ -7,32 +7,24 @@ import { useRouter } from "next/navigation";
 interface Docente {
   id: string;
   nombre: string;
-  especialidad: string;
   carga: string;
-  disponibilidad: string;
 }
 
 const docentesLista: Docente[] = [
   {
     id: "1",
     nombre: "Gloria Rocha",
-    especialidad: "Diseño y TIC",
     carga: "3 cursos",
-    disponibilidad: "Lun-Mié",
   },
   {
     id: "2",
     nombre: "Luis Vega",
-    especialidad: "UX Research",
     carga: "2 cursos",
-    disponibilidad: "Mar-Jue",
   },
   {
     id: "3",
     nombre: "Ana Torres",
-    especialidad: "Producto digital",
     carga: "4 cursos",
-    disponibilidad: "Viernes",
   },
 ];
 
@@ -43,9 +35,7 @@ export default function AsignarDocente() {
 
   const docentesFiltrados = docentesLista.filter(
     (docente) =>
-      docente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      docente.especialidad.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      docente.disponibilidad.toLowerCase().includes(searchTerm.toLowerCase())
+      docente.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleGuardar = () => {
@@ -88,7 +78,7 @@ export default function AsignarDocente() {
           </label>
           <input
             type="text"
-            placeholder="Nombre, especialidad o disponibilidad"
+            placeholder="Nombre del docente"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3 text-sm text-talentia-primary placeholder-talentia-placeholder focus:outline-none focus:ring-2 focus:ring-talentia-blue focus:bg-talentia-surface transition font-medium"
@@ -101,9 +91,7 @@ export default function AsignarDocente() {
             <thead>
               <tr className="bg-talentia-surface text-talentia-primary text-xs font-extrabold">
                 <th className="py-4 px-6">Docente</th>
-                <th className="py-4 px-6">Especialidad</th>
                 <th className="py-4 px-6">Carga</th>
-                <th className="py-4 px-6">Disponibilidad</th>
                 <th className="py-4 px-6 text-center">Acción</th>
               </tr>
             </thead>
@@ -116,13 +104,7 @@ export default function AsignarDocente() {
                     className="hover:bg-talentia-hover/50 transition"
                   >
                     <td className="py-4 px-6 font-bold">{docente.nombre}</td>
-                    <td className="py-4 px-6 text-talentia-muted">
-                      {docente.especialidad}
-                    </td>
                     <td className="py-4 px-6 text-talentia-muted">{docente.carga}</td>
-                    <td className="py-4 px-6 text-talentia-muted">
-                      {docente.disponibilidad}
-                    </td>
                     <td className="py-4 px-6 text-center">
                       <button
                         type="button"
@@ -143,7 +125,7 @@ export default function AsignarDocente() {
               {docentesFiltrados.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={3}
                     className="py-8 text-center text-talentia-muted text-sm"
                   >
                     No se encontraron docentes con esos criterios.

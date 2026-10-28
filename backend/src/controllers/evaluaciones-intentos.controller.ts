@@ -1024,7 +1024,7 @@ async function construirDetalleIntento(
        ie.enviado_en AS "enviadoEn",
        ie.estado,
        m.estudiante_id::TEXT AS "alumnoId",
-       TRIM(CONCAT(u.nombres, ' ', COALESCE(u.apellidos, ''))) AS alumno,
+       BTRIM(u.nombres) AS alumno,
        e.puntaje_total::NUMERIC AS "puntajeTotal",
        e.tiempo_limite_minutos AS "tiempoLimiteMinutos",
        cc.titulo,
@@ -1349,7 +1349,7 @@ export async function obtenerSeguimientoEvaluacionDocente(
       `SELECT DISTINCT ON (u.id)
          u.id::TEXT AS "alumnoId",
          m.id::TEXT AS "matriculaId",
-         TRIM(CONCAT(u.nombres, ' ', COALESCE(u.apellidos, ''))) AS alumno,
+         BTRIM(u.nombres) AS alumno,
          u.correo,
          m.estado AS "estadoMatricula",
          (
@@ -1509,7 +1509,7 @@ export async function obtenerIntentosEvaluacionAlumnoDocente(
     }
 
     const alumnoResult = await client.query(
-      `SELECT TRIM(CONCAT(nombres, ' ', COALESCE(apellidos, ''))) AS nombre
+      `SELECT BTRIM(nombres) AS nombre
        FROM usuarios
        WHERE id = $1 AND rol = 'Estudiante'
        LIMIT 1`,

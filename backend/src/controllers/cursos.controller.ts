@@ -349,7 +349,6 @@ const modulosResult = await pool.query(
      mc.id,
      mc.numero,
      mc.titulo,
-     mc.descripcion,
      mc.orden,
 
      COALESCE(

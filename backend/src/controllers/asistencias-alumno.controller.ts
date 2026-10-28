@@ -31,7 +31,7 @@ export async function obtenerAsistenciaAlumno(req: AuthenticatedRequest, res: Re
       `SELECT
          m.id::TEXT AS matricula_id,
          oc.id::TEXT AS oferta_curso_id,
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS nombre,
+         BTRIM(u.nombres) AS nombre,
          u.correo,
          c.nombre AS curso
        FROM matriculas m

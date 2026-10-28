@@ -65,8 +65,7 @@ export default function AsignarDocente({
     if (!termino) return docentes;
 
     return docentes.filter((docente) =>
-      [docente.nombre, docente.especialidad, docente.disponibilidad]
-        .join(" ")
+      docente.nombre
         .toLowerCase()
         .includes(termino)
     );
@@ -115,7 +114,7 @@ export default function AsignarDocente({
             type="search"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Nombre, especialidad o disponibilidad"
+            placeholder="Nombre del docente"
             className="w-full max-w-md bg-talentia-surface border border-talentia-border rounded-2xl px-4 py-3 text-sm text-talentia-primary focus:outline-none focus:ring-2 focus:ring-talentia-blue"
           />
         </div>
@@ -131,20 +130,18 @@ export default function AsignarDocente({
             <thead>
               <tr className="bg-talentia-surface text-xs font-extrabold text-talentia-primary">
                 <th className="p-4 rounded-l-2xl">Docente</th>
-                <th className="p-4">Especialidad</th>
                 <th className="p-4">Carga</th>
-                <th className="p-4">Disponibilidad</th>
                 <th className="p-4 rounded-r-2xl">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-talentia-border text-sm font-medium text-talentia-primary">
               {cargando ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-talentia-muted">Cargando docentes...</td>
+                  <td colSpan={3} className="p-8 text-center text-talentia-muted">Cargando docentes...</td>
                 </tr>
               ) : docentesFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-talentia-muted">
+                  <td colSpan={3} className="p-8 text-center text-talentia-muted">
                     {docentes.length === 0 ? "No hay docentes activos registrados." : "No hay docentes que coincidan con la búsqueda."}
                   </td>
                 </tr>
@@ -154,9 +151,7 @@ export default function AsignarDocente({
                   return (
                     <tr key={docente.id}>
                       <td className="p-4 font-bold">{docente.nombre}</td>
-                      <td className="p-4 text-talentia-muted">{docente.especialidad}</td>
                       <td className="p-4 text-talentia-muted">{docente.carga} cursos</td>
-                      <td className="p-4 text-talentia-muted">{docente.disponibilidad}</td>
                       <td className="p-4">
                         <button
                           type="button"

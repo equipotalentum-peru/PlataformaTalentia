@@ -20,7 +20,6 @@ export async function obtenerDashboardDocente(
       `SELECT
          id,
          nombres,
-         apellidos,
          rol
        FROM usuarios
        WHERE id = $1
@@ -117,15 +116,6 @@ export async function obtenerDashboardDocente(
              WHERE ea2.actividad_id = a.id
                AND ea2.matricula_id = m.id
                AND (ea2.estado = 'Calificada' OR ea2.calificado_en IS NOT NULL)
-           )
-           -- ...ni nota puesta a mano en Calificaciones
-           AND NOT EXISTS (
-             SELECT 1
-             FROM calificaciones cal
-             INNER JOIN componentes_calificacion comp
-               ON comp.id = cal.componente_id
-             WHERE comp.actividad_id = a.id
-               AND cal.matricula_id = m.id
            )
            -- Venció y no entregó: ya no está pendiente
            -- (calificada = 0 automático; no calificada = nada que revisar)
@@ -526,14 +516,10 @@ export async function obtenerDashboardDocente(
       usuarioResult.rows[0].nombres ?? "Docente"
     ).trim();
 
-    const apellidos = String(
-      usuarioResult.rows[0].apellidos ?? ""
-    ).trim();
 
     return res.status(200).json({
       docente: {
         nombres: nombre,
-        apellidos,
       },
 
       resumen: {

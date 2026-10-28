@@ -17,7 +17,6 @@ type ComponenteCalificacion = {
 type CalificacionAlumno = {
   componenteId: number;
   nota: number | null;
-  retroalimentacion: string | null;
   calificadoEn: string | null;
 };
 
@@ -679,9 +678,6 @@ export default function TeacherGradesPage() {
                         componenteId,
 
                         nota,
-
-                        retroalimentacion:
-                          null,
 
                         calificadoEn:
                           null,

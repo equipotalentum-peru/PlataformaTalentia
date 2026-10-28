@@ -142,25 +142,20 @@ export async function eliminarModulo(req: AuthenticatedRequest, res: Response) {
       files = paths.rows.filter(file => !file.compartido).map(file => file.ruta_archivo);
       sharedFiles = paths.rows.filter(file => file.compartido).length;
       const components = await client.query<{ id: string }>(
-        `SELECT id FROM componentes_calificacion WHERE actividad_id IN (
-           SELECT a.id FROM actividades a JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $1
-         ) OR evaluacion_id IN (
+        `SELECT id FROM componentes_calificacion WHERE evaluacion_id IN (
            SELECT e.id FROM evaluaciones e JOIN contenidos_curso cc ON cc.id = e.contenido_id WHERE cc.modulo_id = $1
          ) ORDER BY id FOR UPDATE`, [moduleId]
       );
       const componentIds = components.rows.map(component => component.id);
       await client.query(
         `DELETE FROM calificaciones WHERE componente_id = ANY($1::BIGINT[])
-         OR entrega_id IN (
-           SELECT ea.id FROM entregas_actividades ea JOIN actividades a ON a.id = ea.actividad_id
-           JOIN contenidos_curso cc ON cc.id = a.contenido_id WHERE cc.modulo_id = $2
-         ) OR intento_evaluacion_id IN (
+         OR intento_evaluacion_id IN (
            SELECT ie.id FROM intentos_evaluacion ie JOIN evaluaciones e ON e.id = ie.evaluacion_id
            JOIN contenidos_curso cc ON cc.id = e.contenido_id WHERE cc.modulo_id = $2
          )`, [componentIds, moduleId]
       );
       await client.query(
-        `UPDATE componentes_calificacion SET actividad_id = NULL, evaluacion_id = NULL
+        `UPDATE componentes_calificacion SET evaluacion_id = NULL
          WHERE id = ANY($1::BIGINT[])`, [componentIds]
       );
       releasedComponents = componentIds.length;

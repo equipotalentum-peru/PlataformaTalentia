@@ -336,7 +336,7 @@ export async function listarCursosAdministrador(
              AND m.estado IN ('Activa', 'Completada')
          ), 0) AS matriculados,
          COALESCE(
-           NULLIF(BTRIM(CONCAT_WS(' ', NULLIF(u.nombres, ''), NULLIF(u.apellidos, ''))), ''),
+           NULLIF(BTRIM(u.nombres), ''),
            'Sin asignar'
          ) AS docente
        FROM cursos c
@@ -369,16 +369,14 @@ export async function listarDocentesAdministrador(
     const resultado = await pool.query(
       `SELECT
          u.id::TEXT AS id,
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS nombre,
-         COALESCE(u.especialidad, 'Sin especificar') AS especialidad,
-         COALESCE(u.disponibilidad, 'No especificada') AS disponibilidad,
+         BTRIM(u.nombres) AS nombre,
          COUNT(DISTINCT oc.id) FILTER (WHERE oc.estado <> 'Cancelado')::INTEGER AS carga
        FROM usuarios u
        LEFT JOIN ofertas_curso oc ON oc.docente_id = u.id
        WHERE u.rol = 'Docente'
          AND u.activo = TRUE
        GROUP BY u.id
-       ORDER BY u.nombres, u.apellidos`
+       ORDER BY u.nombres`
     );
 
     return res.status(200).json({ docentes: resultado.rows });
@@ -741,9 +739,7 @@ export async function obtenerCursoAdministrador(
          p.activo AS periodo_activo,
          COALESCE(oc.cupo_maximo, 0)::INTEGER AS cupos,
          oc.docente_id::TEXT AS docente_id,
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS docente_nombre,
-         COALESCE(u.especialidad, 'Sin especificar') AS docente_especialidad,
-         COALESCE(u.disponibilidad, 'No especificada') AS docente_disponibilidad,
+         BTRIM(u.nombres) AS docente_nombre,
          COALESCE((
            SELECT COUNT(*)
            FROM ofertas_curso oc2
@@ -795,8 +791,6 @@ export async function obtenerCursoAdministrador(
       ? {
           id: String(fila.docente_id),
           nombre: fila.docente_nombre || "Docente",
-          especialidad: fila.docente_especialidad || "Sin especificar",
-          disponibilidad: fila.docente_disponibilidad || "No especificada",
           carga: Number(fila.docente_carga) || 0,
         }
       : null;

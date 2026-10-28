@@ -109,14 +109,9 @@ export default function ClassDetailsModal({
           <DetailItem label="Fecha y hora de inicio" value={formatDateTime(classSession.iniciaEn)} />
           <DetailItem label="Fecha y hora de término" value={formatDateTime(classSession.terminaEn)} />
           <DetailItem label="Docente" value={classSession.docente || "No asignado"} />
-          <DetailItem
-            label="Módulo"
-            value={classSession.moduloTitulo || (classSession.moduloId ? `Módulo ${classSession.moduloId}` : "Sin módulo asignado")}
-          />
           <DetailItem label="ID de la sesión" value={classSession.id} />
           <DetailItem label="Número de sesión" value={classSession.numero} />
           <DetailItem label="ID de la oferta del curso" value={classSession.ofertaCursoId ?? "No registrado"} />
-          <DetailItem label="ID del módulo" value={classSession.moduloId ?? "No asignado"} />
           <DetailItem label="Creada en la base de datos" value={formatDateTime(classSession.creadoEn)} />
           <DetailItem label="Última actualización" value={formatDateTime(classSession.actualizadoEn)} />
 

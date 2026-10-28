@@ -7,8 +7,6 @@ export type ComponenteCalificacionDraft = {
 export type DocenteDisponible = {
   id: string;
   nombre: string;
-  especialidad: string;
-  disponibilidad: string;
   carga: number;
 };
 

@@ -30,7 +30,7 @@ export async function listarMatriculas(_req: Request, res: Response) {
          m.id::TEXT AS id,
          'MAT' || LPAD(m.id::TEXT, 4, '0') AS codigo,
          m.estudiante_id::TEXT AS "estudianteId",
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS alumno,
+         BTRIM(u.nombres) AS alumno,
          COALESCE(NULLIF(u.id_persona, ''), u.usuario) AS "codigoAlumno",
          oc.id::TEXT AS "ofertaCursoId",
          c.nombre AS curso,
@@ -70,12 +70,12 @@ export async function obtenerOpcionesMatricula(_req: Request, res: Response) {
       pool.query(
         `SELECT
            id::TEXT AS id,
-           BTRIM(CONCAT_WS(' ', nombres, apellidos)) AS nombre,
+           BTRIM(nombres) AS nombre,
            COALESCE(NULLIF(id_persona, ''), usuario) AS codigo
          FROM usuarios
          WHERE rol = 'Estudiante'
            AND activo = TRUE
-         ORDER BY nombres, apellidos`
+         ORDER BY nombres`
       ),
       pool.query(
         `SELECT
@@ -95,13 +95,13 @@ export async function obtenerOpcionesMatricula(_req: Request, res: Response) {
            c.codigo,
            oc.periodo_id::TEXT AS "periodoId",
            p.nombre AS "periodoNombre",
-           TO_CHAR(COALESCE(oc.fecha_inicio, p.fecha_inicio), 'YYYY-MM-DD') AS "fechaInicio",
-           TO_CHAR(COALESCE(oc.fecha_fin, p.fecha_fin), 'YYYY-MM-DD') AS "fechaFin",
+           TO_CHAR(p.fecha_inicio, 'YYYY-MM-DD') AS "fechaInicio",
+           TO_CHAR(p.fecha_fin, 'YYYY-MM-DD') AS "fechaFin",
            oc.cupo_maximo::INTEGER AS "cupoMaximo",
            COALESCE(ins.ocupadas, 0)::INTEGER AS ocupadas,
            GREATEST(oc.cupo_maximo - COALESCE(ins.ocupadas, 0), 0)::INTEGER AS "cuposDisponibles",
            COALESCE(
-             NULLIF(BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)), ''),
+             NULLIF(BTRIM(u.nombres), ''),
              'Sin asignar'
            ) AS docente
          FROM ofertas_curso oc
@@ -180,8 +180,6 @@ export async function registrarMatricula(req: Request, res: Response) {
       `SELECT
          oc.id,
          oc.periodo_id::TEXT AS periodo_id,
-         oc.fecha_inicio,
-         oc.fecha_fin,
          oc.cupo_maximo,
          oc.estado AS estado_oferta,
          oc.publicado,

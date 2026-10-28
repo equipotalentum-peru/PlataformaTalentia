@@ -143,7 +143,7 @@ export default function VistaPublicarCurso({
         <div>
           <h3 className="mb-2 text-sm font-extrabold text-talentia-primary">Docente responsable</h3>
           <p className="rounded-2xl bg-talentia-surface p-4 text-sm text-talentia-muted">
-            {docente ? `${docente.nombre} · ${docente.especialidad}` : "Sin docente asignado"}
+            {docente ? docente.nombre : "Sin docente asignado"}
           </p>
         </div>
 

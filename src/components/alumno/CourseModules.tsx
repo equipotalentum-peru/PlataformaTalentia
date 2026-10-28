@@ -55,7 +55,6 @@ type ModuloCurso = {
   id: number;
   numero: number;
   titulo: string;
-  descripcion: string | null;
   orden: number;
   contenidos: ContenidoCurso[];
 };

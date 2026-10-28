@@ -11,7 +11,6 @@ type ComponenteFila = {
   porcentaje: string | number | null;
   puntaje_maximo: string | number | null;
   nota: string | number | null;
-  retroalimentacion: string | null;
   calificado_en: string | null;
 };
 
@@ -96,9 +95,6 @@ export async function obtenerMisCalificaciones(
 
                 'nota',
                 cal.nota,
-
-                'retroalimentacion',
-                cal.retroalimentacion,
 
                 'calificado_en',
                 cal.calificado_en

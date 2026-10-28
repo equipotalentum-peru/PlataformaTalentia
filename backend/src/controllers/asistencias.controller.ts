@@ -156,14 +156,14 @@ export async function obtenerAsistenciaDocente(req: AuthenticatedRequest, res: R
       `SELECT
          m.id::TEXT AS matricula_id,
          e.id::TEXT AS estudiante_id,
-         TRIM(CONCAT_WS(' ', e.nombres, e.apellidos)) AS nombre
+         TRIM(e.nombres) AS nombre
        FROM matriculas m
        INNER JOIN usuarios e ON e.id = m.estudiante_id
        WHERE m.oferta_curso_id = $1
          AND m.estado IN ('Activa', 'Completada')
          AND e.rol = 'Estudiante'
          AND e.activo = TRUE
-       ORDER BY e.apellidos ASC, e.nombres ASC, m.id ASC`,
+       ORDER BY e.nombres ASC, m.id ASC`,
       [ofertaCursoId]
     );
 

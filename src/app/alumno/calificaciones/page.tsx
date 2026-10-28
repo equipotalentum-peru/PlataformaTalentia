@@ -25,10 +25,6 @@ type ComponenteCalificacion = {
     | number
     | null;
 
-  retroalimentacion:
-    | string
-    | null;
-
   calificado_en:
     | string
     | null;

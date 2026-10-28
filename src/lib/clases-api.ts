@@ -51,7 +51,6 @@ export async function obtenerClasesDocente(
 export async function crearClase(
   cursoId: number,
   data: {
-    moduloId?: number | null;
     numeroSesion?: number;
     tema: string;
     iniciaEn: string;
@@ -89,7 +88,6 @@ export async function editarClase(
   cursoId: number,
   claseId: number,
   data: {
-    moduloId?: number | null;
     tema?: string;
     iniciaEn?: string;
     terminaEn?: string;

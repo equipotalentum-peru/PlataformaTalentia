@@ -92,9 +92,6 @@ export async function listarCertificadosEstudiante(
            m.estudiante_id = $1
            AND (${certificadoVisibleAlumnoSql})
 
-           AND cert.modulo_id
-               IS NULL
-
            AND cert.tipo =
                'Aprobacion'
 
@@ -185,11 +182,7 @@ export async function obtenerCertificadoEstudiante(
            c.imagen_portada
              AS imagen,
 
-           CONCAT_WS(
-             ' ',
-             u.nombres,
-             u.apellidos
-           ) AS estudiante,
+           u.nombres AS estudiante,
 
            cert.numero_certificado
              AS "numeroCertificado",
@@ -205,11 +198,11 @@ export async function obtenerCertificadoEstudiante(
 
            CASE
              WHEN
-               oc.fecha_inicio
+               p.fecha_inicio
                  IS NOT NULL
 
                AND
-               oc.fecha_fin
+               p.fecha_fin
                  IS NOT NULL
 
              THEN
@@ -217,8 +210,8 @@ export async function obtenerCertificadoEstudiante(
                  1,
                  CEIL(
                    (
-                     oc.fecha_fin -
-                     oc.fecha_inicio +
+                     p.fecha_fin -
+                     p.fecha_inicio +
                      1
                    ) / 30.0
                  )::INTEGER
@@ -247,6 +240,7 @@ export async function obtenerCertificadoEstudiante(
            ON c.id =
               oc.curso_id
 
+         LEFT JOIN periodos_academicos p ON p.id = oc.periodo_id
          INNER JOIN usuarios u
            ON u.id =
               m.estudiante_id
@@ -257,10 +251,6 @@ export async function obtenerCertificadoEstudiante(
 
            AND
              m.estudiante_id = $2
-
-           AND
-             cert.modulo_id
-             IS NULL
 
            AND cert.tipo =
                'Aprobacion'
@@ -375,10 +365,6 @@ export async function descargarCertificadoEstudiante(
 
            AND
              m.estudiante_id = $2
-
-           AND
-             cert.modulo_id
-             IS NULL
 
            AND cert.tipo =
                'Aprobacion'

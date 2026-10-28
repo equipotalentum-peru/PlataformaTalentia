@@ -240,7 +240,6 @@ export async function listarComponentesCalificacionDocente(
            JOIN contenidos_curso contenido ON contenido.id = e.contenido_id
            WHERE contenido.id = $3 AND contenido.modulo_id = $4
          ))
-         AND cc.actividad_id IS NULL
        ORDER BY p.fecha_inicio DESC NULLS LAST, cc.id`,
       [cursoId, req.userId, contenidoId, moduloId]
     );
@@ -456,7 +455,6 @@ async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, 
            AND oc.docente_id = $3
            AND oc.estado <> 'Cancelado'
            AND (cc.evaluacion_id IS NULL OR cc.evaluacion_id = $4::BIGINT)
-           AND cc.actividad_id IS NULL
          FOR UPDATE OF cc`,
         [componenteId, cursoId, usuarioId, editing ? evaluacionId : null]
       );
@@ -559,7 +557,7 @@ async function guardarEvaluacionCurso(req: AuthenticatedRequest, res: Response, 
          SET evaluacion_id = $1
          WHERE id = $2
            AND evaluacion_id IS NULL
-           AND actividad_id IS NULL`,
+           `,
         [evaluacionId, componenteId]
       );
 

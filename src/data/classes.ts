@@ -21,8 +21,6 @@ export type ClassSession = {
   iniciaEn?: string;
   terminaEn?: string;
 
-  moduloId?: number | null;
-  moduloTitulo?: string | null;
   ofertaCursoId?: number;
   creadoEn?: string | null;
   actualizadoEn?: string | null;

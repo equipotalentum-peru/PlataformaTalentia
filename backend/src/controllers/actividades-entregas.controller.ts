@@ -288,7 +288,7 @@ export async function listarEntregasDocente(req: AuthenticatedRequest, res: Resp
       `SELECT
           m.estudiante_id AS alumno_id,
           m.id AS matricula_id,
-          TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
+          BTRIM(u.nombres) AS alumno,
           e.id AS entrega_id,
           e.numero_intento,
           e.estado,
@@ -337,7 +337,7 @@ export async function listarEntregasDocente(req: AuthenticatedRequest, res: Resp
       WHERE c.id = $1
         AND cc.id = $2
         AND cc.tipo = 'actividad'
-      ORDER BY u.apellidos NULLS LAST, u.nombres`,
+      ORDER BY u.nombres`,
       [courseId, contentId, userId, ctx.rows[0].oferta_curso_id]
     );
 
@@ -384,7 +384,7 @@ export async function obtenerEntregaAlumnoDocente(req: AuthenticatedRequest, res
           e.calificado_en,
           m.id AS matricula_id,
           m.estudiante_id AS alumno_id,
-          TRIM(CONCAT(COALESCE(u.nombres,''),' ',COALESCE(u.apellidos,''))) AS alumno,
+          BTRIM(u.nombres) AS alumno,
           f.id AS archivo_id,
           f.nombre_archivo,
           f.tamano_bytes,

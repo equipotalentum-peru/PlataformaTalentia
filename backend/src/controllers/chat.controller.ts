@@ -21,40 +21,9 @@ function validarId(value: unknown) {
     : null;
 }
 
-function obtenerIniciales(
-  nombres: string,
-  apellidos?: string | null
-) {
-  const primera =
-    nombres.trim().charAt(0).toUpperCase();
-
-  const apellido =
-    apellidos?.trim().charAt(0).toUpperCase() ?? "";
-
-  if (apellido) {
-    return `${primera}${apellido}`;
-  }
-
-  const partes =
-    nombres.trim().split(/\s+/);
-
-  if (partes.length > 1) {
-    return (
-      partes[0].charAt(0) +
-      partes[1].charAt(0)
-    ).toUpperCase();
-  }
-
-  return primera;
-}
-
-function nombreCompleto(
-  nombres: string,
-  apellidos?: string | null
-) {
-  return `${nombres} ${
-    apellidos ?? ""
-  }`.trim();
+function obtenerIniciales(nombres: string) {
+  const partes = nombres.trim().split(/\s+/);
+  return partes.slice(0, 2).map((parte) => parte.charAt(0)).join("").toUpperCase();
 }
 
 function emitirMensajeChat(
@@ -392,11 +361,6 @@ export async function obtenerCursosChat(
             ''
           ) AS docente_nombres,
 
-          COALESCE(
-            docente.apellidos,
-            ''
-          ) AS docente_apellidos,
-
           (
             SELECT COUNT(*)::INTEGER
             FROM matriculas m2
@@ -457,11 +421,6 @@ export async function obtenerCursosChat(
             ''
           ) AS docente_nombres,
 
-          COALESCE(
-            docente.apellidos,
-            ''
-          ) AS docente_apellidos,
-
           (
             SELECT COUNT(*)::INTEGER
             FROM matriculas m2
@@ -508,7 +467,7 @@ export async function obtenerCursosChat(
           nombre: row.nombre,
           codigo: row.codigo,
           imagen: row.imagen ?? null,
-          initials: obtenerIniciales(row.docente_nombres || row.nombre, row.docente_apellidos),
+          initials: obtenerIniciales(row.docente_nombres || row.nombre),
           miembros: Number(row.miembros),
         })
       ),
@@ -580,7 +539,6 @@ export async function obtenerContactosChat(
             SELECT
               u.id,
               u.nombres,
-              u.apellidos,
               u.rol,
               0 AS orden_tipo
 
@@ -598,7 +556,6 @@ export async function obtenerContactosChat(
             SELECT
               u.id,
               u.nombres,
-              u.apellidos,
               u.rol,
               1 AS orden_tipo
 
@@ -623,7 +580,6 @@ export async function obtenerContactosChat(
           SELECT
             candidatos.id,
             candidatos.nombres,
-            candidatos.apellidos,
             candidatos.rol,
             foto_usuario.foto_perfil IS NOT NULL AS tiene_foto_perfil,
             EXTRACT(EPOCH FROM foto_usuario.actualizado_en)::TEXT AS foto_version,
@@ -689,8 +645,7 @@ export async function obtenerContactosChat(
 
           ORDER BY
             candidatos.orden_tipo,
-            candidatos.nombres,
-            candidatos.apellidos
+            candidatos.nombres
           `,
           [
             acceso.oferta_curso_id,
@@ -705,7 +660,6 @@ export async function obtenerContactosChat(
           SELECT
             u.id,
             u.nombres,
-            u.apellidos,
             u.rol,
             u.foto_perfil IS NOT NULL AS tiene_foto_perfil,
             EXTRACT(EPOCH FROM u.actualizado_en)::TEXT AS foto_version,
@@ -778,8 +732,7 @@ export async function obtenerContactosChat(
             AND u.activo = TRUE
 
           ORDER BY
-            u.nombres,
-            u.apellidos
+            u.nombres
           `,
           [
             acceso.oferta_curso_id,
@@ -803,8 +756,8 @@ export async function obtenerContactosChat(
             id:
               Number(row.id),
 
-            initials: obtenerIniciales(row.nombres, row.apellidos),
-            name: row.rol === "Docente" ? `Prof. ${nombreCompleto(row.nombres, row.apellidos)}` : nombreCompleto(row.nombres, row.apellidos),
+            initials: obtenerIniciales(row.nombres),
+            name: row.rol === "Docente" ? `Prof. ${String(row.nombres).trim()}` : String(row.nombres).trim(),
             role: row.rol,
             unread: Boolean(row.no_leido),
             fotoPerfil: row.tiene_foto_perfil

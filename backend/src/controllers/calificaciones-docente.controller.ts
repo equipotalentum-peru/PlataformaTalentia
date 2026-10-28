@@ -251,13 +251,7 @@ export async function obtenerCalificacionesDocente(
          m.id AS matricula_id,
          m.estudiante_id,
 
-         TRIM(
-           CONCAT(
-             COALESCE(u.nombres, ''),
-             ' ',
-             COALESCE(u.apellidos, '')
-           )
-         ) AS alumno,
+         BTRIM(u.nombres) AS alumno,
 
          COALESCE(
            json_agg(
@@ -267,9 +261,6 @@ export async function obtenerCalificacionesDocente(
 
                'nota',
                cal.nota,
-
-               'retroalimentacion',
-               cal.retroalimentacion,
 
                'calificadoEn',
                cal.calificado_en
@@ -306,11 +297,9 @@ export async function obtenerCalificacionesDocente(
        GROUP BY
          m.id,
          m.estudiante_id,
-         u.nombres,
-         u.apellidos
+         u.nombres
 
        ORDER BY
-         u.apellidos NULLS LAST,
          u.nombres,
          m.estudiante_id`,
       [cursoSeleccionado.ofertaId]
@@ -341,8 +330,6 @@ export async function obtenerCalificacionesDocente(
               ? null
               : Number(encontrada.nota),
 
-          retroalimentacion:
-            encontrada?.retroalimentacion ?? null,
 
           calificadoEn:
             encontrada?.calificadoEn ?? null,
@@ -484,7 +471,6 @@ export async function guardarCalificacionDocente(
       matriculaId,
       componenteId,
       nota,
-      retroalimentacion,
     } = req.body ?? {};
 
     const matriculaIdNumber =
@@ -616,22 +602,19 @@ export async function guardarCalificacionDocente(
          componente_id,
          matricula_id,
          nota,
-         retroalimentacion,
          calificado_por,
          calificado_en
        )
-       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
        ON CONFLICT (componente_id, matricula_id)
        DO UPDATE SET
          nota = EXCLUDED.nota,
-         retroalimentacion = EXCLUDED.retroalimentacion,
          calificado_por = EXCLUDED.calificado_por,
          calificado_en = CURRENT_TIMESTAMP`,
       [
         componenteIdNumber,
         matriculaIdNumber,
         notaNumber,
-        typeof retroalimentacion === "string" ? retroalimentacion.trim() || null : null,
         docenteId,
       ]
     );

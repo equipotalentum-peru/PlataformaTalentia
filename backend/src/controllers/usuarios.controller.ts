@@ -28,7 +28,7 @@ export async function requireAdmin(
   }
 }
 
-const columnasUsuario = `id, CONCAT_WS(' ', nombres, apellidos) AS nombre,
+const columnasUsuario = `id, nombres AS nombre,
   correo, CASE WHEN rol = 'Estudiante' THEN 'Alumno' ELSE rol END AS rol,
   ultimo_acceso_en AS actividad,
   CASE WHEN activo THEN 'Activo' ELSE 'Inactivo' END AS estado`;
@@ -151,8 +151,7 @@ export async function modificarUsuario(req: AuthenticatedRequest, res: Response)
       if (duplicado.rowCount) return res.status(409).json({ message: "El correo ya pertenece a otro usuario." });
       await client.query(
         `UPDATE usuarios SET
-         nombres = CASE WHEN CONCAT_WS(' ', nombres, apellidos) = $1 THEN nombres ELSE $1 END,
-         apellidos = CASE WHEN CONCAT_WS(' ', nombres, apellidos) = $1 THEN apellidos ELSE NULL END,
+         nombres = $1,
          correo = $2, rol = $3, telefono = $4, actualizado_en = NOW()
          WHERE id = $5`,
         [nombre.trim(), correo.trim().toLowerCase(), rolBD, telefono.trim() || null, id]

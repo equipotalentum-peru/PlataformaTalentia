@@ -52,7 +52,7 @@ export async function listarAlumnosProgreso(req: Request, res: Response) {
   try {
     const resultado = await pool.query(
       `SELECT DISTINCT u.id::TEXT AS id,
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS nombre,
+         BTRIM(u.nombres) AS nombre,
          COALESCE(NULLIF(u.id_persona, ''), u.usuario) AS codigo
        FROM usuarios u
        JOIN matriculas m ON m.estudiante_id = u.id
@@ -83,7 +83,7 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
       `SELECT m.id::TEXT AS id, oc.id::TEXT AS "ofertaId",
          COALESCE(p.nombre, 'Periodo sin asignar') AS periodo,
          c.nombre AS curso, c.codigo AS "codigoCurso",
-         BTRIM(CONCAT_WS(' ', u.nombres, u.apellidos)) AS alumno,
+         BTRIM(u.nombres) AS alumno,
          COALESCE(NULLIF(u.id_persona, ''), u.usuario) AS "codigoAlumno",
          (SELECT json_build_object('id', cert.id::TEXT, 'numero', cert.numero_certificado,
             'visibleAlumno', cert.visible_alumno,
@@ -91,8 +91,7 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
             'disponible', COALESCE(cert.ruta_archivo LIKE 'r2://%'
               AND LENGTH(BTRIM(SUBSTRING(cert.ruta_archivo FROM 6))) > 0, FALSE))
           FROM certificados cert
-          WHERE cert.matricula_id = m.id AND cert.modulo_id IS NULL
-            AND cert.tipo = 'Aprobacion'
+          WHERE cert.matricula_id = m.id AND cert.tipo = 'Aprobacion'
           ORDER BY cert.emitido_en DESC, cert.id DESC LIMIT 1) AS certificado,
          COALESCE(json_agg(json_build_object(
            'id', comp.id::TEXT, 'nombre', comp.nombre,
@@ -109,7 +108,7 @@ export async function listarProgresoAlumnos(req: Request, res: Response) {
        WHERE ($1::BIGINT IS NULL OR oc.periodo_id = $1)
          AND ($2::BIGINT IS NULL OR oc.curso_id = $2)
          AND ($3::BIGINT IS NULL OR m.estudiante_id = $3)
-       GROUP BY m.id, m.oferta_curso_id, oc.id, c.nombre, c.codigo, u.nombres, u.apellidos,
+       GROUP BY m.id, m.oferta_curso_id, oc.id, c.nombre, c.codigo, u.nombres,
          u.id_persona, u.usuario, p.nombre, p.fecha_inicio
        ORDER BY p.fecha_inicio DESC NULLS LAST, c.nombre, alumno, m.id`,
       [periodoId, cursoId, alumnoId]
@@ -152,7 +151,7 @@ export async function descargarCertificadoProgreso(req: Request, res: Response) 
        FROM certificados cert
        JOIN matriculas m ON m.id = cert.matricula_id
        WHERE cert.id = $1 AND m.id = $2
-         AND cert.modulo_id IS NULL AND cert.tipo = 'Aprobacion'
+         AND cert.tipo = 'Aprobacion'
        LIMIT 1`,
       [certificadoId, matriculaId]
     );
@@ -217,7 +216,7 @@ async function cambiarVisibilidadCertificado(req: Request, res: Response, visibl
     await client.query("SELECT pg_advisory_xact_lock($1::BIGINT)", [matriculaId]);
     const resultado = await client.query(
       `UPDATE certificados SET visible_alumno = $3
-       WHERE id = $1 AND matricula_id = $2 AND modulo_id IS NULL AND tipo = 'Aprobacion'
+       WHERE id = $1 AND matricula_id = $2 AND tipo = 'Aprobacion'
        RETURNING id`,
       [certificadoId, matriculaId, visible]
     );

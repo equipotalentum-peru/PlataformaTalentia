@@ -62,7 +62,7 @@ async function obtenerReportesRecientes() {
        CONCAT('Reporte de ', ha.entidad_id) AS reporte,
        ha.creado_en AS fecha,
        COALESCE(
-         NULLIF(TRIM(CONCAT_WS(' ', u.nombres, u.apellidos)), ''),
+         NULLIF(TRIM(u.nombres), ''),
          'Sistema'
        ) AS responsable,
        ha.resultado AS estado,
@@ -410,7 +410,7 @@ async function consultarFilasExportacion(categoria: CategoriaReporte) {
       return pool.query(
         `SELECT
            id AS "ID",
-           CONCAT_WS(' ', nombres, apellidos) AS "Nombre completo",
+           nombres AS "Nombre completo",
            correo AS "Correo",
            usuario AS "Usuario",
            COALESCE(id_persona, dni, '') AS "Documento",
@@ -446,18 +446,19 @@ async function consultarFilasExportacion(categoria: CategoriaReporte) {
       return pool.query(
         `SELECT
            m.id AS "ID de matrícula",
-           CONCAT_WS(' ', u.nombres, u.apellidos) AS "Alumno",
+           u.nombres AS "Alumno",
            u.id AS "ID de alumno",
            c.codigo AS "Código de curso",
            c.nombre AS "Curso",
-           oc.fecha_inicio AS "Fecha de inicio",
-           oc.fecha_fin AS "Fecha final",
+           p.fecha_inicio AS "Fecha de inicio",
+           p.fecha_fin AS "Fecha final",
            m.estado AS "Estado",
            m.estado_pago AS "Estado de pago",
            m.matriculado_en AS "Fecha de matrícula"
          FROM matriculas m
          INNER JOIN usuarios u ON u.id = m.estudiante_id
          INNER JOIN ofertas_curso oc ON oc.id = m.oferta_curso_id
+         LEFT JOIN periodos_academicos p ON p.id = oc.periodo_id
          INNER JOIN cursos c ON c.id = oc.curso_id
          ORDER BY m.matriculado_en DESC, m.id DESC`,
       );
@@ -466,14 +467,13 @@ async function consultarFilasExportacion(categoria: CategoriaReporte) {
       return pool.query(
         `SELECT
            ca.id AS "ID de calificación",
-           CONCAT_WS(' ', u.nombres, u.apellidos) AS "Alumno",
+           u.nombres AS "Alumno",
            c.codigo AS "Código de curso",
            c.nombre AS "Curso",
            comp.nombre AS "Componente",
            comp.tipo AS "Tipo",
            comp.porcentaje AS "Porcentaje",
            ca.nota AS "Nota sobre 20",
-           ca.retroalimentacion AS "Retroalimentación",
            ca.calificado_en AS "Fecha de calificación"
          FROM calificaciones ca
          INNER JOIN matriculas m ON m.id = ca.matricula_id
@@ -491,7 +491,7 @@ async function consultarFilasExportacion(categoria: CategoriaReporte) {
            cert.numero_certificado AS "Número de certificado",
            cert.codigo_verificacion AS "Código de verificación",
            cert.tipo AS "Tipo",
-           CONCAT_WS(' ', u.nombres, u.apellidos) AS "Alumno",
+           u.nombres AS "Alumno",
            c.codigo AS "Código de curso",
            c.nombre AS "Curso",
            COALESCE(c.categoria, 'Sin categoría') AS "Categoría",
@@ -619,7 +619,7 @@ export async function obtenerHistorialReportes(
            ha.accion AS accion,
            ha.area AS area,
            COALESCE(
-             NULLIF(TRIM(CONCAT_WS(' ', u.nombres, u.apellidos)), ''),
+             NULLIF(TRIM(u.nombres), ''),
              'Usuario eliminado'
            ) AS usuario,
            ha.resultado AS resultado

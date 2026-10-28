@@ -16,7 +16,7 @@ function id(value: unknown): string {
 async function usuario(req: AuthenticatedRequest) {
   if (!req.userId) throw new ForumError(401, "Debes iniciar sesión.");
   const result = await pool.query(
-    "SELECT id, rol, CONCAT_WS(' ', nombres, apellidos) AS nombre FROM usuarios WHERE id = $1 AND activo = TRUE", [id(req.userId)]
+    "SELECT id, rol, nombres AS nombre FROM usuarios WHERE id = $1 AND activo = TRUE", [id(req.userId)]
   );
   if (!result.rowCount) throw new ForumError(401, "Sesión no válida.");
   if (!["Docente", "Estudiante"].includes(result.rows[0].rol)) throw new ForumError(403, "No tienes acceso a los foros.");
@@ -99,7 +99,7 @@ async function listar(req: AuthenticatedRequest, res: Response, soloDocente: boo
       WHERE ${accesoOferta} AND oc.id = $3 AND c.estado = 'Activo' AND oc.estado <> 'Cancelado'`, [user.id, user.rol, ofertaId]);
     if (!access.rowCount) throw new ForumError(403, "No tienes acceso a esta oferta.");
     const result = await pool.query(
-      `SELECT f.*, CONCAT_WS(' ', u.nombres, u.apellidos) AS autor_nombre,
+      `SELECT f.*, u.nombres AS autor_nombre,
        CASE WHEN f.estado = 'Publicado' AND f.fecha_cierre <= CURRENT_TIMESTAMP THEN 'Cerrado' ELSE f.estado END AS estado,
        (SELECT COUNT(*)::integer FROM respuestas_foro r WHERE r.foro_id = f.id) AS respuestas_total,
        EXISTS (SELECT 1 FROM respuestas_foro r WHERE r.foro_id = f.id AND r.autor_id = $1) AS participo
@@ -154,7 +154,7 @@ export async function obtenerDetalleForo(req: AuthenticatedRequest, res: Respons
     const participation = await client.query("SELECT 1 FROM respuestas_foro WHERE foro_id = $1 AND autor_id = $2 LIMIT 1", [foroId, user.id]);
     const visible = user.rol === "Docente" || !foro.mostrar_respuestas_despues_participar || Boolean(participation.rowCount);
     const respuestas = visible ? await client.query(
-      `SELECT r.*, CONCAT_WS(' ', u.nombres, u.apellidos) AS autor_nombre
+      `SELECT r.*, u.nombres AS autor_nombre
        FROM respuestas_foro r JOIN usuarios u ON u.id = r.autor_id WHERE r.foro_id = $1 ORDER BY r.creado_en, r.id`, [foroId]
     ) : { rows: [] };
     await client.query("COMMIT");
