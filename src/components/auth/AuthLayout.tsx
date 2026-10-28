@@ -8,13 +8,15 @@ import type { ReactNode } from "react";
  */
 export default function AuthLayout({
   children,
+  fixedLogo = false,
 }: {
   children: ReactNode;
+  fixedLogo?: boolean;
 }) {
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-talentia-hover">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[color-mix(in_srgb,var(--talentia-teal)_8%,var(--talentia-surface))]">
       {/* Columna Izquierda - Logo Talentia (VISIBLE SOLO EN PANTALLAS GRANDES >= 1024px/lg) */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 lg:p-12 bg-talentia-hover">
+      <div className={`hidden lg:flex lg:w-1/2 items-center justify-center p-8 lg:p-12 ${fixedLogo ? "lg:fixed lg:inset-y-0 lg:left-0 lg:h-screen" : ""}`}>
         <div className="relative w-full max-w-[480px] h-64">
           <Image
             src="/images/Talentia_grande_sin_fondo.png"
@@ -27,7 +29,7 @@ export default function AuthLayout({
       </div>
 
       {/* Columna Derecha / Principal en Móvil y Tablet - Contenedor con Formulario */}
-      <div className="w-full lg:w-1/2 min-h-screen lg:min-h-0 flex items-center justify-center p-3 min-[380px]:p-4 min-[480px]:p-6 min-[600px]:p-8 min-[860px]:p-10 min-[1100px]:p-12 bg-talentia-hover">
+      <div className={`w-full lg:w-1/2 min-h-screen lg:min-h-0 flex items-center justify-center p-3 min-[380px]:p-4 min-[480px]:p-6 min-[600px]:p-8 min-[860px]:p-10 min-[1100px]:p-12 ${fixedLogo ? "lg:ml-auto" : ""}`}>
         <div className="w-full max-w-[320px] min-[380px]:max-w-[350px] min-[480px]:max-w-[390px] min-[600px]:max-w-[420px] min-[1100px]:max-w-[450px] bg-talentia-surface rounded-2xl min-[480px]:rounded-3xl p-4 min-[380px]:p-5 min-[480px]:p-7 min-[600px]:p-8 min-[1100px]:p-10 shadow-sm transition-all duration-200">
 
           {/* Logo DENTRO del cuadro blanco (VISIBLE SOLO EN MÓVIL Y TABLET < lg) */}
