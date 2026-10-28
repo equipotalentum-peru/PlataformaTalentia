@@ -22,6 +22,7 @@ import actividadesRoutes from "./routes/actividades.routes";
 import asistenciasRoutes from "./routes/asistencias.routes";
 import cursosAdminRoutes from "./routes/cursos-admin.routes";
 import { sincronizarEstadosClases, } from "./services/clases-estado.service";
+import { asignarCerosAutomaticos } from "./services/ceros-automaticos.service";
 import { configurarChatSocket,} from "./realtime/chat.socket";
 import periodosAdminRoutes from "./routes/periodos-admin.routes";
 import matriculasAdminRoutes from "./routes/matriculas-admin.routes";
@@ -91,6 +92,13 @@ void sincronizarEstadosClases();
 setInterval(() => {
   void sincronizarEstadosClases();
 }, 30_000);
+
+// 0 automático a quien no entregó una actividad o evaluación a tiempo
+void asignarCerosAutomaticos();
+
+setInterval(() => {
+  void asignarCerosAutomaticos();
+}, 60_000);
 
 httpServer.listen(
   PORT,

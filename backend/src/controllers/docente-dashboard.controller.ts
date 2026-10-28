@@ -84,9 +84,9 @@ export async function obtenerDashboardDocente(
            c.id AS curso_id,
            c.nombre AS curso,
            c.codigo,
-           COUNT(ea.id)::INTEGER AS pendientes,
+           COUNT(DISTINCT m.id)::INTEGER AS pendientes,
            MAX(ea.entregada_en) AS ultima_entrega,
-           SUM(COUNT(ea.id)) OVER ()::INTEGER AS total_pendientes
+           SUM(COUNT(DISTINCT m.id)) OVER ()::INTEGER AS total_pendientes
          FROM ofertas_curso oc
          INNER JOIN cursos c
            ON c.id = oc.curso_id
@@ -99,24 +99,46 @@ export async function obtenerDashboardDocente(
          INNER JOIN actividades a
            ON a.contenido_id = cc.id
           AND a.estado = 'Publicada'
-         INNER JOIN entregas_actividades ea
-           ON ea.actividad_id = a.id
-          AND ea.estado = 'Entregada'
-          AND (a.calificada = TRUE OR ea.calificado_en IS NULL)
+         -- Se parte de TODOS los alumnos matriculados del curso
          INNER JOIN matriculas m
-           ON m.id = ea.matricula_id
-          AND m.oferta_curso_id = oc.id
+           ON m.oferta_curso_id = oc.id
           AND m.estado IN ('Activa', 'Completada')
+         LEFT JOIN entregas_actividades ea
+           ON ea.actividad_id = a.id
+          AND ea.matricula_id = m.id
+          AND ea.estado = 'Entregada'
          WHERE oc.docente_id = $1
            AND oc.estado <> 'Cancelado'
            AND c.estado = 'Activo'
+           -- Alumno SIN nota en ningún intento de esta actividad
            AND NOT EXISTS (
              SELECT 1
              FROM entregas_actividades ea2
-             INNER JOIN calificaciones cal
-               ON cal.entrega_id = ea2.id
-             WHERE ea2.actividad_id = ea.actividad_id
-               AND ea2.matricula_id = ea.matricula_id
+             WHERE ea2.actividad_id = a.id
+               AND ea2.matricula_id = m.id
+               AND (ea2.estado = 'Calificada' OR ea2.calificado_en IS NOT NULL)
+           )
+           -- ...ni nota puesta a mano en Calificaciones
+           AND NOT EXISTS (
+             SELECT 1
+             FROM calificaciones cal
+             INNER JOIN componentes_calificacion comp
+               ON comp.id = cal.componente_id
+             WHERE comp.actividad_id = a.id
+               AND cal.matricula_id = m.id
+           )
+           -- Venció y no entregó: ya no está pendiente
+           -- (calificada = 0 automático; no calificada = nada que revisar)
+           AND (ea.id IS NOT NULL OR a.fecha_limite IS NULL OR a.fecha_limite >= NOW())
+           -- Aparece recién cuando al menos un alumno ya entregó
+           AND EXISTS (
+             SELECT 1
+             FROM entregas_actividades ex
+             INNER JOIN matriculas mx
+               ON mx.id = ex.matricula_id
+             WHERE ex.actividad_id = a.id
+               AND mx.oferta_curso_id = oc.id
+               AND ex.estado <> 'Borrador'
            )
          GROUP BY
            a.id,
@@ -142,9 +164,9 @@ export async function obtenerDashboardDocente(
            c.id AS curso_id,
            c.nombre AS curso,
            c.codigo,
-           COUNT(ie.id)::INTEGER AS pendientes,
+           COUNT(DISTINCT m.id)::INTEGER AS pendientes,
            MAX(COALESCE(ie.enviado_en, ie.iniciado_en)) AS ultima_entrega,
-           SUM(COUNT(ie.id)) OVER ()::INTEGER AS total_pendientes
+           SUM(COUNT(DISTINCT m.id)) OVER ()::INTEGER AS total_pendientes
          FROM ofertas_curso oc
          INNER JOIN cursos c
            ON c.id = oc.curso_id
@@ -157,20 +179,46 @@ export async function obtenerDashboardDocente(
          INNER JOIN evaluaciones e
            ON e.contenido_id = cc.id
           AND e.estado = 'Publicada'
-         INNER JOIN intentos_evaluacion ie
-           ON ie.evaluacion_id = e.id
-          AND ie.estado = 'Enviado'
+         -- Se parte de TODOS los alumnos matriculados del curso
          INNER JOIN matriculas m
-           ON m.id = ie.matricula_id
-          AND m.oferta_curso_id = oc.id
+           ON m.oferta_curso_id = oc.id
           AND m.estado IN ('Activa', 'Completada')
+         LEFT JOIN intentos_evaluacion ie
+           ON ie.evaluacion_id = e.id
+          AND ie.matricula_id = m.id
+          AND ie.estado = 'Enviado'
          WHERE oc.docente_id = $1
            AND oc.estado <> 'Cancelado'
            AND c.estado = 'Activo'
+           -- Alumno SIN nota en ningún intento de esta evaluación
+           AND NOT EXISTS (
+             SELECT 1
+             FROM intentos_evaluacion ie2
+             WHERE ie2.evaluacion_id = e.id
+               AND ie2.matricula_id = m.id
+               AND ie2.estado = 'Calificado'
+           )
+           -- ...ni nota guardada en Calificaciones
            AND NOT EXISTS (
              SELECT 1
              FROM calificaciones cal
-             WHERE cal.intento_evaluacion_id = ie.id
+             INNER JOIN componentes_calificacion comp
+               ON comp.id = cal.componente_id
+             WHERE comp.evaluacion_id = e.id
+               AND cal.matricula_id = m.id
+           )
+           -- Venció y no envió: ya no está pendiente
+           -- (calificada = 0 automático; no calificada = nada que revisar)
+           AND (ie.id IS NOT NULL OR e.fecha_fin IS NULL OR e.fecha_fin >= NOW())
+           -- Aparece recién cuando al menos un alumno ya envió
+           AND EXISTS (
+             SELECT 1
+             FROM intentos_evaluacion ix
+             INNER JOIN matriculas mx
+               ON mx.id = ix.matricula_id
+             WHERE ix.evaluacion_id = e.id
+               AND mx.oferta_curso_id = oc.id
+               AND ix.estado IN ('Enviado', 'Calificado')
            )
          GROUP BY
            e.id,
@@ -551,4 +599,10 @@ export async function obtenerDashboardDocente(
     });
   }
 }
+
+
+
+
+
+
 

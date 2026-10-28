@@ -1375,7 +1375,15 @@ function selectStudent(
                   ) => {
                     const isSubmitted =
                       Boolean(
-                        student.entrega_id
+                        student.entrega_id &&
+                        student.entregada_en
+                      );
+
+                    // Tiene registro pero sin fecha de entrega = 0 automático
+                    const isAutoZero =
+                      Boolean(
+                        student.entrega_id &&
+                        !student.entregada_en
                       );
 
 
@@ -1456,12 +1464,16 @@ function selectStudent(
                             className={`inline-flex rounded-[5px] px-[8px] py-[4px] text-[12px] font-semibold ${
                               isSubmitted
                                 ? "bg-talentia-success-bg text-talentia-success"
-                                : "bg-talentia-warning-bg text-talentia-warning"
+                                : isAutoZero
+                                  ? "bg-talentia-danger-bg text-talentia-danger"
+                                  : "bg-talentia-warning-bg text-talentia-warning"
                             }`}
                           >
                             {isSubmitted
                               ? "Entregada"
-                              : "Pendiente"}
+                              : isAutoZero
+                                ? "No entregó"
+                                : "Pendiente"}
                           </span>
                         </td>
 

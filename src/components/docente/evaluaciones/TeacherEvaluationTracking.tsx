@@ -290,7 +290,17 @@ export default function TeacherEvaluationTracking({
                             )
                           )
                         : null;
-                    const notaMostrar = student.notaCalificacion ?? notaIntentoNoCalificada;
+                    // Ya terminó la evaluación y el alumno no envió nada = 0
+                    const evaluacionTerminada =
+                      evaluation.fechaFin !== null &&
+                      new Date(evaluation.fechaFin).getTime() <= Date.now();
+                    const noEnvio =
+                      !student.ultimoIntento ||
+                      student.ultimoIntento.estado === "En curso";
+                    const notaSinEnvio =
+                      evaluacionTerminada && noEnvio ? 0 : null;
+                    const notaMostrar =
+                      student.notaCalificacion ?? notaIntentoNoCalificada ?? notaSinEnvio;
                     return (
                       <tr
                         key={student.alumnoId}
@@ -313,7 +323,7 @@ export default function TeacherEvaluationTracking({
                           {student.ultimoIntento ? (
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(student.ultimoIntento.estado)}`}>{student.ultimoIntento.estado}</span>
                           ) : (
-                            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Sin intento</span>
+                            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{evaluacionTerminada ? "No envió" : "Sin intento"}</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center font-semibold text-talentia-primary">
