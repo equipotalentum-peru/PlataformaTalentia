@@ -36,6 +36,16 @@ export default function ChatAttachmentIcon({
     );
   }
 
+  // Excel y otros formatos de hojas de cálculo
+  if (/\.(xls|xlsx|xlsm|xlsb|xlt|xltx|xltm|ods|csv)$/.test(nombre)) {
+    return (
+      <ContentTypeIcon
+        type="excel"
+        className={className}
+      />
+    );
+  }
+
   // PowerPoint
   if (
     /\.(ppt|pptx|pptm|pps|ppsx|odp)$/.test(nombre)
@@ -46,6 +56,14 @@ export default function ChatAttachmentIcon({
         className={className}
       />
     );
+  }
+
+  // Archivos comprimidos: carpeta con cremallera para ZIP y libros con correa para RAR.
+  if (/\.zip$/.test(nombre)) {
+    return <ContentTypeIcon type="zip" className={className} />;
+  }
+  if (/\.rar$/.test(nombre)) {
+    return <ContentTypeIcon type="rar" className={className} />;
   }
 
   // Vídeo

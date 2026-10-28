@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { ContentType } from "@/data/courseContents";
 
 type ContentTypeIconProps = {
-  type: ContentType | "file";
+  type: ContentType | "file" | "excel" | "zip" | "rar";
   className?: string;
 };
 
@@ -122,6 +122,38 @@ export default function ContentTypeIcon({
         />
       </svg>
     );
+  } else if (type === "excel") {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="512"
+        height="512"
+        viewBox="0 0 512 512"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M0 0h512v512H0z" fill="none" />
+        <path
+          fill="#e8f5e9"
+          d="M224 24h176l64 64v376H224z"
+        />
+        <path fill="#c8e6c9" d="M400 24v64h64z" />
+        <path fill="#107c41" d="M48 112h280v288H48z" />
+        <path fill="#21a366" d="M328 112h56v288h-56z" />
+        <path
+          fill="#fff"
+          d="M95 177h35l30 54 30-54h35l-48 78 51 80h-36l-33-56-32 56H91l51-80z"
+        />
+        <path
+          fill="none"
+          stroke="#107c41"
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M355 160h70M355 220h70M355 280h70M355 340h70"
+        />
+      </svg>
+    );
   } else if (type === "image") {
     return (
       <svg
@@ -155,6 +187,95 @@ export default function ContentTypeIcon({
 
           <path d="M14.526 12.621L6 22h12.133A3.867 3.867 0 0 0 22 18.133V18c0-.466-.175-.645-.49-.99l-4.03-4.395a2 2 0 0 0-2.954.006" />
         </g>
+      </svg>
+    );
+  } else if (type === "zip") {
+    // Carpeta comprimida con cremallera, inspirada en los iconos clásicos de ZIP.
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="36"
+        height="36"
+        viewBox="0 0 36 36"
+        className={className}
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id={`${gradientId}-zip-back`} x1="4" y1="6" x2="31" y2="30" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#FFE58A" />
+            <stop offset="1" stopColor="#E8A92B" />
+          </linearGradient>
+          <linearGradient id={`${gradientId}-zip-front`} x1="6" y1="13" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#FFD85D" />
+            <stop offset="1" stopColor="#E99A20" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M3.5 11.2A3.2 3.2 0 0 1 6.7 8h7.1l3.1 3h12.4a3.2 3.2 0 0 1 3.2 3.2v1.1H3.5z"
+          fill={`url(#${gradientId}-zip-back)`}
+          stroke="#B7791F"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3.5 13.2h29l-2.7 16.1a2.8 2.8 0 0 1-2.8 2.3H6.7a2.8 2.8 0 0 1-2.8-3.2z"
+          fill={`url(#${gradientId}-zip-front)`}
+          stroke="#B7791F"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+        />
+        <path d="M15.5 12.9h5v14.4h-5z" fill="#8B6842" opacity=".95" />
+        <path d="M16.5 13.3h3v13.5h-3z" fill="#5D4935" />
+        <g fill="#F8E6B7">
+          <path d="M16.2 14h1.8v1.55h-1.8zM18.2 15.7H20v1.55h-1.8zM16.2 17.4H18v1.55h-1.8zM18.2 19.1H20v1.55h-1.8zM16.2 20.8H18v1.55h-1.8zM18.2 22.5H20v1.55h-1.8zM16.2 24.2H18v1.55h-1.8z" />
+        </g>
+        <path d="M18.4 26.3h2.2v2.3l1.5 1.3-1.4 1.4-2.3-2.1z" fill="#6B4B2B" stroke="#F4D17A" strokeWidth=".65" strokeLinejoin="round" />
+        <path d="M6.1 15.3h7.2" stroke="#FFF0B8" strokeWidth="1" strokeLinecap="round" opacity=".7" />
+      </svg>
+    );
+  } else if (type === "rar") {
+    // Tres libros apilados con una correa y hebilla, inspirados en los iconos clásicos de RAR.
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="36"
+        height="36"
+        viewBox="0 0 36 36"
+        className={className}
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id={`${gradientId}-rar-red`} x1="5" y1="4" x2="31" y2="13" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#E96B65" />
+            <stop offset="1" stopColor="#A9232F" />
+          </linearGradient>
+          <linearGradient id={`${gradientId}-rar-blue`} x1="6" y1="12" x2="30" y2="21" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#67B7E8" />
+            <stop offset="1" stopColor="#2365A5" />
+          </linearGradient>
+          <linearGradient id={`${gradientId}-rar-green`} x1="4" y1="19" x2="30" y2="29" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#8ECF6F" />
+            <stop offset="1" stopColor="#347C43" />
+          </linearGradient>
+        </defs>
+        {/* Libro superior */}
+        <path d="M8 4.8h20.1a2 2 0 0 1 2 2v5.8H8a2 2 0 0 1-2-2V6.8a2 2 0 0 1 2-2z" fill={`url(#${gradientId}-rar-red)`} stroke="#7C252B" strokeWidth="1" strokeLinejoin="round" />
+        <path d="M9.4 6.2v4.8M11.1 6.2v4.8" stroke="#FFD1C6" strokeWidth=".7" opacity=".8" />
+        <path d="M27.2 6.2h1.2v4.8h-1.2z" fill="#F9D7C9" opacity=".9" />
+        {/* Libro central */}
+        <path d="M6.8 12.2h21.4a2 2 0 0 1 2 2v5.6H6.8a2 2 0 0 1-2-2v-3.6a2 2 0 0 1 2-2z" fill={`url(#${gradientId}-rar-blue)`} stroke="#204E7B" strokeWidth="1" strokeLinejoin="round" />
+        <path d="M8.2 13.5v4.8M9.9 13.5v4.8" stroke="#D3ECFF" strokeWidth=".7" opacity=".85" />
+        <path d="M27.2 13.5h1.2v4.8h-1.2z" fill="#D9ECF9" opacity=".9" />
+        {/* Libro inferior */}
+        <path d="M5.7 19.2h22.6a2 2 0 0 1 2 2v5.5a2 2 0 0 1-2 2H5.7a2 2 0 0 1-2-2v-3.5a2 2 0 0 1 2-2z" fill={`url(#${gradientId}-rar-green)`} stroke="#285F35" strokeWidth="1" strokeLinejoin="round" />
+        <path d="M7.1 20.6v4.8M8.8 20.6v4.8" stroke="#E0F5D0" strokeWidth=".7" opacity=".85" />
+        <path d="M27.2 20.5h1.2v4.9h-1.2z" fill="#D5EFC7" opacity=".9" />
+        {/* Correa vertical y hebilla */}
+        <path d="M16.2 4.4h4.1v25.1h-4.1z" fill="#9A6738" stroke="#5D3E25" strokeWidth=".8" />
+        <path d="M17 4.8h1v24.3h-1z" fill="#E5B66F" opacity=".8" />
+        <rect x="15.1" y="14.5" width="6.3" height="6.3" rx=".8" fill="#E2B34F" stroke="#68451F" strokeWidth="1" />
+        <rect x="16.8" y="16.1" width="2.9" height="3.1" rx=".3" fill="#60452C" stroke="#F7D88B" strokeWidth=".65" />
+        <path d="M14.9 15.5h.8v4.4h-.8M20.8 15.5h.8v4.4h-.8" fill="none" stroke="#F9D78D" strokeWidth=".6" />
       </svg>
     );
   } else if (type === "file") {

@@ -20,11 +20,14 @@ export default function FileTypeIcon({
     .split(/[?#]/, 1)[0]
     .toLowerCase();
 
-  let type: "pdf" | "word" | "ppt" | "video" | "image" | "file" = "file";
+  let type: "pdf" | "word" | "ppt" | "excel" | "video" | "image" | "zip" | "rar" | "file" = "file";
 
   if (/\.pdf$/.test(nombre)) type = "pdf";
   else if (/\.(doc|docx|dot|dotx|odt|rtf)$/.test(nombre)) type = "word";
   else if (/\.(ppt|pptx|pptm|pps|ppsx|odp)$/.test(nombre)) type = "ppt";
+  else if (/\.(xls|xlsx|xlsm|xlsb|xlt|xltx|xltm|ods|csv)$/.test(nombre)) type = "excel";
+  else if (/\.zip$/.test(nombre)) type = "zip";
+  else if (/\.rar$/.test(nombre)) type = "rar";
   else if (/\.(mp4|mov|m4v|webm|avi|mkv|mpeg|mpg|3gp)$/.test(nombre)) type = "video";
   else if (/\.(png|jpe?g|gif|webp|bmp|svg|avif|tiff?|heic|heif)$/.test(nombre)) type = "image";
 
