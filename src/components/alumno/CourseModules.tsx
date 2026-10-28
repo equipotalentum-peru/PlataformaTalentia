@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState, } from "react";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
-import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import type { ContentType, } from "@/data/courseContents";
 
 
@@ -15,12 +14,12 @@ const tiposIcono: Record<
   ContentType
 > = {
   pdf: "pdf",
-  doc: "word",
   docx: "word",
-  ppt: "ppt",
   pptx: "ppt",
-  xls: "excel",
-  xlsx: "excel",
+  // En los módulos, Excel conserva el icono genérico de documento original.
+  xls: "pdf",
+  xlsx: "pdf",
+  excel: "pdf",
   video: "video",
   enlace: "link",
   actividad: "activity",
@@ -446,22 +445,15 @@ const visto =
                           title={contenido.tipo.toUpperCase()}
                           aria-label={`Tipo: ${contenido.tipo}`}
                         >
-                          {tieneArchivo && contenido.tipo !== "actividad" && contenido.tipo !== "evaluacion" && contenido.tipo !== "enlace" ? (
-                            <FileTypeIcon
-                              filename={contenido.rutaArchivo}
-                              className="h-6 w-6"
-                            />
-                          ) : (
-                            <CourseContentIcon
-                              type={
-                                tiposIcono[
-                                  contenido.tipo
-                                ] ??
-                                "pdf"
-                              }
-                              className="h-5 w-5"
-                            />
-                          )}
+                          <CourseContentIcon
+                            type={
+                              tiposIcono[
+                                contenido.tipo
+                              ] ??
+                              "pdf"
+                            }
+                            className="h-5 w-5"
+                          />
                         </span>
 
                         {/* TITULO */}

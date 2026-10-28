@@ -7,7 +7,6 @@ import type { Course } from "@/data/courses";
 import type { ContentType } from "@/data/courseContents";
 import { API_URL } from "@/lib/api";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
-import FileTypeIcon from "@/components/common/contenido/FileTypeIcon";
 import TeacherCourseInfo from "./TeacherCourseInfo";
 import CreateModuleModal from "./modals/CreateModuleModal";
 import DeleteCourseItemModal from "./modals/DeleteCourseItemModal";
@@ -106,8 +105,10 @@ type ModuleResponse = {
 };
 
 const contentTypes: Record<string, ContentType> = {
-  pdf: "pdf", docx: "word", pptx: "ppt", xls: "excel", xlsx: "excel", video: "video", enlace: "link",
-  actividad: "activity", evaluacion: "quiz",
+  pdf: "pdf", docx: "word", pptx: "ppt",
+  // En los módulos, Excel conserva el icono genérico de documento original.
+  xls: "pdf", xlsx: "pdf", excel: "pdf",
+  video: "video", enlace: "link", actividad: "activity", evaluacion: "quiz",
 };
 
 export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailProps) {
@@ -465,17 +466,10 @@ export default function TeacherCourseDetail({ courseId }: TeacherCourseDetailPro
 
                             const linkContent = (
                               <>
-                                {content.file && content.type !== "link" && content.type !== "activity" && content.type !== "quiz" ? (
-                                  <FileTypeIcon
-                                    filename={content.file}
-                                    className="h-6 w-6 shrink-0"
-                                  />
-                                ) : (
-                                  <CourseContentIcon
-                                    type={content.type}
-                                    className="h-5 w-5 shrink-0 text-talentia-muted"
-                                  />
-                                )}
+                                <CourseContentIcon
+                                  type={content.type}
+                                  className="h-5 w-5 shrink-0 text-talentia-muted"
+                                />
                                 <span className="min-w-0 flex-1 break-words text-[14px] text-talentia-primary">
                                   {module.number}.{contentIndex + 1} {content.title}
                                 </span>
