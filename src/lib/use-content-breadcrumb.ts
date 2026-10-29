@@ -7,11 +7,13 @@ import { API_URL } from "@/lib/api";
 type ModuleItem = {
   id: string | number;
   titulo: string;
+  tipo: string;
   orden?: number;
 };
 
 type ModuleApi = {
   numero: number;
+  orden?: number;
   titulo: string;
   contenidos: ModuleItem[];
 };
@@ -23,11 +25,17 @@ type ModuleApi = {
  * Sirve para actividades (docente y alumno) igual que
  * para los materiales, así todo se ve con la misma sintaxis.
  */
-export function useContentBreadcrumb(
+export function useContentContext(
   courseId: number,
   contentId: number
 ) {
-  const [breadcrumb, setBreadcrumb] = useState("");
+  const [context, setContext] = useState<{
+    courseId: number;
+    contentId: number;
+    breadcrumb: string;
+    previous?: ModuleItem;
+    next?: ModuleItem;
+  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -48,8 +56,16 @@ export function useContentBreadcrumb(
           return;
         }
 
-        for (const module of (result.modulos ?? []) as ModuleApi[]) {
-          const items = [...module.contenidos].sort(
+        const modules = [...(result.modulos ?? []) as ModuleApi[]].sort(
+          (a, b) => (a.orden ?? a.numero) - (b.orden ?? b.numero)
+        );
+        const navigation = modules.flatMap((courseModule) =>
+          [...courseModule.contenidos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+        ).filter((item) => item.tipo !== "enlace");
+        const currentIndex = navigation.findIndex((item) => Number(item.id) === contentId);
+
+        for (const courseModule of modules) {
+          const items = [...courseModule.contenidos].sort(
             (a, b) => (a.orden ?? 0) - (b.orden ?? 0)
           );
 
@@ -58,9 +74,14 @@ export function useContentBreadcrumb(
           );
 
           if (index >= 0) {
-            setBreadcrumb(
-              `Módulo ${module.numero}: ${module.titulo} > ${module.numero}.${index + 1} ${items[index].titulo}`
-            );
+            if (controller.signal.aborted) return;
+            setContext({
+              courseId,
+              contentId,
+              breadcrumb: `Módulo ${courseModule.numero}: ${courseModule.titulo} > ${courseModule.numero}.${index + 1} ${items[index].titulo}`,
+              previous: currentIndex > 0 ? navigation[currentIndex - 1] : undefined,
+              next: currentIndex >= 0 ? navigation[currentIndex + 1] : undefined,
+            });
 
             return;
           }
@@ -75,5 +96,11 @@ export function useContentBreadcrumb(
     return () => controller.abort();
   }, [courseId, contentId]);
 
-  return breadcrumb;
+  return context?.courseId === courseId && context.contentId === contentId
+    ? context
+    : { breadcrumb: "", previous: undefined, next: undefined };
+}
+
+export function useContentBreadcrumb(courseId: number, contentId: number) {
+  return useContentContext(courseId, contentId).breadcrumb;
 }

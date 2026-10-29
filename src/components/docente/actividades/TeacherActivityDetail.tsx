@@ -9,7 +9,8 @@ import {
 } from "react";
 
 import { API_URL } from "@/lib/api";
-import { useContentBreadcrumb } from "@/lib/use-content-breadcrumb";
+import { useContentContext } from "@/lib/use-content-breadcrumb";
+import TeacherContentNavigation from "@/components/docente/curso/TeacherContentNavigation";
 
 
 type Student = {
@@ -653,8 +654,8 @@ export default function TeacherActivityDetail({
   courseId,
   activityId,
 }: Props) {
-  const breadcrumb =
-    useContentBreadcrumb(
+  const { breadcrumb, previous, next } =
+    useContentContext(
       courseId,
       activityId
     );
@@ -1247,7 +1248,7 @@ function selectStudent(
 
 
   return (
-    <div className="activity-page-root activity-teacher-list-root">
+    <div className="activity-page-root activity-teacher-list-root flex min-h-[calc(100dvh-64px)] flex-col">
       {/* =====================================================
           HEADER
       ===================================================== */}
@@ -1276,7 +1277,7 @@ function selectStudent(
           CONTENIDO
       ===================================================== */}
 
-      <div className="activity-visual-content mt-[18px] items-start">
+      <div className="activity-visual-content mt-[18px] flex-1 items-start">
         {/* ===================================================
             LADO IZQUIERDO
         =================================================== */}
@@ -1735,6 +1736,7 @@ function selectStudent(
           </section>
         </aside>
       </div>
+      <TeacherContentNavigation courseId={courseId} previous={previous} next={next} />
 
 
       {/* =====================================================

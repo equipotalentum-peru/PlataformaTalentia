@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import TeacherContentNavigation from "@/components/docente/curso/TeacherContentNavigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
@@ -92,7 +93,7 @@ function hrefContenido(courseId: number, item: ContenidoNavegable) {
     return `/docente/cursos/${courseId}/actividades/${item.id}`;
   }
   if (item.tipo === "evaluacion") {
-    return `/docente/cursos/${courseId}/evaluaciones/${item.id}`;
+    return `/docente/cursos/${courseId}/evaluaciones/${item.id}/seguimiento`;
   }
   return `/docente/cursos/${courseId}/contenido/${item.id}`;
 }
@@ -417,17 +418,8 @@ export default function TeacherEvaluationViewer({
           ))}
         </section>
 
-        <div className="mt-8 flex items-center justify-between gap-3 border-t border-talentia-border pt-5">
-          {previousHref ? (
-            <Link href={previousHref} className="rounded-md border border-talentia-border px-4 py-2 text-sm text-talentia-primary hover:bg-talentia-hover">
-              ← Anterior
-            </Link>
-          ) : <span />}
-          {nextHref ? (
-            <Link href={nextHref} className="rounded-md bg-talentia-action px-5 py-2 text-sm font-semibold text-white hover:bg-talentia-primary">
-              Siguiente →
-            </Link>
-          ) : <span />}
+        <div className="mt-8 border-t border-talentia-border">
+          <TeacherContentNavigation courseId={courseId} previousHref={previousHref} nextHref={nextHref} />
         </div>
       </div>
     </div>

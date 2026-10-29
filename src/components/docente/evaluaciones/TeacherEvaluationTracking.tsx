@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import { useContentContext } from "@/lib/use-content-breadcrumb";
+import TeacherContentNavigation from "@/components/docente/curso/TeacherContentNavigation";
 
 type EvaluationInfo = {
   contenidoId: string;
@@ -113,6 +115,7 @@ export default function TeacherEvaluationTracking({
   contentId: number;
 }) {
   const router = useRouter();
+  const { previous, next } = useContentContext(courseId, contentId);
   const [evaluation, setEvaluation] = useState<EvaluationInfo | null>(null);
   const [students, setStudents] = useState<StudentSummary[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
@@ -232,7 +235,7 @@ export default function TeacherEvaluationTracking({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-[calc(100dvh-32px)] flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-4">
           <Link href={`/docente/cursos/${courseId}`} className="app-back-link">
@@ -250,7 +253,7 @@ export default function TeacherEvaluationTracking({
         </Link>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="grid flex-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
         <main className="min-w-0">
           <section className="border-b border-talentia-border pb-4">
             <h1 className="text-2xl font-bold leading-tight text-talentia-primary">Evaluación: {evaluation.titulo}</h1>
@@ -401,6 +404,7 @@ export default function TeacherEvaluationTracking({
           </section>
         </aside>
       </div>
+      <TeacherContentNavigation courseId={courseId} previous={previous} next={next} />
     </div>
   );
 }

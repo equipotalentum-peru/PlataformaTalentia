@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import TeacherContentNavigation from "./TeacherContentNavigation";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 import ContentViewer from "@/components/common/contenido/ContentViewer";
@@ -16,7 +17,7 @@ const types: Record<string, ContentType> = { pdf: "pdf", pptx: "ppt", docx: "wor
 
 function href(courseId: number, item: Material) {
   const path = item.tipo === "actividad" ? "actividades" : item.tipo === "evaluacion" ? "evaluaciones" : "contenido";
-  return `/docente/cursos/${courseId}/${path}/${item.id}`;
+  return `/docente/cursos/${courseId}/${path}/${item.id}${item.tipo === "evaluacion" ? "/seguimiento" : ""}`;
 }
 
 export default function TeacherMaterialViewer({ courseId, contentId }: { courseId: number; contentId: number }) {
@@ -68,10 +69,7 @@ export default function TeacherMaterialViewer({ courseId, contentId }: { courseI
     {error ? <p role="alert" className="text-sm text-talentia-danger">{error}</p> : !data ? <p role="status">Cargando contenido...</p> : <>
       {data.content.tipo === "enlace" && data.content.urlEnlace ? <a href={data.content.urlEnlace} target="_blank" rel="noopener noreferrer" className="text-sm text-talentia-blue underline">{data.content.titulo}</a> :
         <ContentViewer title={data.content.titulo} type={types[data.content.tipo] ?? "pdf"} file={data.file} downloadName={data.content.nombreArchivo} />}
-      <div className="mt-5 flex items-center justify-between gap-4">
-        {data.previous ? <Link href={data.previous} className="rounded border border-talentia-border bg-talentia-surface px-5 py-2 text-sm font-medium text-talentia-primary transition hover:bg-talentia-hover">Anterior</Link> : <span />}
-        {data.next ? <Link href={data.next} className="rounded bg-talentia-action px-5 py-2 text-sm font-medium text-white transition hover:bg-talentia-primary">Siguiente</Link> : <span />}
-      </div>
+      <TeacherContentNavigation courseId={courseId} previousHref={data.previous} nextHref={data.next} />
     </>}
   </div></div>;
 }
