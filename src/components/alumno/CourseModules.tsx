@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, } from "react";
 import { API_URL } from "@/lib/api";
+import { markContentViewed } from "@/lib/progress";
 import CourseContentIcon from "@/components/common/contenido/CourseContentIcon";
 import type { ContentType, } from "@/data/courseContents";
 
@@ -457,20 +458,49 @@ const visto =
 
                         {/* TITULO */}
                         {puedeAbrirse ? (
-                          <Link
-                            href={`/alumno/cursos/${courseId}/contenido/${contenido.id}?material=1`}
-                            className="
-                              min-w-0
-                              flex-1
-                              break-words
-                              hover:underline
-                              focus-visible:underline
-                            "
-                          >
-                            {
-                              contenido.titulo
-                            }
-                          </Link>
+                          contenido.tipo === "enlace" && contenido.urlEnlace ? (
+                            <a
+                              href={contenido.urlEnlace}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                markContentViewed(courseId, contenidoId);
+                                setModulos((modulosActuales) =>
+                                  modulosActuales.map((moduloActual) => ({
+                                    ...moduloActual,
+                                    contenidos: moduloActual.contenidos.map(
+                                      (contenidoActual) =>
+                                        Number(contenidoActual.id) === contenidoId
+                                          ? { ...contenidoActual, completado: true }
+                                          : contenidoActual
+                                    ),
+                                  }))
+                                );
+                              }}
+                              className="
+                                min-w-0
+                                flex-1
+                                break-words
+                                hover:underline
+                                focus-visible:underline
+                              "
+                            >
+                              {contenido.titulo}
+                            </a>
+                          ) : (
+                            <Link
+                              href={`/alumno/cursos/${courseId}/contenido/${contenido.id}?material=1`}
+                              className="
+                                min-w-0
+                                flex-1
+                                break-words
+                                hover:underline
+                                focus-visible:underline
+                              "
+                            >
+                              {contenido.titulo}
+                            </Link>
+                          )
                         ) : (
                           <span className="min-w-0 flex-1 break-words">
                             {

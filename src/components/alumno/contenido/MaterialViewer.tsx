@@ -15,6 +15,7 @@ type Contenido = {
   titulo: string;
   tipo: string;
   rutaArchivo: string | null;
+  urlEnlace: string | null;
   nombreArchivo: string | null;
   descripcion: string | null;
 };
@@ -68,6 +69,25 @@ export default function MaterialViewer({ courseId, contentId, backLink }: Props)
         const contenidos: Contenido[] = data.modulos.flatMap(
           (modulo: { contenidos: Contenido[] }) => modulo.contenidos
         );
+
+        const contenidoSolicitado = contenidos.find(
+          (item) => Number(item.id) === contentId
+        );
+        if (
+          contenidoSolicitado?.tipo === "enlace" &&
+          contenidoSolicitado.urlEnlace
+        ) {
+          const urlExterna = new URL(contenidoSolicitado.urlEnlace);
+          if (
+            (urlExterna.protocol === "http:" || urlExterna.protocol === "https:") &&
+            urlExterna.hostname
+          ) {
+            window.location.replace(urlExterna.toString());
+            return;
+          }
+          throw new Error("El enlace de este contenido no es válido.");
+        }
+
         const materiales = contenidos.filter(
             (item) =>
               (
